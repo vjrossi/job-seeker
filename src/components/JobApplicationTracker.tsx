@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import JobApplicationForm from './JobApplicationForm';
 import ViewApplications from './ViewApplications';
+import { indexedDBService } from '../services/indexedDBService';
 
 export interface JobApplication {
   id: number;
@@ -19,12 +20,30 @@ interface JobApplicationTrackerProps {
 const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentView }) => {
   const [applications, setApplications] = useState<JobApplication[]>([]);
 
-  const handleSubmit = (newApplication: Omit<JobApplication, 'id'>) => {
+  useEffect(() => {
+    loadApplications();
+  }, []);
+
+  const loadApplications = async () => {
+    try {
+      const loadedApplications = await indexedDBService.getAllApplications();
+      setApplications(loadedApplications);
+    } catch (error) {
+      console.error('Error loading applications:', error);
+    }
+  };
+
+  const handleSubmit = async (newApplication: Omit<JobApplication, 'id'>) => {
     const application = {
       ...newApplication,
       id: Date.now(),
     };
-    setApplications(prev => [...prev, application]);
+    try {
+      await indexedDBService.addApplication(application);
+      setApplications(prev => [...prev, application]);
+    } catch (error) {
+      console.error('Error adding application:', error);
+    }
   };
 
   return (
