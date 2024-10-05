@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import JobApplicationForm from './JobApplicationForm';
+import ViewApplications from './ViewApplications';
 
-interface JobApplication {
+export interface JobApplication {
   id: number;
   companyName: string;
   jobTitle: string;
@@ -11,29 +12,28 @@ interface JobApplication {
   applicationMethod: string;
 }
 
-const JobApplicationTracker: React.FC = () => {
+interface JobApplicationTrackerProps {
+  currentView: 'add' | 'view';
+}
+
+const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentView }) => {
   const [applications, setApplications] = useState<JobApplication[]>([]);
 
   const handleSubmit = (newApplication: Omit<JobApplication, 'id'>) => {
     const application = {
       ...newApplication,
-      id: Date.now(), // Use timestamp as a simple unique id
+      id: Date.now(),
     };
     setApplications(prev => [...prev, application]);
   };
 
   return (
     <div>
-      <h2>Job Application Tracker</h2>
-      <JobApplicationForm onSubmit={handleSubmit} />
-      <div>
-        <h3>Applications ({applications.length})</h3>
-        <ul>
-          {applications.map(app => (
-            <li key={app.id}>{app.companyName} - {app.jobTitle}</li>
-          ))}
-        </ul>
-      </div>
+      {currentView === 'add' ? (
+        <JobApplicationForm onSubmit={handleSubmit} />
+      ) : (
+        <ViewApplications applications={applications} />
+      )}
     </div>
   );
 };
