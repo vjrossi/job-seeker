@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import JobApplicationForm from './JobApplicationForm';
 import ViewApplications from './ViewApplications';
-import { indexedDBService } from '../services/indexedDBService';
 import Notification from './Notification';
 import ConfirmationModal from './ConfirmationModal';
+import { indexedDBService } from '../services/indexedDBService';
 
 export interface JobApplication {
     id: number;
@@ -74,7 +74,9 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const handleSubmit = async (newApplication: Omit<JobApplication, 'id'>) => {
         const existingApplication = applications.find(app =>
             app.companyName.toLowerCase() === newApplication.companyName.toLowerCase() &&
-            app.status !== 'Rejected' && app.status !== 'Offer Received'
+            app.status !== 'Not Accepted' && app.status !== 'No Response' && 
+            app.status !== 'Offer Accepted' && app.status !== 'Offer Declined' && 
+            app.status !== 'Withdrawn'
         );
 
         if (existingApplication) {
@@ -113,6 +115,32 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         setIsFormDirty(true);
     };
 
+    const handleStatusChange = async (id: number, newStatus: string) => {
+        try {
+            const updatedApplication = applications.find(app => app.id === id);
+            if (updatedApplication) {
+                updatedApplication.status = newStatus;
+                await indexedDBService.updateApplication(updatedApplication);
+                setApplications(applications.map(app => app.id === id ? updatedApplication : app));
+                setNotification({ message: 'Application status updated successfully!', type: 'success' });
+            }
+        } catch (error) {
+            console.error('Error updating application status:', error);
+            setNotification({ message: 'Failed to update application status. Please try again.', type: 'error' });
+        }
+    };
+
+    const statusOptions = [
+        'Applied',
+        'Interview Scheduled',
+        'No Response',
+        'Not Accepted',
+        'Offer Received',
+        'Offer Accepted',
+        'Offer Declined',
+        'Withdrawn'
+    ];
+
     return (
         <div>
             {notification && (
@@ -133,7 +161,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 <>
                     <div className="mb-3">
                         <h5>Filter by Status:</h5>
-                        {['Applied', 'Interview Scheduled', 'Rejected', 'Offer Received'].map(status => (
+                        {statusOptions.map(status => (
                             <div key={status} className="form-check form-check-inline">
                                 <input
                                     className="form-check-input"
@@ -148,7 +176,10 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                             </div>
                         ))}
                     </div>
-                    <ViewApplications applications={filteredApplications} />
+                    <ViewApplications 
+                        applications={filteredApplications} 
+                        onStatusChange={handleStatusChange}
+                    />
                 </>
             )}
             <ConfirmationModal

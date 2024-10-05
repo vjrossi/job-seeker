@@ -3,9 +3,10 @@ import { JobApplication } from './JobApplicationTracker';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
+  onStatusChange: (id: number, newStatus: string) => void;
 }
 
-const ViewApplications: React.FC<ViewApplicationsProps> = ({ applications }) => {
+const ViewApplications: React.FC<ViewApplicationsProps> = ({ applications, onStatusChange }) => {
   const [sortField, setSortField] = useState<keyof JobApplication>('dateApplied');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filter, setFilter] = useState('');
@@ -31,9 +32,19 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({ applications }) => 
     }
   };
 
+  const statusOptions = [
+    'Applied',
+    'Interview Scheduled',
+    'No Response',
+    'Not Accepted',
+    'Offer Received',
+    'Offer Accepted',
+    'Offer Declined',
+    'Withdrawn'
+  ];
+
   return (
     <div>
-      <h2>View Applications</h2>
       <input
         type="text"
         placeholder="Filter applications..."
@@ -56,7 +67,17 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({ applications }) => 
               <td>{app.companyName}</td>
               <td>{app.jobTitle}</td>
               <td>{app.dateApplied}</td>
-              <td>{app.status}</td>
+              <td>
+                <select
+                  className="form-select"
+                  value={app.status}
+                  onChange={(e) => onStatusChange(app.id, e.target.value)}
+                >
+                  {statusOptions.map(status => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </td>
             </tr>
           ))}
         </tbody>
