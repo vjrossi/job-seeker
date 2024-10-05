@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { JobApplication } from './JobApplicationTracker';
+import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
   onStatusChange: (id: number, newStatus: string) => void;
+  onEdit: (application: JobApplication) => void;
 }
 
-const ViewApplications: React.FC<ViewApplicationsProps> = ({ applications, onStatusChange }) => {
+const ViewApplications: React.FC<ViewApplicationsProps> = ({ applications, onStatusChange, onEdit }) => {
   const [sortField, setSortField] = useState<keyof JobApplication>('dateApplied');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filter, setFilter] = useState('');
@@ -31,17 +33,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({ applications, onSta
       setSortDirection('asc');
     }
   };
-
-  const statusOptions = [
-    'Applied',
-    'Interview Scheduled',
-    'No Response',
-    'Not Accepted',
-    'Offer Received',
-    'Offer Accepted',
-    'Offer Declined',
-    'Withdrawn'
-  ];
 
   return (
     <div>
@@ -73,10 +64,13 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({ applications, onSta
                   value={app.status}
                   onChange={(e) => onStatusChange(app.id, e.target.value)}
                 >
-                  {statusOptions.map(status => (
+                  {APPLICATION_STATUSES.map(status => (
                     <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
+              </td>
+              <td>
+                <button className="btn btn-primary btn-sm" onClick={() => onEdit(app)}>Edit</button>
               </td>
             </tr>
           ))}

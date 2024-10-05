@@ -4,6 +4,8 @@ import ViewApplications from './ViewApplications';
 import Notification from './Notification';
 import ConfirmationModal from './ConfirmationModal';
 import { indexedDBService } from '../services/indexedDBService';
+import EditApplicationForm from './EditApplicationForm';
+import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
 
 export interface JobApplication {
     id: number;
@@ -37,6 +39,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [pendingApplication, setPendingApplication] = useState<JobApplication | null>(null);
     const [formData, setFormData] = useState<Omit<JobApplication, 'id'>>(initialFormData);
+    const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null);
 
     useEffect(() => {
         loadApplications();
@@ -141,6 +144,30 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         'Withdrawn'
     ];
 
+    const handleEdit = (application: JobApplication) => {
+        console.log("Editing application:", application);
+        setEditingApplication(application);
+    };
+
+    const handleEditSubmit = async (updatedApplication: JobApplication) => {
+        try {
+            await indexedDBService.updateApplication(updatedApplication);
+            setApplications(applications.map(app => app.id === updatedApplication.id ? updatedApplication : app));
+            setEditingApplication(null);
+            setNotification({ message: 'Application updated successfully!', type: 'success' });
+        } catch (error) {
+            console.error('Error updating application:', error);
+            setNotification({ message: 'Failed to update application. Please try again.', type: 'error' });
+        }
+    };
+
+    const handleEditCancel = () => {
+        setEditingApplication(null);
+    };
+
+    console.log("Current view:", currentView);
+    console.log("Editing application:", editingApplication);
+
     return (
         <div>
             {notification && (
@@ -157,11 +184,17 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     onFormChange={handleFormChange}
                     existingApplications={applications}
                 />
+            ) : editingApplication ? (
+                <EditApplicationForm
+                    application={editingApplication}
+                    onSubmit={handleEditSubmit}
+                    onCancel={handleEditCancel}
+                />
             ) : (
                 <>
                     <div className="mb-3">
                         <h5>Filter by Status:</h5>
-                        {statusOptions.map(status => (
+                        {APPLICATION_STATUSES.map(status => (
                             <div key={status} className="form-check form-check-inline">
                                 <input
                                     className="form-check-input"
@@ -179,6 +212,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     <ViewApplications 
                         applications={filteredApplications} 
                         onStatusChange={handleStatusChange}
+                        onEdit={handleEdit}
                     />
                 </>
             )}

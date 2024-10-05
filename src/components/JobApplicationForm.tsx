@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { JobApplication } from './JobApplicationTracker';
+import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
 
 interface JobApplicationFormProps {
     onSubmit: (application: Omit<JobApplication, 'id'>) => void;
@@ -100,10 +101,9 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     onChange={handleChange}
                     required
                 >
-                    <option value="Applied">Applied</option>
-                    <option value="Interview Scheduled">Interview Scheduled</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Offer Received">Offer Received</option>
+                    {APPLICATION_STATUSES.map(status => (
+                        <option key={status} value={status}>{status}</option>
+                    ))}
                 </select>
             </div>
             <div className="mb-3">
