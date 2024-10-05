@@ -1,33 +1,34 @@
 import React from 'react';
 
 interface SidebarProps {
+  currentView: 'dashboard' | 'add' | 'view' | 'reports';
   onViewChange: (view: 'dashboard' | 'add' | 'view' | 'reports') => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onViewChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   return (
-    <nav className="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+    <nav id="sidebarMenu" className="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
       <div className="position-sticky pt-3">
         <ul className="nav flex-column">
           <li className="nav-item">
-            <button className="nav-link active btn btn-link text-start w-100" onClick={() => onViewChange('dashboard')}>
+            <a className={`nav-link ${currentView === 'dashboard' ? 'active' : ''}`} href="#" onClick={() => onViewChange('dashboard')}>
               Dashboard
-            </button>
+            </a>
           </li>
           <li className="nav-item">
-            <button className="nav-link btn btn-link text-start w-100" onClick={() => onViewChange('add')}>
+            <a className={`nav-link ${currentView === 'add' ? 'active' : ''}`} href="#" onClick={() => onViewChange('add')}>
               Add Application
-            </button>
+            </a>
           </li>
           <li className="nav-item">
-            <button className="nav-link btn btn-link text-start w-100" onClick={() => onViewChange('view')}>
+            <a className={`nav-link ${currentView === 'view' ? 'active' : ''}`} href="#" onClick={() => onViewChange('view')}>
               View Applications
-            </button>
+            </a>
           </li>
           <li className="nav-item">
-            <button className="nav-link btn btn-link text-start w-100" onClick={() => onViewChange('reports')}>
+            <a className={`nav-link ${currentView === 'reports' ? 'active' : ''}`} href="#" onClick={() => onViewChange('reports')}>
               Reports
-            </button>
+            </a>
           </li>
         </ul>
       </div>
