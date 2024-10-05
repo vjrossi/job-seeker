@@ -1,5 +1,5 @@
 .App {
-  text-align: center;
+  text-align: left;
 }
 
 .App-logo {
@@ -35,4 +35,9 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.sidebar {
+  height: calc(100vh - 56px - 62px); /* Adjust based on your header and footer heights */
+  overflow-y: auto;
 }
