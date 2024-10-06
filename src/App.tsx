@@ -7,19 +7,19 @@ import Footer from './components/Footer';
 import ConfirmationModal from './components/ConfirmationModal';
 
 function App() {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'add' | 'view' | 'reports'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'view' | 'reports'>('dashboard');
   const [isFormDirty, setIsFormDirty] = useState(false);
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
-  const [pendingView, setPendingView] = useState<'dashboard' | 'add' | 'view' | 'reports' | null>(null);
+  const [pendingView, setPendingView] = useState<'dashboard' | 'view' | 'reports' | null>(null);
 
-  const handleViewChange = useCallback((newView: 'dashboard' | 'add' | 'view' | 'reports') => {
-    if (isFormDirty && currentView === 'add') {
+  const handleViewChange = useCallback((newView: 'dashboard' | 'view' | 'reports') => {
+    if (isFormDirty) {
       setShowLeaveConfirmation(true);
       setPendingView(newView);
     } else {
       setCurrentView(newView);
     }
-  }, [isFormDirty, currentView]);
+  }, [isFormDirty]);
 
   const handleLeaveConfirmation = () => {
     setShowLeaveConfirmation(false);

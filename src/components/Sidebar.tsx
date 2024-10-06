@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface SidebarProps {
-  currentView: 'dashboard' | 'add' | 'view' | 'reports';
-  onViewChange: (view: 'dashboard' | 'add' | 'view' | 'reports') => void;
+  currentView: 'dashboard' | 'view' | 'reports';
+  onViewChange: (view: 'dashboard' | 'view' | 'reports') => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
@@ -11,24 +11,28 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
       <div className="position-sticky pt-3">
         <ul className="nav flex-column">
           <li className="nav-item">
-            <a className={`nav-link ${currentView === 'dashboard' ? 'active' : ''}`} href="#" onClick={() => onViewChange('dashboard')}>
+            <button
+              className={`nav-link btn btn-link text-start w-100 ${currentView === 'dashboard' ? 'active' : ''}`}
+              onClick={() => onViewChange('dashboard')}
+            >
               Dashboard
-            </a>
+            </button>
           </li>
           <li className="nav-item">
-            <a className={`nav-link ${currentView === 'add' ? 'active' : ''}`} href="#" onClick={() => onViewChange('add')}>
-              Add Application
-            </a>
+            <button
+              className={`nav-link btn btn-link text-start w-100 ${currentView === 'view' ? 'active' : ''}`}
+              onClick={() => onViewChange('view')}
+            >
+              Job Applications
+            </button>
           </li>
           <li className="nav-item">
-            <a className={`nav-link ${currentView === 'view' ? 'active' : ''}`} href="#" onClick={() => onViewChange('view')}>
-              View Applications
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className={`nav-link ${currentView === 'reports' ? 'active' : ''}`} href="#" onClick={() => onViewChange('reports')}>
+            <button
+              className={`nav-link btn btn-link text-start w-100 ${currentView === 'reports' ? 'active' : ''}`}
+              onClick={() => onViewChange('reports')}
+            >
               Reports
-            </a>
+            </button>
           </li>
         </ul>
       </div>
