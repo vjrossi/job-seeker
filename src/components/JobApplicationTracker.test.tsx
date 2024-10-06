@@ -33,7 +33,7 @@ describe('JobApplicationTracker', () => {
   });
 
   test('renders table headers', () => {
-    const headers = ['Company', 'Job Title', 'Date Applied', 'Status', 'Interview Date/Time', 'Actions'];
+    const headers = ['Company', 'Job Title', 'Date Applied', 'Status', 'Actions'];
     headers.forEach(header => {
       const headerElement = screen.getByRole('columnheader', { name: header });
       expect(headerElement).toBeInTheDocument();

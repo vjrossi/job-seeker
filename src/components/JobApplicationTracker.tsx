@@ -22,6 +22,7 @@ export interface JobApplication {
     interviewDateTime?: string; // New field
 }
 
+
 interface JobApplicationTrackerProps {
     currentView: 'dashboard' | 'view' | 'reports';
     setIsFormDirty: (isDirty: boolean) => void;
@@ -35,6 +36,7 @@ const initialFormData: Omit<JobApplication, 'id'> = {
     status: APPLICATION_STATUSES[0],
     applicationMethod: ''
 };
+
 
 const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentView, setIsFormDirty }) => {
     const [applications, setApplications] = useState<JobApplication[]>([]);
@@ -57,6 +59,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         loadApplications();
     }, []);
 
+
     const loadApplications = async () => {
         try {
             const loadedApplications = await indexedDBService.getAllApplications();
@@ -67,7 +70,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     };
 
     const filterApplications = useCallback(() => {
-        let filtered = applications;
+        let filtered = applications.filter(app => app.status !== 'Archived');
 
         if (searchTerm) {
             const lowercasedTerm = searchTerm.toLowerCase();
@@ -99,6 +102,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
     };
+
 
     const handleSubmit = async (newApplication: Omit<JobApplication, 'id'>) => {
         const applicationToAdd = { ...newApplication, id: Date.now(), status: APPLICATION_STATUSES[0] };
@@ -250,6 +254,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }, 5000);
     }, []);
 
+
     const clearNotification = useCallback(() => {
         setNotification(null);
         if (notificationTimerRef.current) {
@@ -270,6 +275,21 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         if (application) {
             setEditingApplication(application);
             setIsEditing(false);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            const updatedApplication = applications.find(app => app.id === id);
+            if (updatedApplication) {
+                updatedApplication.status = 'Archived';
+                await indexedDBService.updateApplication(updatedApplication);
+                setApplications(applications.map(app => app.id === id ? updatedApplication : app));
+                showNotification('Application archived successfully!', 'success');
+            }
+        } catch (error) {
+            console.error('Error archiving application:', error);
+            showNotification('Failed to archive application. Please try again.', 'error');
         }
     };
 
@@ -299,6 +319,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                         onSearchChange={handleSearchChange}
                         statusFilters={statusFilters}
                         onStatusFilterChange={handleStatusFilterChange}
+                        onDelete={handleDelete}
                     />
                     {showAddForm && (
                         <div className={`modal-overlay ${showAddForm ? 'show' : ''}`}>

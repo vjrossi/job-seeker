@@ -11,6 +11,7 @@ interface ViewApplicationsProps {
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   statusFilters: string[];
   onStatusFilterChange: (status: string) => void;
+  onDelete: (id: number) => void;
 }
 
 const ViewApplications: React.FC<ViewApplicationsProps> = ({ 
@@ -21,7 +22,8 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   searchTerm,
   onSearchChange,
   statusFilters,
-  onStatusFilterChange
+  onStatusFilterChange,
+  onDelete
 }) => {
   return (
     <div>
@@ -58,7 +60,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
             <th>Job Title</th>
             <th>Date Applied</th>
             <th>Status</th>
-            <th>Interview Date/Time</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -79,9 +80,9 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                   ))}
                 </select>
               </td>
-              <td>{app.interviewDateTime || 'N/A'}</td>
               <td>
-                <button className="btn btn-sm btn-outline-primary" onClick={() => onEdit(app)}>Edit</button>
+                <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEdit(app)}>View</button>
+                <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Delete</button>
               </td>
             </tr>
           ))}
