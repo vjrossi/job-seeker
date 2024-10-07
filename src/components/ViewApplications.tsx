@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
-import { APPLICATION_STATUSES, INACTIVE_STATUSES } from '../constants/applicationStatuses';
+import { APPLICATION_STATUSES, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/applicationStatuses';
 import ProgressModal from './ProgressModal';
 
 interface ViewApplicationsProps {
@@ -33,17 +33,15 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
 
   const filteredApplications = useMemo(() => {
     return applications?.filter(app => {
-      // Ensure app and app.statusHistory exist and have length
       if (app && app.statusHistory && app.statusHistory.length > 0) {
         const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
         const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
-        const matchesActiveFilter = showActive ? !INACTIVE_STATUSES.includes(currentStatus) : INACTIVE_STATUSES.includes(currentStatus);
-        console.log(`App ${app.id}: matchesSearch=${matchesSearch}, matchesStatus=${matchesStatus}, matchesActiveFilter=${matchesActiveFilter}`);
+        const matchesActiveFilter = showActive ? ACTIVE_STATUSES.includes(currentStatus) : INACTIVE_STATUSES.includes(currentStatus);
         return matchesSearch && matchesStatus && matchesActiveFilter;
       }
-      return false; // If app or statusHistory is undefined or empty, exclude it
+      return false;
     }) || [];
   }, [applications, searchTerm, statusFilters, showActive]);
 

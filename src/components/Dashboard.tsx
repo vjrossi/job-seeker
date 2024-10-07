@@ -1,34 +1,38 @@
 import React from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import Timeline from './Timeline';
-import { INACTIVE_STATUSES } from '../constants/applicationStatuses';
+import { INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/applicationStatuses';
+import './Dashboard.css'; // Make sure to create this CSS file
 
 interface DashboardProps {
   applications: JobApplication[];
   onViewApplication: (id: number) => void;
+  onStatusChange: (id: number, newStatus: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication }) => {
-  const activeApplications = applications?.filter(app => {
-    // Check if statusHistory exists and has at least one entry
-    if (app.statusHistory && app.statusHistory.length > 0) {
-      const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-      return !INACTIVE_STATUSES.includes(currentStatus);
-    }
-    return false; // If no statusHistory, consider it inactive
-  }) || [];
+const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, onStatusChange }) => {
+  const activeApplications = applications.filter(app => {
+    const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+    return ACTIVE_STATUSES.includes(currentStatus);
+  });
 
   const upcomingInterviews = activeApplications
     .filter(app => {
-      // Check if statusHistory exists and has at least one entry
-      if (app.statusHistory && app.statusHistory.length > 0) {
-        const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-        return currentStatus === 'Interview Scheduled' && app.interviewDateTime;
-      }
-      return false; // If no statusHistory, it's not an upcoming interview
+      const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+      return currentStatus === 'Interview Scheduled' && app.interviewDateTime;
     })
     .sort((a, b) => new Date(a.interviewDateTime!).getTime() - new Date(b.interviewDateTime!).getTime())
     .slice(0, 5);
+
+  const getDaysUntil = (date: string) => {
+    const today = new Date();
+    const interviewDate = new Date(date);
+    const diffTime = interviewDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    return `in ${diffDays} days`;
+  };
 
   return (
     <div className="dashboard">
@@ -40,7 +44,11 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication }
               <h5 className="mb-0">Application Timeline</h5>
             </div>
             <div className="card-body">
-              <Timeline applications={activeApplications} onViewApplication={onViewApplication} />
+              <Timeline 
+                applications={applications} 
+                onViewApplication={onViewApplication} 
+                onStatusChange={onStatusChange}
+              />
             </div>
           </div>
         </div>
@@ -54,10 +62,16 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication }
                 <ul className="list-group list-group-flush">
                   {upcomingInterviews.map(app => (
                     <li key={app.id} className="list-group-item">
-                      <strong>{app.companyName}</strong>
-                      <br />
-                      <small>{new Date(app.interviewDateTime!).toLocaleString()}</small>
-                      <br />
+                      <div className="d-flex justify-content-between align-items-start">
+                        <div>
+                          <strong>Interview with {app.companyName}</strong>
+                          <br />
+                          <small>{new Date(app.interviewDateTime!).toLocaleString()}</small>
+                        </div>
+                        <span className="badge bg-primary rounded-pill days-until">
+                          {getDaysUntil(app.interviewDateTime!)}
+                        </span>
+                      </div>
                       <button className="btn btn-sm btn-outline-primary mt-2" onClick={() => onViewApplication(app.id)}>View Details</button>
                     </li>
                   ))}

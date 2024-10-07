@@ -151,19 +151,23 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         setIsFormDirty(true);
     };
 
-    const handleStatusChange = async (id: number, newStatus: string) => {
-        console.log(`handleStatusChange called: id = ${id}, newStatus = ${newStatus}`);
-        if (APPLICATION_STATUSES.includes(newStatus)) {
-            if (newStatus === 'Interview Scheduled') {
-                console.log('Setting currentApplicationId and showInterviewModal');
-                setCurrentApplicationId(id);
-                setShowInterviewModal(true);
-            } else {
-                await updateApplicationStatus(id, newStatus);
+    const handleStatusChange = (id: number, newStatus: string) => {
+        const updatedApplications = applications.map(app => {
+            if (app.id === id) {
+                return {
+                    ...app,
+                    statusHistory: [
+                        ...app.statusHistory,
+                        { status: newStatus, timestamp: new Date().toISOString() }
+                    ]
+                };
             }
-        } else {
-            console.error(`Invalid status: ${newStatus}`);
-        }
+            return app;
+        });
+
+        setApplications(updatedApplications);
+        indexedDBService.updateApplication(updatedApplications.find(app => app.id === id)!);
+        setNotification({ message: 'Application status updated successfully', type: 'success' });
     };
 
     const updateApplicationStatus = async (id: number, newStatus: string, interviewDateTime?: string) => {
@@ -320,6 +324,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 <Dashboard
                     applications={applications}
                     onViewApplication={handleViewApplication}
+                    onStatusChange={handleStatusChange}
                 />
             )}
             {currentView === 'view' && (

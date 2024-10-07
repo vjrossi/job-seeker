@@ -34,7 +34,14 @@ describe('Dashboard', () => {
     ];
 
     beforeEach(() => {
-        render(<Dashboard applications={mockApplications} onViewApplication={mockOnViewApplication} />);
+        const mockOnStatusChange = jest.fn();
+        render(
+            <Dashboard 
+                applications={mockApplications} 
+                onViewApplication={mockOnViewApplication} 
+                onStatusChange={mockOnStatusChange}
+            />
+        );
     });
 
     test('renders Application Timeline', () => {
@@ -44,11 +51,8 @@ describe('Dashboard', () => {
     test('renders Upcoming Events', () => {
         expect(screen.getByText('Upcoming Events')).toBeInTheDocument();
     });
-
     test('displays upcoming interviews', () => {
-        expect(screen.getByText('Company B')).toBeInTheDocument();
-        expect(screen.getByText(/2023-01-20/)).toBeInTheDocument();
+        expect(screen.getByText('Interview with Company B')).toBeInTheDocument();
+        expect(screen.getByText('21/01/2023, 1:00:00 am')).toBeInTheDocument();
     });
-
-    // Add more tests as needed
 });

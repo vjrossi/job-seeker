@@ -1,0 +1,102 @@
+.timeline-container {
+    max-width: 100%;
+    padding: 20px 20px 20px 80px;
+    position: relative;
+  }
+  
+  .timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+    border-left: 2px solid #ccc;
+    padding-left: 20px;
+    margin-left: 10px;
+  }
+  
+  .timeline-item.inactive {
+    opacity: 0.7;
+  }
+  
+  .timeline-item-content {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .inactive-badge {
+    display: inline-block;
+    background-color: #6c757d;
+    color: white;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 10px;
+  }
+  
+  .timeline-stages {
+    margin-top: 10px;
+  }
+  
+  .timeline-stage {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .timeline-stage-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .timeline-stage-content {
+    flex-grow: 1;
+  }
+  
+  .timeline-stage-content p {
+    margin: 0;
+    font-weight: bold;
+  }
+  
+  .timeline-stage-content small {
+    color: #6c757d;
+  }
+  
+  .timeline-year {
+    position: absolute;
+    left: -70px;
+    top: -10px;
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #6c757d;
+  }
+  
+  .timeline-month {
+    position: absolute;
+    left: -80px;
+    top: 0;
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #6c757d;
+  }
+
+  .timeline-year-month {
+    position: absolute;
+    left: -80px;
+    top: 0;
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #6c757d;
+  }
+
+  .timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .timeline-header h3 {
+    margin: 0;
+  }
