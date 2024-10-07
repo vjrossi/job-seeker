@@ -152,22 +152,12 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     };
 
     const handleStatusChange = (id: number, newStatus: string) => {
-        const updatedApplications = applications.map(app => {
-            if (app.id === id) {
-                return {
-                    ...app,
-                    statusHistory: [
-                        ...app.statusHistory,
-                        { status: newStatus, timestamp: new Date().toISOString() }
-                    ]
-                };
-            }
-            return app;
-        });
-
-        setApplications(updatedApplications);
-        indexedDBService.updateApplication(updatedApplications.find(app => app.id === id)!);
-        setNotification({ message: 'Application status updated successfully', type: 'success' });
+        if (newStatus === 'Interview Scheduled') {
+            setCurrentApplicationId(id);
+            setShowInterviewModal(true);
+        } else {
+            updateApplicationStatus(id, newStatus);
+        }
     };
 
     const updateApplicationStatus = async (id: number, newStatus: string, interviewDateTime?: string) => {
