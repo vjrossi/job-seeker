@@ -110,7 +110,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     };
 
     const handleSubmit = async (newApplication: Omit<JobApplication, 'id'>) => {
-        const applicationToAdd = { ...newApplication, id: Date.now(), status: APPLICATION_STATUSES[0] };
+        const applicationToAdd = { ...newApplication, id: Date.now() };
         await addApplication(applicationToAdd);
         setFormData(initialFormData);
         setIsFormDirty(false);
