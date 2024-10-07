@@ -1,49 +1,53 @@
-import React, { useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import './InterviewScheduleModal.css';
 
 interface InterviewScheduleModalProps {
-  show: boolean;
-  onHide: () => void;
-  onSchedule: (dateTime: string) => void;
+    show: boolean;
+    onHide: () => void;
+    onSchedule: (dateTime: string) => void;
 }
 
 const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({ show, onHide, onSchedule }) => {
-  const [interviewDateTime, setInterviewDateTime] = useState('');
+    const [interviewDateTime, setInterviewDateTime] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSchedule(interviewDateTime);
-    onHide();
-  };
+    useEffect(() => {
+        console.log('InterviewScheduleModal rendered, show:', show);
+    }, [show]);
 
-  return (
-    <Modal show={show} onHide={onHide}>
-      <Modal.Header closeButton>
-        <Modal.Title>Schedule Interview</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group>
-            <Form.Label>Interview Date and Time</Form.Label>
-            <Form.Control
-              type="datetime-local"
-              value={interviewDateTime}
-              onChange={(e) => setInterviewDateTime(e.target.value)}
-              required
-            />
-          </Form.Group>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          Cancel
-        </Button>
-        <Button variant="primary" onClick={handleSubmit}>
-          Schedule
-        </Button>
-      </Modal.Footer>
-    </Modal>
-  );
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        console.log('Scheduling interview for:', interviewDateTime);
+        onSchedule(interviewDateTime);
+        onHide();
+    };
+
+    if (!show) return null;
+
+    return ReactDOM.createPortal(
+        <div className="interview-modal-overlay">
+            <div className="interview-modal-content">
+                <h2>Schedule Interview</h2>
+                <form onSubmit={handleSubmit}>
+                    <div className="interview-form-group">
+                        <label htmlFor="interviewDateTime">Interview Date and Time:</label>
+                        <input
+                            type="datetime-local"
+                            id="interviewDateTime"
+                            value={interviewDateTime}
+                            onChange={(e) => setInterviewDateTime(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="interview-modal-buttons">
+                        <button type="button" onClick={onHide}>Cancel</button>
+                        <button type="submit">Schedule</button>
+                    </div>
+                </form>
+            </div>
+        </div>,
+        document.body
+    );
 };
 
 export default InterviewScheduleModal;

@@ -4,20 +4,19 @@ import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
 
 interface ViewEditApplicationFormProps {
   application: JobApplication;
-  onSubmit: (updatedApplication: JobApplication) => void;
+  onSave: (updatedApplication: JobApplication) => void;
   onCancel: () => void;
-  isEditing: boolean;
-  setIsEditing: (isEditing: boolean) => void;
+  onStatusChange: (id: number, newStatus: string) => void;
 }
 
 const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({ 
   application, 
-  onSubmit, 
+  onSave, 
   onCancel, 
-  isEditing, 
-  setIsEditing 
+  onStatusChange 
 }) => {
   const [formData, setFormData] = useState<JobApplication>(application);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     setFormData(application);
@@ -25,12 +24,23 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    console.log(`handleChange called in ViewEditApplicationForm: ${name} = ${value}`);
+    
+    setFormData(prev => {
+      const updatedData = { ...prev, [name]: value };
+      
+      if (name === 'status' && value !== application.status) {
+        console.log(`Status changed to ${value}, calling onStatusChange`);
+        onStatusChange(application.id, value);
+      }
+      
+      return updatedData;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSave(formData);
     setIsEditing(false);
   };
 

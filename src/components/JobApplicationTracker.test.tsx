@@ -20,10 +20,17 @@ describe('JobApplicationTracker', () => {
     expect(searchInput).toBeInTheDocument();
   });
 
-  test('renders status filter buttons', () => {
-    APPLICATION_STATUSES.forEach(status => {
+  test('renders status filter buttons based on active state', () => {
+    const activeStatuses = ['Applied', 'Interview Scheduled', 'No Response', 'Offer Received', 'Offer Accepted'];
+    const inactiveStatuses = APPLICATION_STATUSES.filter(status => !activeStatuses.includes(status));
+
+    activeStatuses.forEach(status => {
       const filterButton = screen.getByRole('button', { name: status });
       expect(filterButton).toBeInTheDocument();
+    });
+
+    inactiveStatuses.forEach(status => {
+      expect(screen.queryByRole('button', { name: status })).not.toBeInTheDocument();
     });
   });
 

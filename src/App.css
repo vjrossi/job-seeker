@@ -63,17 +63,17 @@
     visibility: visible;
 }
 
-.modal-content {
+.modal-overlay .modal-content {
     background-color: white;
     padding: 2rem;
     border-radius: 8px;
     width: 80%;
     max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
+    max-height: 95vh;
     transform: translateY(-20px);
     opacity: 0;
     transition: transform 0.3s ease, opacity 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .modal-overlay.show .modal-content {
@@ -153,3 +153,9 @@
 .timeline-content h6 {
   margin-top: 0;
 }
+
+.modal-overlay .modal-body {
+    max-height: calc(95vh - 200px);
+    overflow-y: auto;
+}
+

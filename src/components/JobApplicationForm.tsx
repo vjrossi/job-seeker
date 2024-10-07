@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { JobApplication } from './JobApplicationTracker';
-import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
+import { APPLICATION_STATUSES, INACTIVE_STATUSES } from '../constants/applicationStatuses';
 
 interface JobApplicationFormProps {
     onSubmit: (application: Omit<JobApplication, 'id'>) => void;
@@ -15,27 +15,40 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
     const [companyWarning, setCompanyWarning] = useState<string | null>(null);
     const [dateWarning, setDateWarning] = useState<string | null>(null);
 
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+
+    // Use the provided formData or create a new object with today's date
+    const initialFormData = {
+        ...formData,
+        dateApplied: formData.dateApplied || today
+    };
+
+    const [localFormData, setLocalFormData] = useState(initialFormData);
+
     useEffect(() => {
         // Ensure the status is always 'Applied' for new applications
-        onFormChange({ ...formData, status: 'Applied' });
+        onFormChange({ ...localFormData, status: 'Applied' });
     }, []);
 
     useEffect(() => {
         // Check for existing applications with the same company name
         const existingApplication = existingApplications.find(
-            app => app.companyName.toLowerCase() === formData.companyName.toLowerCase() && app.status !== 'Withdrawn'
+            app => app.companyName.toLowerCase() === localFormData.companyName.toLowerCase() && !INACTIVE_STATUSES.includes(app.status)
         );
 
         if (existingApplication) {
-            setCompanyWarning(`You already have an active application for ${formData.companyName}.`);
+            setCompanyWarning(`You already have an active application for ${localFormData.companyName}.`);
         } else {
             setCompanyWarning(null);
         }
-    }, [formData.companyName, existingApplications]);
+    }, [localFormData.companyName, existingApplications]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        onFormChange({ ...formData, [name]: value });
+        const updatedFormData = { ...localFormData, [name]: value };
+        setLocalFormData(updatedFormData);
+        onFormChange(updatedFormData);
 
         if (name === 'dateApplied') {
             validateDate(value);
@@ -75,16 +88,26 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         e.preventDefault();
         const newErrors: { [key: string]: string } = {};
 
-        if (!formData.companyName.trim()) {
+        if (!localFormData.companyName.trim()) {
             newErrors.companyName = 'Company name is required';
+        } else {
+            // Check for existing active applications
+            const existingActiveApplication = existingApplications.find(app => 
+                app.companyName.toLowerCase() === localFormData.companyName.toLowerCase() &&
+                !INACTIVE_STATUSES.includes(app.status)
+            );
+
+            if (existingActiveApplication) {
+                setDateWarning(`You already have an active application for ${localFormData.companyName}. Do you want to proceed?`);
+            }
         }
-        if (!formData.jobTitle.trim()) {
+        if (!localFormData.jobTitle.trim()) {
             newErrors.jobTitle = 'Job title is required';
         }
-        if (!formData.dateApplied) {
+        if (!localFormData.dateApplied) {
             newErrors.dateApplied = 'Date applied is required';
         } else {
-            const selectedDate = new Date(formData.dateApplied);
+            const selectedDate = new Date(localFormData.dateApplied);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const threeDaysFromNow = new Date(today);
@@ -101,14 +124,13 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         }
 
         // If there's a date warning, ask for confirmation
-        if (dateWarning && dateWarning !== "Date cannot be more than 3 days in the future.") {
-            if (!window.confirm(`${dateWarning} Do you want to proceed?`)) {
+        if (dateWarning) {
+            if (!window.confirm(dateWarning)) {
                 return;
             }
         }
 
-        // No need to force 'Applied' status here as it's already set
-        onSubmit(formData);
+        onSubmit(localFormData);
     };
 
     return (
@@ -120,7 +142,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     className={`form-control ${errors.companyName ? 'is-invalid' : ''}`}
                     id="companyName"
                     name="companyName"
-                    value={formData.companyName}
+                    value={localFormData.companyName}
                     onChange={handleChange}
                     required
                 />
@@ -138,7 +160,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     className={`form-control ${errors.jobTitle ? 'is-invalid' : ''}`}
                     id="jobTitle"
                     name="jobTitle"
-                    value={formData.jobTitle}
+                    value={localFormData.jobTitle}
                     onChange={handleChange}
                     required
                 />
@@ -150,7 +172,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     className="form-control"
                     id="jobDescription"
                     name="jobDescription"
-                    value={formData.jobDescription}
+                    value={localFormData.jobDescription}
                     onChange={handleChange}
                     rows={3}
                 ></textarea>
@@ -162,7 +184,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     className={`form-control ${errors.dateApplied ? 'is-invalid' : ''}`}
                     id="dateApplied"
                     name="dateApplied"
-                    value={formData.dateApplied}
+                    value={localFormData.dateApplied}
                     onChange={handleChange}
                     required
                 />
@@ -178,7 +200,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     className="form-control"
                     id="applicationMethod"
                     name="applicationMethod"
-                    value={formData.applicationMethod}
+                    value={localFormData.applicationMethod}
                     onChange={handleChange}
                     required
                 />

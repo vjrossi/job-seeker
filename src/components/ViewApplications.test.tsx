@@ -42,13 +42,6 @@ describe('ViewApplications', () => {
     });
   });
 
-  test('status filter buttons are present and unchanged', () => {
-    APPLICATION_STATUSES.forEach(status => {
-      const filterButton = screen.getByRole('button', { name: status });
-      expect(filterButton).toBeInTheDocument();
-    });
-  });
-
   test('table headers are present and unchanged', () => {
     const headers = ['Company', 'Job Title', 'Date Applied', 'Status', 'Actions'];
     headers.forEach(header => {
@@ -66,6 +59,8 @@ describe('ViewApplications', () => {
         expect(row).toHaveTextContent(mockApplications[index - 1].jobTitle);
         expect(row).toHaveTextContent(mockApplications[index - 1].dateApplied);
         expect(row).toHaveTextContent(mockApplications[index - 1].status);
+        expect(row).toHaveTextContent('Progress');
+        
       }
     });
   });

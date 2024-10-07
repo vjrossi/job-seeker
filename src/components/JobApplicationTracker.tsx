@@ -48,7 +48,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [pendingApplication, setPendingApplication] = useState<JobApplication | null>(null);
     const [formData, setFormData] = useState<Omit<JobApplication, 'id'>>(initialFormData);
     const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
     const notificationTimerRef = useRef<number | null>(null);
@@ -58,7 +57,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     useEffect(() => {
         loadApplications();
     }, []);
-
 
     const loadApplications = async () => {
         try {
@@ -70,7 +68,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     };
 
     const filterApplications = useCallback(() => {
-        let filtered = applications.filter(app => app.status !== 'Archived');
+        let filtered = applications;
 
         if (searchTerm) {
             const lowercasedTerm = searchTerm.toLowerCase();
@@ -103,7 +101,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         setSearchTerm(event.target.value);
     };
 
-
     const handleSubmit = async (newApplication: Omit<JobApplication, 'id'>) => {
         const applicationToAdd = { ...newApplication, id: Date.now(), status: APPLICATION_STATUSES[0] };
         await addApplication(applicationToAdd);
@@ -116,7 +113,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         try {
             await indexedDBService.addApplication(application);
             setApplications(prev => [...prev, application]);
-            setNotification({ message: 'Application added successfully!', type: 'success' });
+            setNotification({ message: 'Application added.', type: 'success' });
         } catch (error) {
             console.error('Error adding application:', error);
             setNotification({ message: 'Failed to add application. Please try again.', type: 'error' });
@@ -139,8 +136,10 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     };
 
     const handleStatusChange = async (id: number, newStatus: string) => {
+        console.log(`handleStatusChange called: id = ${id}, newStatus = ${newStatus}`);
         if (APPLICATION_STATUSES.includes(newStatus)) {
             if (newStatus === 'Interview Scheduled') {
+                console.log('Setting currentApplicationId and showInterviewModal');
                 setCurrentApplicationId(id);
                 setShowInterviewModal(true);
             } else {
@@ -166,7 +165,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 }
                 await indexedDBService.updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
-                showNotification('Application status updated successfully!', 'success');
+                showNotification('Application status updated.', 'success');
             }
         } catch (error) {
             console.error('Error updating application status:', error);
@@ -176,31 +175,25 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
     const handleInterviewSchedule = async (dateTime: string) => {
         if (currentApplicationId) {
-            await updateApplicationStatus(currentApplicationId, APPLICATION_STATUSES[1], dateTime);
+            await updateApplicationStatus(currentApplicationId, 'Interview Scheduled', dateTime);
+            setShowInterviewModal(false);
             setCurrentApplicationId(null);
         }
     };
 
     const handleEdit = (application: JobApplication) => {
         setEditingApplication(application);
-        setIsEditing(false);  // Set this to false initially
     };
 
     const handleEditSubmit = async (updatedApplication: JobApplication) => {
         try {
             await indexedDBService.updateApplication(updatedApplication);
             setApplications(applications.map(app => app.id === updatedApplication.id ? updatedApplication : app));
-            setNotification({ message: 'Application updated successfully!', type: 'success' });
-            setIsEditing(false);
+            setNotification({ message: 'Application updated.', type: 'success' });
         } catch (error) {
             console.error('Error updating application:', error);
             setNotification({ message: 'Failed to update application. Please try again.', type: 'error' });
         }
-    };
-
-    const handleEditCancel = () => {
-        setEditingApplication(null);
-        setIsEditing(false);
     };
 
     const handleAddApplication = () => {
@@ -237,9 +230,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         };
     }, [showAddForm, handleClickOutside, handleKeyDown]);
 
-    console.log("Current view:", currentView);
-    console.log("Editing application:", editingApplication);
-
     const showNotification = useCallback((message: string, type: 'success' | 'error') => {
         setNotification({ message, type });
 
@@ -253,7 +243,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             setNotification(null);
         }, 5000);
     }, []);
-
 
     const clearNotification = useCallback(() => {
         setNotification(null);
@@ -274,7 +263,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         const application = applications.find(app => app.id === id);
         if (application) {
             setEditingApplication(application);
-            setIsEditing(false);
         }
     };
 
@@ -285,13 +273,17 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 updatedApplication.status = 'Archived';
                 await indexedDBService.updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
-                showNotification('Application archived successfully!', 'success');
+                showNotification('Application archived.', 'success');
             }
         } catch (error) {
             console.error('Error archiving application:', error);
             showNotification('Failed to archive application. Please try again.', 'error');
         }
     };
+
+    useEffect(() => {
+        console.log('showInterviewModal changed:', showInterviewModal);
+    }, [showInterviewModal]);
 
     return (
         <div className="mt-4">
@@ -344,10 +336,9 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             {editingApplication && (
                 <ViewEditApplicationForm
                     application={editingApplication}
-                    onSubmit={handleEditSubmit}
-                    onCancel={handleEditCancel}
-                    isEditing={isEditing}
-                    setIsEditing={setIsEditing}
+                    onSave={handleEditSubmit}
+                    onCancel={() => setEditingApplication(null)}
+                    onStatusChange={handleStatusChange}
                 />
             )}
             <ConfirmationModal

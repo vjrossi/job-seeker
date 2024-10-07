@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import Footer from './components/Footer';
 import ConfirmationModal from './components/ConfirmationModal';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const [currentView, setCurrentView] = useState<'dashboard' | 'view' | 'reports'>('dashboard');

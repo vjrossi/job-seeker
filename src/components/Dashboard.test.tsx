@@ -59,4 +59,15 @@ describe('Dashboard', () => {
             throw new Error('Upcoming Events section not found');
         }
     });
+
+    test('displays upcoming events correctly', () => {
+        const upcomingEventsSection = screen.getByText('Upcoming Events').closest('.card') as HTMLElement;
+        if (upcomingEventsSection) {
+            const upcomingEventItems = within(upcomingEventsSection).getAllByText(/View Details/i);
+            const scheduledInterviews = mockApplications.filter(app => app.status === 'Interview Scheduled');
+            expect(upcomingEventItems).toHaveLength(scheduledInterviews.length);
+        } else {
+            throw new Error('Upcoming Events section not found');
+        }
+    });
 });

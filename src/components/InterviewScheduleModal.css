@@ -1,0 +1,78 @@
+.interview-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.interview-modal-content {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 250px;
+    max-width: 90%;
+}
+
+.interview-modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.interview-form-group {
+    margin-bottom: 15px;
+}
+
+.interview-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    font-size: 1rem;
+}
+
+.interview-form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: #fff;
+}
+
+.interview-modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.interview-modal-buttons button {
+    margin-left: 10px;
+    padding: 8px 15px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.interview-modal-buttons button[type="button"] {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.interview-modal-buttons button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+}
+
+.interview-modal-buttons button:hover {
+    opacity: 0.8;
+}
