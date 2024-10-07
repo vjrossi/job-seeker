@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { JobApplication } from './JobApplicationTracker';
+import ProgressModal from './ProgressModal';
+import { useProgressModal } from '../hooks/useProgressModal'; // Import the new hook
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { APPLICATION_STATUSES, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/applicationStatuses';
-import ProgressModal from './ProgressModal';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -27,9 +28,16 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   onStatusFilterChange,
   onDelete
 }) => {
-  const [showProgressModal, setShowProgressModal] = useState(false);
-  const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [showActive, setShowActive] = useState(true);
+
+  // Use the new custom hook
+  const {
+    showProgressModal,
+    selectedApplication,
+    handleProgressClick,
+    handleClose,
+    handleConfirm
+  } = useProgressModal(onStatusChange);
 
   const filteredApplications = useMemo(() => {
     return applications?.filter(app => {
@@ -51,21 +59,8 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     );
   }, [showActive]);
 
-  const handleProgressClick = (app: JobApplication) => {
-    setSelectedApplication(app);
-    setShowProgressModal(true);
-  };
-
-  const handleProgressConfirm = (newStatus: string) => {
-    if (selectedApplication) {
-      onStatusChange(selectedApplication.id, newStatus);
-    }
-    setShowProgressModal(false);
-    setSelectedApplication(null);
-  };
-
   return (
-    <div>
+    <div className="view-applications">
       <h2>Job Applications</h2>
       <button className="btn btn-primary mb-3" onClick={onAddApplication}>Add New Application</button>
       <div className="mb-3">
@@ -146,8 +141,8 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
       {showProgressModal && selectedApplication && (
         <ProgressModal
           application={selectedApplication}
-          onClose={() => setShowProgressModal(false)}
-          onConfirm={handleProgressConfirm}
+          onClose={handleClose}
+          onConfirm={handleConfirm}
         />
       )}
     </div>
