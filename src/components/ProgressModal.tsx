@@ -20,7 +20,8 @@ const statusToQuestionMap: { [key: string]: string } = {
 };
 
 const ProgressModal: React.FC<ProgressModalProps> = ({ application, onClose, onConfirm }) => {
-  const nextStatuses = getNextStatuses(application.status);
+  const currentStatus = application.statusHistory[application.statusHistory.length - 1].status;
+  const nextStatuses = getNextStatuses(currentStatus);
 
   return (
     <div className="modal d-block" tabIndex={-1}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import Timeline from './Timeline';
+import { INACTIVE_STATUSES } from '../constants/applicationStatuses';
 
 interface DashboardProps {
   applications: JobApplication[];
@@ -8,10 +9,24 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication }) => {
-  const activeApplications = applications.filter(app => app.status !== 'Archived');
+  const activeApplications = applications?.filter(app => {
+    // Check if statusHistory exists and has at least one entry
+    if (app.statusHistory && app.statusHistory.length > 0) {
+      const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+      return !INACTIVE_STATUSES.includes(currentStatus);
+    }
+    return false; // If no statusHistory, consider it inactive
+  }) || [];
 
   const upcomingInterviews = activeApplications
-    .filter(app => app.status === 'Interview Scheduled' && app.interviewDateTime)
+    .filter(app => {
+      // Check if statusHistory exists and has at least one entry
+      if (app.statusHistory && app.statusHistory.length > 0) {
+        const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+        return currentStatus === 'Interview Scheduled' && app.interviewDateTime;
+      }
+      return false; // If no statusHistory, it's not an upcoming interview
+    })
     .sort((a, b) => new Date(a.interviewDateTime!).getTime() - new Date(b.interviewDateTime!).getTime())
     .slice(0, 5);
 

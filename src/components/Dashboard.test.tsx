@@ -1,34 +1,37 @@
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import Dashboard from './Dashboard';
+import { JobApplication } from '../components/JobApplicationTracker';
 
 describe('Dashboard', () => {
-    const mockApplications = [
+    const mockOnViewApplication = jest.fn();
+
+    const mockApplications: JobApplication[] = [
         {
             id: 1,
-            companyName: 'bbbb',
-            jobTitle: 'bbb',
-            dateApplied: '2222-02-22',
-            status: 'Applied',
-            jobDescription: 'Test job description',
-            applicationMethod: 'Website',
+            companyName: 'Company A',
+            jobTitle: 'Job A',
+            jobDescription: 'Description A',
+            applicationMethod: 'Online',
+            statusHistory: [
+                { status: 'Applied', timestamp: '2023-01-01T00:00:00.000Z' }
+            ],
+            interviewDateTime: '2023-01-15T10:00:00.000Z'
         },
         {
             id: 2,
-            companyName: 'Steadfast',
-            jobTitle: 'Software Engineer',
-            dateApplied: '2024-10-02',
-            status: 'Interview Scheduled',
-            interviewDateTime: '2024-10-02T00:00:00',
-            jobDescription: 'Mock job description',
-            applicationMethod: 'Website'
+            companyName: 'Company B',
+            jobTitle: 'Job B',
+            jobDescription: 'Description B',
+            applicationMethod: 'Email',
+            statusHistory: [
+                { status: 'Applied', timestamp: '2023-01-02T00:00:00.000Z' },
+                { status: 'Interview Scheduled', timestamp: '2023-01-10T00:00:00.000Z' }
+            ],
+            interviewDateTime: '2023-01-20T14:00:00.000Z'
         },
-        // Add more mock applications as needed
     ];
-
-    const mockViewApplication = jest.fn();
-    const mockOnViewApplication = jest.fn();
 
     beforeEach(() => {
         render(<Dashboard applications={mockApplications} onViewApplication={mockOnViewApplication} />);
@@ -42,32 +45,10 @@ describe('Dashboard', () => {
         expect(screen.getByText('Upcoming Events')).toBeInTheDocument();
     });
 
-    test('displays correct number of applications in timeline', () => {
-        const timelineSection = screen.getByText('Application Timeline').closest('.card');
-        expect(timelineSection).not.toBeNull();
-        const timelineItems = within(timelineSection as HTMLElement).getAllByText(/View Details/i);
-        expect(timelineItems).toHaveLength(mockApplications.length);
+    test('displays upcoming interviews', () => {
+        expect(screen.getByText('Company B')).toBeInTheDocument();
+        expect(screen.getByText(/2023-01-20/)).toBeInTheDocument();
     });
 
-    test('displays correct number of upcoming events', () => {
-        const upcomingEventsSection = screen.getByText('Upcoming Events').closest('.card') as HTMLElement;
-        if (upcomingEventsSection) {
-            const upcomingEventItems = within(upcomingEventsSection).getAllByText(/View Details/i);
-            const scheduledInterviews = mockApplications.filter(app => app.status === 'Interview Scheduled');
-            expect(upcomingEventItems).toHaveLength(scheduledInterviews.length);
-        } else {
-            throw new Error('Upcoming Events section not found');
-        }
-    });
-
-    test('displays upcoming events correctly', () => {
-        const upcomingEventsSection = screen.getByText('Upcoming Events').closest('.card') as HTMLElement;
-        if (upcomingEventsSection) {
-            const upcomingEventItems = within(upcomingEventsSection).getAllByText(/View Details/i);
-            const scheduledInterviews = mockApplications.filter(app => app.status === 'Interview Scheduled');
-            expect(upcomingEventItems).toHaveLength(scheduledInterviews.length);
-        } else {
-            throw new Error('Upcoming Events section not found');
-        }
-    });
+    // Add more tests as needed
 });

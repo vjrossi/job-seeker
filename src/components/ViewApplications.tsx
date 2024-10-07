@@ -32,16 +32,19 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   const [showActive, setShowActive] = useState(true);
 
   const filteredApplications = useMemo(() => {
-    const filtered = applications.filter(app => {
-      const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilters.length === 0 || statusFilters.includes(app.status);
-      const matchesActiveFilter = showActive ? !INACTIVE_STATUSES.includes(app.status) : INACTIVE_STATUSES.includes(app.status);
-      console.log(`App ${app.id}: matchesSearch=${matchesSearch}, matchesStatus=${matchesStatus}, matchesActiveFilter=${matchesActiveFilter}`);
-      return matchesSearch && matchesStatus && matchesActiveFilter;
-    });
-    console.log('Filtered applications:', filtered);
-    return filtered;
+    return applications?.filter(app => {
+      // Ensure app and app.statusHistory exist and have length
+      if (app && app.statusHistory && app.statusHistory.length > 0) {
+        const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+        const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
+        const matchesActiveFilter = showActive ? !INACTIVE_STATUSES.includes(currentStatus) : INACTIVE_STATUSES.includes(currentStatus);
+        console.log(`App ${app.id}: matchesSearch=${matchesSearch}, matchesStatus=${matchesStatus}, matchesActiveFilter=${matchesActiveFilter}`);
+        return matchesSearch && matchesStatus && matchesActiveFilter;
+      }
+      return false; // If app or statusHistory is undefined or empty, exclude it
+    }) || [];
   }, [applications, searchTerm, statusFilters, showActive]);
 
   const relevantStatuses = useMemo(() => {
@@ -116,27 +119,30 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           </tr>
         </thead>
         <tbody>
-          {filteredApplications.map(app => (
-            <tr key={app.id}>
-              <td>{app.companyName}</td>
-              <td>{app.jobTitle}</td>
-              <td>{app.dateApplied}</td>
-              <td>{app.status}</td>
-              <td>
-                <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEdit(app)}>View</button>
-                {!INACTIVE_STATUSES.includes(app.status) && (
-                  <button
-                    className="btn btn-sm btn-outline-primary me-2"
-                    onClick={() => handleProgressClick(app)}
-                    disabled={getNextStatuses(app.status).length === 0}
-                  >
-                    Progress
-                  </button>
-                )}
-                <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
+          {filteredApplications.map(app => {
+            const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+            return (
+              <tr key={app.id}>
+                <td>{app.companyName}</td>
+                <td>{app.jobTitle}</td>
+                <td>{new Date(app.statusHistory[0].timestamp).toLocaleDateString()}</td>
+                <td>{currentStatus}</td>
+                <td>
+                  <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEdit(app)}>View</button>
+                  {!INACTIVE_STATUSES.includes(currentStatus) && (
+                    <button
+                      className="btn btn-sm btn-outline-primary me-2"
+                      onClick={() => handleProgressClick(app)}
+                      disabled={getNextStatuses(currentStatus).length === 0}
+                    >
+                      Progress
+                    </button>
+                  )}
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Delete</button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       {showProgressModal && selectedApplication && (

@@ -26,9 +26,23 @@ describe('JobApplicationForm', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
-
     it('renders with "Applied" status and readonly', () => {
-        render(<JobApplicationForm {...defaultProps} />);
+        render(<JobApplicationForm 
+            onSubmit={mockOnSubmit} 
+            formData={{
+                companyName: '',
+                jobTitle: '',
+                jobDescription: '',
+                applicationMethod: '',
+                statusHistory: [{
+                    status: 'Applied',
+                    timestamp: new Date().toISOString()
+                }]
+            }}
+            onFormChange={mockOnFormChange}
+            existingApplications={[]}
+            onCancel={mockOnCancel}
+        />);
 
         const statusInput = screen.getByLabelText('Status') as HTMLInputElement;
         expect(statusInput).toHaveValue('Applied');

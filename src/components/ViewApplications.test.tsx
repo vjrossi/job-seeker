@@ -6,8 +6,8 @@ import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
 
 describe('ViewApplications', () => {
   const mockApplications: JobApplication[] = [
-    { id: 1, companyName: 'Company A', jobTitle: 'Job A', dateApplied: '2023-01-01', status: APPLICATION_STATUSES[0], jobDescription: '', applicationMethod: '' },
-    { id: 2, companyName: 'Company B', jobTitle: 'Job B', dateApplied: '2023-01-02', status: APPLICATION_STATUSES[1], jobDescription: '', applicationMethod: '' },
+    { id: 1, companyName: 'Company A', jobTitle: 'Job A', statusHistory: [{ status: APPLICATION_STATUSES[0], timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '' },
+    { id: 2, companyName: 'Company B', jobTitle: 'Job B', statusHistory: [{ status: APPLICATION_STATUSES[1], timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '' },
   ];
 
   const mockProps = {
@@ -57,8 +57,7 @@ describe('ViewApplications', () => {
       if (index > 0) {
         expect(row).toHaveTextContent(mockApplications[index - 1].companyName);
         expect(row).toHaveTextContent(mockApplications[index - 1].jobTitle);
-        expect(row).toHaveTextContent(mockApplications[index - 1].dateApplied);
-        expect(row).toHaveTextContent(mockApplications[index - 1].status);
+        expect(row).toHaveTextContent(mockApplications[index - 1].statusHistory[0].status);
         expect(row).toHaveTextContent('Progress');
         
       }

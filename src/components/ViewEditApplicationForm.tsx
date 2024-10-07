@@ -27,11 +27,20 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     console.log(`handleChange called in ViewEditApplicationForm: ${name} = ${value}`);
     
     setFormData(prev => {
-      const updatedData = { ...prev, [name]: value };
+      const updatedData = { ...prev };
       
-      if (name === 'status' && value !== application.status) {
-        console.log(`Status changed to ${value}, calling onStatusChange`);
-        onStatusChange(application.id, value);
+      if (name === 'currentStatus') {
+        const currentStatus = prev.statusHistory[prev.statusHistory.length - 1].status;
+        if (value !== currentStatus) {
+          console.log(`Status changed to ${value}, calling onStatusChange`);
+          onStatusChange(application.id, value);
+          updatedData.statusHistory = [
+            ...prev.statusHistory,
+            { status: value, timestamp: new Date().toISOString() }
+          ];
+        }
+      } else if (name in updatedData) {
+        (updatedData as any)[name] = value;
       }
       
       return updatedData;
@@ -56,15 +65,15 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     </div>
   );
 
-  const renderEditField = (label: string, value: string, name: keyof JobApplication) => (
+  const renderEditField = (label: string, value: string, name: keyof JobApplication | 'currentStatus' | 'dateApplied') => (
     <div className="mb-3">
       <label htmlFor={name} className="form-label">{label}</label>
-      {name === 'status' ? (
+      {name === 'currentStatus' ? (
         <select
           className="form-select"
           id={name}
           name={name}
-          value={formData[name]}
+          value={formData.statusHistory[formData.statusHistory.length - 1].status}
           onChange={handleChange}
           required
         >
@@ -77,17 +86,36 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
           className="form-control"
           id={name}
           name={name}
-          value={formData[name]}
+          value={value}
           onChange={handleChange}
           rows={3}
         />
-      ) : (
+      ) : name === 'dateApplied' ? (
         <input
-          type={name === 'dateApplied' ? 'date' : 'text'}
+          type="date"
           className="form-control"
           id={name}
           name={name}
-          value={formData[name]}
+          value={value}
+          onChange={(e) => {
+            const newDate = e.target.value;
+            setFormData(prev => ({
+              ...prev,
+              statusHistory: [
+                { status: 'Applied', timestamp: `${newDate}T00:00:00.000Z` },
+                ...prev.statusHistory.slice(1)
+              ]
+            }));
+          }}
+          required
+        />
+      ) : (
+        <input
+          type="text"
+          className="form-control"
+          id={name}
+          name={name}
+          value={value}
           onChange={handleChange}
           required
         />
@@ -95,8 +123,11 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     </div>
   );
 
+  const currentStatus = formData.statusHistory[formData.statusHistory.length - 1].status;
+  const dateApplied = new Date(formData.statusHistory[0].timestamp).toISOString().split('T')[0];
+
   return (
-    <div className="container py-4"> {/* Added container with vertical padding */}
+    <div className="container py-4">
       <div className="card mb-4">
         <div className="card-header bg-primary text-white py-3">
           <h4 className="mb-0">{formData.jobTitle} at {formData.companyName}</h4>
@@ -108,8 +139,8 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
                 {renderEditField('Company Name', formData.companyName, 'companyName')}
                 {renderEditField('Job Title', formData.jobTitle, 'jobTitle')}
                 {renderEditField('Job Description', formData.jobDescription, 'jobDescription')}
-                {renderEditField('Date Applied', formData.dateApplied, 'dateApplied')}
-                {renderEditField('Status', formData.status, 'status')}
+                {renderEditField('Date Applied', dateApplied, 'dateApplied')}
+                {renderEditField('Status', currentStatus, 'currentStatus')}
                 {renderEditField('Application Method', formData.applicationMethod, 'applicationMethod')}
               </>
             ) : (
@@ -117,8 +148,8 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
                 {renderViewField('Company Name', formData.companyName)}
                 {renderViewField('Job Title', formData.jobTitle)}
                 {renderViewField('Job Description', formData.jobDescription)}
-                {renderViewField('Date Applied', formData.dateApplied)}
-                {renderViewField('Status', formData.status)}
+                {renderViewField('Date Applied', dateApplied)}
+                {renderViewField('Status', currentStatus)}
                 {renderViewField('Application Method', formData.applicationMethod)}
               </>
             )}

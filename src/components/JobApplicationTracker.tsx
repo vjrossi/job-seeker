@@ -16,10 +16,12 @@ export interface JobApplication {
     companyName: string;
     jobTitle: string;
     jobDescription: string;
-    dateApplied: string;
-    status: string;
     applicationMethod: string;
-    interviewDateTime?: string; // New field
+    statusHistory: {
+        status: string;
+        timestamp: string;
+    }[];
+    interviewDateTime?: string;
 }
 
 
@@ -32,9 +34,12 @@ const initialFormData: Omit<JobApplication, 'id'> = {
     companyName: '',
     jobTitle: '',
     jobDescription: '',
-    dateApplied: '',
-    status: APPLICATION_STATUSES[0],
-    applicationMethod: ''
+    applicationMethod: '',
+    statusHistory: [{
+        status: APPLICATION_STATUSES[0],
+        timestamp: new Date().toISOString()
+    }],
+    interviewDateTime: undefined
 };
 
 
@@ -79,7 +84,10 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
 
         if (statusFilters.length > 0) {
-            filtered = filtered.filter(app => statusFilters.includes(app.status));
+            filtered = filtered.filter(app => {
+                const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+                return statusFilters.includes(currentStatus);
+            });
         }
 
         setFilteredApplications(filtered);
@@ -109,10 +117,18 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         setShowAddForm(false);
     };
 
-    const addApplication = async (application: JobApplication) => {
+    const addApplication = async (application: Omit<JobApplication, 'id' | 'statusHistory'>) => {
         try {
-            await indexedDBService.addApplication(application);
-            setApplications(prev => [...prev, application]);
+            const newApplication: JobApplication = {
+                ...application,
+                id: Date.now(),
+                statusHistory: [{
+                    status: 'Applied',
+                    timestamp: new Date().toISOString()
+                }]
+            };
+            await indexedDBService.addApplication(newApplication);
+            setApplications(prev => [...prev, newApplication]);
             setNotification({ message: 'Application added.', type: 'success' });
         } catch (error) {
             console.error('Error adding application:', error);
@@ -159,7 +175,10 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         try {
             const updatedApplication = applications.find(app => app.id === id);
             if (updatedApplication) {
-                updatedApplication.status = newStatus;
+                updatedApplication.statusHistory.push({
+                    status: newStatus,
+                    timestamp: new Date().toISOString()
+                });
                 if (interviewDateTime) {
                     updatedApplication.interviewDateTime = interviewDateTime;
                 }
@@ -270,7 +289,10 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         try {
             const updatedApplication = applications.find(app => app.id === id);
             if (updatedApplication) {
-                updatedApplication.status = 'Archived';
+                updatedApplication.statusHistory.push({
+                    status: 'Archived',
+                    timestamp: new Date().toISOString()
+                });
                 await indexedDBService.updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
                 showNotification('Application archived.', 'success');
