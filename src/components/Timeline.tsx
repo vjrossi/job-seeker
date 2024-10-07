@@ -3,7 +3,6 @@ import { JobApplication } from './JobApplicationTracker';
 import { APPLICATION_STATUSES, INACTIVE_STATUSES } from '../constants/applicationStatuses';
 import './Timeline.css';
 import ProgressModal from './ProgressModal';
-import { useProgressModal } from '../hooks/useProgressModal';
 
 interface TimelineProps {
   applications: JobApplication[];
@@ -13,20 +12,14 @@ interface TimelineProps {
 
 const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, onStatusChange }) => {
   const [isRecentFirst, setIsRecentFirst] = useState(true);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
 
   const sortedApplications = applications.sort((a, b) => {
     const aDate = new Date(a.statusHistory[0].timestamp);
     const bDate = new Date(b.statusHistory[0].timestamp);
     return isRecentFirst ? bDate.getTime() - aDate.getTime() : aDate.getTime() - bDate.getTime();
   });
-
-  const {
-    showProgressModal,
-    selectedApplication,
-    handleProgressClick,
-    handleClose,
-    handleConfirm
-  } = useProgressModal(onStatusChange);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -50,6 +43,19 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
       month: '2-digit',
       year: 'numeric'
     });
+  };
+
+  const handleProgressClick = (app: JobApplication) => {
+    setSelectedApplication(app);
+    setShowProgressModal(true);
+  };
+
+  const handleProgressConfirm = (newStatus: string) => {
+    if (selectedApplication) {
+      onStatusChange(selectedApplication.id, newStatus);
+    }
+    setShowProgressModal(false);
+    setSelectedApplication(null);
   };
 
   let lastMonth = '';
@@ -82,8 +88,8 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
               <div className="timeline-stages">
                 {app.statusHistory.map((status, index) => (
                   <div key={index} className="timeline-stage">
-                    <div
-                      className="timeline-stage-dot"
+                    <div 
+                      className="timeline-stage-dot" 
                       style={{ backgroundColor: getStatusColor(status.status) }}
                     ></div>
                     <div className="timeline-stage-content">
@@ -94,8 +100,8 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
                 ))}
               </div>
               <div className="mt-2">
-                <button
-                  className="btn btn-outline-primary btn-sm me-2"
+                <button 
+                  className="btn btn-outline-primary btn-sm me-2" 
                   onClick={() => onViewApplication(app.id)}
                 >
                   View Details
@@ -116,8 +122,8 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
       {showProgressModal && selectedApplication && (
         <ProgressModal
           application={selectedApplication}
-          onClose={handleClose}
-          onConfirm={handleConfirm}
+          onClose={() => setShowProgressModal(false)}
+          onConfirm={handleProgressConfirm}
         />
       )}
     </div>
