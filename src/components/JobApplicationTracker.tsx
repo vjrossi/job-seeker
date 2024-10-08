@@ -8,13 +8,13 @@ import ConfirmationModal from './ConfirmationModal';
 import { indexedDBService } from '../services/indexedDBService';
 import { devIndexedDBService } from '../services/devIndexedDBService';
 import { generateDummyApplications } from '../utils/generateDummyApplications';
-import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
 import Reports from './Reports';
 import ViewEditApplicationForm from './ViewEditApplicationForm';
 import InterviewScheduleModal from './InterviewScheduleModal';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import Settings from './Settings';
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import Tooltip from './Tooltip';
 
 export interface JobApplication {
     id: number;
@@ -64,17 +64,17 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [isDev, setIsDev] = useState(false);
     const [noResponseDays, setNoResponseDays] = useLocalStorage('noResponseDays', 14);
     const [showSettings, setShowSettings] = useState(false);
+    const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
     useEffect(() => {
         loadApplications();
     }, []);
 
     const toggleDevMode = () => {
-        setIsDev(!isDev);
-        loadApplications();
+        setIsDev(prevIsDev => !prevIsDev);
     };
 
-    const loadApplications = async () => {
+    const loadApplications = useCallback(async () => {
         try {
             let apps = await (isDev ? devIndexedDBService : indexedDBService).getAllApplications();
             if (apps.length === 0 && isDev) {
@@ -86,7 +86,11 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             console.error('Error loading applications:', error);
             showNotification('Failed to load applications. Please try again.', 'error');
         }
-    };
+    }, [isDev, noResponseDays]);
+
+    useEffect(() => {
+        loadApplications();
+    }, [loadApplications]);
 
     const populateDummyData = async () => {
         try {
@@ -94,10 +98,10 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             const dummyApplications = generateDummyApplications(20, noResponseDays);
             await Promise.all(dummyApplications.map(app => devIndexedDBService.addApplication(app)));
             await loadApplications();
-            showNotification('Dummy data populated successfully', 'success');
+            showNotification('Test data created successfully', 'success');
         } catch (error) {
-            console.error('Error populating dummy data:', error);
-            showNotification('Failed to populate dummy data', 'error');
+            console.error('Error creating test data:', error);
+            showNotification('Failed to create test data', 'error');
         }
     };
 
@@ -330,6 +334,36 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         console.log('showInterviewModal changed:', showInterviewModal);
     }, [showInterviewModal]);
 
+    const handleUndo = async (id: number) => {
+        if (window.confirm('Are you sure you want to undo the last status change?')) {
+            try {
+                const application = applications.find(app => app.id === id);
+                if (application && application.statusHistory.length > 1) {
+                    const updatedStatusHistory = application.statusHistory.slice(0, -1);
+                    const updatedApplication = { ...application, statusHistory: updatedStatusHistory };
+                    
+                    // Use the correct service to update the application
+                    await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
+                    setApplications(prevApps => prevApps.map(app => app.id === id ? updatedApplication : app));
+                    setFeedbackMessage('Status change undone successfully');
+                }
+            } catch (error) {
+                console.error('Error undoing status change:', error);
+                setFeedbackMessage('Failed to undo status change');
+            }
+        }
+    };
+
+    // Clear feedback message after 3 seconds
+    useEffect(() => {
+        if (feedbackMessage) {
+            const timer = setTimeout(() => {
+                setFeedbackMessage(null);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [feedbackMessage]);
+
     return (
         <div className="mt-4">
             {notification && (
@@ -358,6 +392,9 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                         statusFilters={statusFilters}
                         onStatusFilterChange={handleStatusFilterChange}
                         onDelete={handleDelete}
+                        isTest={isDev}
+                        refreshApplications={loadApplications}
+                        onUndo={handleUndo}
                     />
                     {showAddForm && (
                         <div className={`modal-overlay ${showAddForm ? 'show' : ''}`}>
@@ -401,7 +438,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             {isDev && (
                 <div className="mb-3">
                     <button className="btn btn-warning me-2" onClick={populateDummyData}>
-                        Populate Dummy Data
+                        Regenerate Dummy Data
                     </button>
                 </div>
             )}
@@ -414,7 +451,8 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     onChange={toggleDevMode}
                 />
                 <label className="form-check-label" htmlFor="devModeSwitch">
-                    Dev Mode
+                    Test Mode
+                    <Tooltip text="Test mode uses dummy data for testing purposes. It does not affect your actual job application data." />
                 </label>
             </div>
             {showSettings && (
@@ -430,6 +468,11 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             <button className="btn btn-secondary mt-3" onClick={() => setShowSettings(!showSettings)}>
                 {showSettings ? 'Hide Settings' : 'Show Settings'}
             </button>
+            {feedbackMessage && (
+                <div className="alert alert-info" role="alert">
+                    {feedbackMessage}
+                </div>
+            )}
         </div>
     );
 };

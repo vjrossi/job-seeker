@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { ApplicationStatus, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import ProgressModal from './ProgressModal';
-import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -15,6 +15,9 @@ interface ViewApplicationsProps {
   statusFilters: ApplicationStatus[];
   onStatusFilterChange: (status: ApplicationStatus) => void;
   onDelete: (id: number) => void;
+  isTest: boolean;
+  refreshApplications: () => void;
+  onUndo: (id: number) => void;
 }
 
 const ViewApplications: React.FC<ViewApplicationsProps> = ({
@@ -26,11 +29,16 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   onSearchChange,
   statusFilters,
   onStatusFilterChange,
-  onDelete
+  onDelete,
+  isTest: isTest,
+  refreshApplications,
+  onUndo
 }) => {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [showActive, setShowActive] = useState(true);
+
+  const relevantStatuses = showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES;
 
   const filteredApplications = useMemo(() => {
     return applications?.filter(app => {
@@ -46,11 +54,73 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     }) || [];
   }, [applications, searchTerm, statusFilters, showActive]);
 
-  const relevantStatuses = useMemo(() => {
-    return Object.values(ApplicationStatus).filter(status =>
-      showActive ? !INACTIVE_STATUSES.includes(status) : INACTIVE_STATUSES.includes(status)
-    );
-  }, [showActive]);
+  const oneMonthAgo = useMemo(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return date;
+  }, []);
+
+  const { recentApplications, olderApplications } = useMemo(() => {
+    const recent: JobApplication[] = [];
+    const older: JobApplication[] = [];
+
+    filteredApplications.forEach(app => {
+      const appliedDate = new Date(app.statusHistory[0].timestamp);
+      if (appliedDate >= oneMonthAgo) {
+        recent.push(app);
+      } else {
+        older.push(app);
+      }
+    });
+
+    return { recentApplications: recent, olderApplications: older };
+  }, [filteredApplications, oneMonthAgo]);
+
+  const renderApplicationTable = (applications: JobApplication[], title: string) => (
+    <>
+      <h3>{title}</h3>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Job Title</th>
+            <th>Date Applied</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {applications.map(app => {
+            const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+            return (
+              <tr key={app.id}>
+                <td>{app.companyName}</td>
+                <td>{app.jobTitle}</td>
+                <td>{formatDate(app.statusHistory[0].timestamp)}</td>
+                <td>{currentStatus}</td>
+                <td>
+                  <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEdit(app)}>View</button>
+                  {!INACTIVE_STATUSES.includes(currentStatus) && (
+                    <>
+                      <button
+                        className="btn btn-sm btn-outline-primary me-2"
+                        onClick={() => handleProgressClick(app)}
+                        disabled={getNextStatuses(currentStatus).length === 0}
+                      >
+                        Progress
+                      </button>
+                      {renderUndoButton(app)}
+                    </>
+                  )}
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Archive</button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </>
+  );
 
   const handleProgressClick = (app: JobApplication) => {
     setSelectedApplication(app);
@@ -65,25 +135,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     setSelectedApplication(null);
   };
 
-  const renderStatusFilters = () => (
-    <div className="status-filters">
-      {Object.values(ApplicationStatus).map((status) => (
-        <div key={status} className="form-check">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            id={`status-${status}`}
-            checked={statusFilters.includes(status)}
-            onChange={() => onStatusFilterChange(status)}
-          />
-          <label className="form-check-label" htmlFor={`status-${status}`}>
-            {status}
-          </label>
-        </div>
-      ))}
-    </div>
-  );
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -92,9 +143,36 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     return `${day}-${month}-${year}`;
   };
 
+  const renderUndoButton = (app: JobApplication) => (
+    <OverlayTrigger
+      placement="top"
+      overlay={
+        <Tooltip id={`tooltip-undo-${app.id}`}>
+          {app.statusHistory.length <= 1
+            ? "Can't undo the initial status"
+            : "Undo the last status change"}
+        </Tooltip>
+      }
+    >
+      <span className="d-inline-block">
+        <button
+          className="btn btn-sm btn-outline-secondary me-2"
+          onClick={() => onUndo(app.id)}
+          disabled={app.statusHistory.length <= 1}
+        >
+          Undo
+        </button>
+      </span>
+    </OverlayTrigger>
+  );
+
+  useEffect(() => {
+    refreshApplications();
+  }, [isTest, refreshApplications]);
+
   return (
     <div>
-      <h2>Job Applications</h2>
+      <h2>Job Applications {isTest && '(Test Mode)'}</h2>
       <button className="btn btn-primary mb-3" onClick={onAddApplication}>Add New Application</button>
       <div className="mb-3">
         <input
@@ -122,7 +200,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
       <div className="mb-3">
         <h5>Filter by Status:</h5>
         <div className="btn-group flex-wrap" role="group">
-          {relevantStatuses.map(status => (
+          {relevantStatuses.map((status: ApplicationStatus) => (
             <button
               key={status}
               type="button"
@@ -134,43 +212,10 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           ))}
         </div>
       </div>
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Company</th>
-            <th>Job Title</th>
-            <th>Date Applied</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredApplications.map(app => {
-            const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-            return (
-              <tr key={app.id}>
-                <td>{app.companyName}</td>
-                <td>{app.jobTitle}</td>
-                <td>{formatDate(app.statusHistory[0].timestamp)}</td>
-                <td>{currentStatus}</td>
-                <td>
-                  <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEdit(app)}>View</button>
-                  {!INACTIVE_STATUSES.includes(currentStatus) && (
-                    <button
-                      className="btn btn-sm btn-outline-primary me-2"
-                      onClick={() => handleProgressClick(app)}
-                      disabled={getNextStatuses(currentStatus).length === 0}
-                    >
-                      Progress
-                    </button>
-                  )}
-                  <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Archive</button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {renderApplicationTable(recentApplications, "Recent Applications (Last 30 Days)")}
+      {olderApplications.length > 0 && (
+        renderApplicationTable(olderApplications, "Older Applications")
+      )}
       {showProgressModal && selectedApplication && (
         <ProgressModal
           application={selectedApplication}

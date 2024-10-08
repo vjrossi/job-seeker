@@ -20,6 +20,9 @@ describe('ViewApplications', () => {
     statusFilters: [],
     onStatusFilterChange: jest.fn(),
     onDelete: jest.fn(),
+    isTest: false,
+    refreshApplications: jest.fn(),
+    onUndo: jest.fn(),
   };
 
   beforeEach(() => {
@@ -58,13 +61,10 @@ describe('ViewApplications', () => {
         expect(row).toHaveTextContent(mockApplications[index - 1].companyName);
         expect(row).toHaveTextContent(mockApplications[index - 1].jobTitle);
         expect(row).toHaveTextContent(mockApplications[index - 1].statusHistory[0].status);
-        expect(row).toHaveTextContent('Progress');
-        
       }
     });
   });
 
-  // check for search input
   test('search input is present and unchanged', () => {
     const searchInput = screen.getByPlaceholderText('Search applications...');
     expect(searchInput).toBeInTheDocument();
@@ -73,4 +73,17 @@ describe('ViewApplications', () => {
   test('"Add New Application" button is present and unchanged', () => {
     expect(screen.getByText('Add New Application')).toBeInTheDocument();
   });
-}); 
+
+  test('refreshApplications is called on component mount', () => {
+    expect(mockProps.refreshApplications).toHaveBeenCalledTimes(1);
+  });
+
+  test('test mode indicator is not shown when isTest is false', () => {
+    expect(screen.queryByText('(Test Mode)')).not.toBeInTheDocument();
+  });
+
+  test('test mode button and toggle are shown when isTest is true', () => {
+    render(<ViewApplications {...mockProps} isTest={true} />);
+    expect(screen.getByText(/(Test Mode)/)).toBeInTheDocument();
+  });
+});

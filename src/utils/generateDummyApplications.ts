@@ -14,6 +14,7 @@ const generateFutureDate = (): Date => {
 // Configuration
 const OFFER_PROBABILITY = 0.03; // 3% chance of receiving an offer
 const INTERVIEW_PROBABILITY = 0.1; // 10% chance of getting an interview
+const RECENT_APPLICATION_PROBABILITY = 0.6; // 60% chance of being within the last 30 days
 
 const companies = [
   'Google', 'Microsoft', 'Amazon', 'Apple', 'Facebook', 'Netflix', 'Adobe', 
@@ -38,12 +39,19 @@ const getRandomItem = (array: string[]) => array[Math.floor(Math.random() * arra
 
 export const generateDummyApplications = (count: number, noResponseDays: number): JobApplication[] => {
   const applications: JobApplication[] = [];
-  const startDate = new Date(2023, 0, 1); // January 1, 2023
-  const endDate = new Date(); // Current date
+  const now = new Date();
+  const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+  const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
   for (let i = 0; i < count; i++) {
-    const appliedDate = generateRandomDate(startDate, endDate);
-    const daysSinceApplied = Math.floor((endDate.getTime() - appliedDate.getTime()) / (1000 * 60 * 60 * 24));
+    let appliedDate: Date;
+    if (Math.random() < RECENT_APPLICATION_PROBABILITY) {
+      appliedDate = generateRandomDate(oneMonthAgo, now);
+    } else {
+      appliedDate = generateRandomDate(threeMonthsAgo, oneMonthAgo);
+    }
+
+    const daysSinceApplied = Math.floor((now.getTime() - appliedDate.getTime()) / (1000 * 60 * 60 * 24));
 
     let currentStatus: ApplicationStatus;
     const statusHistory = [
@@ -67,14 +75,20 @@ export const generateDummyApplications = (count: number, noResponseDays: number)
       statusHistory.push({ status: currentStatus, timestamp: statusDate.toISOString() });
     }
 
+    // Archive applications older than 3 months
+    if (appliedDate < threeMonthsAgo) {
+      statusHistory.push({ status: ApplicationStatus.Archived, timestamp: now.toISOString() });
+      currentStatus = ApplicationStatus.Archived;
+    }
+
     const companyName = getRandomItem(companies);
     const jobTitle = getRandomItem(jobTitles);
 
     const application: JobApplication = {
       id: i + 1,
-      companyName,
-      jobTitle,
-      jobDescription: `This is a job description for ${jobTitle} position at ${companyName}.`,
+      companyName: companyName,
+      jobTitle: jobTitle,
+      jobDescription: `This is a job description for ${jobTitle} at ${companyName}.`,
       applicationMethod: Math.random() > 0.5 ? 'Online' : 'Email',
       statusHistory: statusHistory,
     };
