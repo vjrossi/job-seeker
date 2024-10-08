@@ -55,7 +55,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [pendingApplication, setPendingApplication] = useState<JobApplication | null>(null);
-    const [formData, setFormData] = useState<Omit<JobApplication, 'id'>>(initialFormData);
+    const [formData, setFormData] = useState<Partial<JobApplication>>(initialFormData);
     const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
@@ -182,7 +182,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         setShowConfirmation(false);
     };
 
-    const handleFormChange = (updatedFormData: Omit<JobApplication, 'id'>) => {
+    const handleFormChange = (updatedFormData: Partial<JobApplication>) => {
         setFormData(updatedFormData);
         setIsFormDirty(true);
     };

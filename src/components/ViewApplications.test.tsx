@@ -79,4 +79,12 @@ describe('ViewApplications', () => {
     render(<ViewApplications {...mockProps} isTest={true} />);
     expect(screen.getByText(/(Test Mode)/)).toBeInTheDocument();
   });
+
+  test('renders table headers including Method', () => {
+    const headers = ['Company', 'Job Title', 'Date Applied', 'Status', 'Actions'];
+    headers.forEach(header => {
+      const headerElement = screen.getByRole('columnheader', { name: header });
+      expect(headerElement).toBeInTheDocument();
+    });
+  });
 });

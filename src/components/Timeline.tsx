@@ -87,64 +87,68 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
         </button>
       </div>
       <div className="timeline-content">
-        {Object.entries(groupedApplications).map(([month, apps]) => (
-          <div key={month} className="timeline-month-group">
-            <div 
-              className={`timeline-month-header ${expandedMonths.includes(month) ? 'expanded' : ''}`} 
-              onClick={() => toggleMonth(month)}
-            >
-              <h3>{month}</h3>
-              <span className="expand-icon">
-                {expandedMonths.includes(month) ? <FaChevronUp /> : <FaChevronDown />}
-              </span>
-            </div>
-            <div className={`timeline-month-content ${expandedMonths.includes(month) ? 'expanded' : ''}`}>
-              {apps.map((app) => {
-                const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-                const inactive = INACTIVE_STATUSES.includes(currentStatus);
+        {Object.entries(groupedApplications).length === 0 ? (
+          <p className="no-applications-message">No job applications yet. Start by adding your first application!</p>
+        ) : (
+          Object.entries(groupedApplications).map(([month, apps]) => (
+            <div key={month} className="timeline-month-group">
+              <div 
+                className={`timeline-month-header ${expandedMonths.includes(month) ? 'expanded' : ''}`} 
+                onClick={() => toggleMonth(month)}
+              >
+                <h3>{month}</h3>
+                <span className="expand-icon">
+                  {expandedMonths.includes(month) ? <FaChevronUp /> : <FaChevronDown />}
+                </span>
+              </div>
+              <div className={`timeline-month-content ${expandedMonths.includes(month) ? 'expanded' : ''}`}>
+                {apps.map((app) => {
+                  const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+                  const inactive = INACTIVE_STATUSES.includes(currentStatus);
 
-                return (
-                  <div key={app.id} className={`timeline-item ${inactive ? 'inactive' : ''}`}>
-                    <div className="timeline-item-content">
-                      <h4>{app.companyName} - {app.jobTitle}</h4>
-                      {inactive && <span className="inactive-badge">{currentStatus}</span>}
-                      <div className="timeline-stages">
-                        {app.statusHistory.map((status, index) => (
-                          <div key={index} className="timeline-stage">
-                            <div 
-                              className="timeline-stage-dot" 
-                              style={{ backgroundColor: getStatusColor(status.status) }}
-                            ></div>
-                            <div className="timeline-stage-content">
-                              <p>{status.status}</p>
-                              <small>{formatDate(new Date(status.timestamp))}</small>
+                  return (
+                    <div key={app.id} className={`timeline-item ${inactive ? 'inactive' : ''}`}>
+                      <div className="timeline-item-content">
+                        <h4>{app.companyName} - {app.jobTitle}</h4>
+                        {inactive && <span className="inactive-badge">{currentStatus}</span>}
+                        <div className="timeline-stages">
+                          {app.statusHistory.map((status, index) => (
+                            <div key={index} className="timeline-stage">
+                              <div 
+                                className="timeline-stage-dot" 
+                                style={{ backgroundColor: getStatusColor(status.status) }}
+                              ></div>
+                              <div className="timeline-stage-content">
+                                <p>{status.status}</p>
+                                <small>{formatDate(new Date(status.timestamp))}</small>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="timeline-item-actions">
-                        <button 
-                          className="btn btn-outline-primary btn-sm" 
-                          onClick={() => onViewApplication(app.id)}
-                        >
-                          View Details
-                        </button>
-                        {!inactive && (
-                          <button
-                            className="btn btn-outline-success btn-sm"
-                            onClick={() => handleProgressClick(app)}
+                          ))}
+                        </div>
+                        <div className="timeline-item-actions">
+                          <button 
+                            className="btn btn-outline-primary btn-sm" 
+                            onClick={() => onViewApplication(app.id)}
                           >
-                            Progress
+                            View Details
                           </button>
-                        )}
+                          {!inactive && (
+                            <button
+                              className="btn btn-outline-success btn-sm"
+                              onClick={() => handleProgressClick(app)}
+                            >
+                              Progress
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
       {showProgressModal && selectedApplication && (
         <ProgressModal
