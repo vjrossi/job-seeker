@@ -2,12 +2,12 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import ViewApplications from './ViewApplications';
 import { JobApplication } from './JobApplicationTracker';
-import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 describe('ViewApplications', () => {
   const mockApplications: JobApplication[] = [
-    { id: 1, companyName: 'Company A', jobTitle: 'Job A', statusHistory: [{ status: APPLICATION_STATUSES[0], timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '' },
-    { id: 2, companyName: 'Company B', jobTitle: 'Job B', statusHistory: [{ status: APPLICATION_STATUSES[1], timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '' },
+    { id: 1, companyName: 'Company A', jobTitle: 'Job A', statusHistory: [{ status: ApplicationStatus.Applied, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '' },
+    { id: 2, companyName: 'Company B', jobTitle: 'Job B', statusHistory: [{ status: ApplicationStatus.InterviewScheduled, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '' },
   ];
 
   const mockProps = {
@@ -35,10 +35,10 @@ describe('ViewApplications', () => {
   });
 
   test('delete buttons are present and unchanged', () => {
-    const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
+    const deleteButtons = screen.getAllByRole('button', { name: 'Archive' });
     expect(deleteButtons.length).toBe(mockApplications.length);
     deleteButtons.forEach(button => {
-      expect(button).toHaveTextContent('Delete');
+      expect(button).toHaveTextContent('Archive');
     });
   });
 

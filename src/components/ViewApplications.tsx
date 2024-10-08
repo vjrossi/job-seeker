@@ -1,18 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
-import { APPLICATION_STATUSES, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/applicationStatuses';
+import { ApplicationStatus, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import ProgressModal from './ProgressModal';
+import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
-  onStatusChange: (id: number, newStatus: string) => void;
+  onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
   onEdit: (application: JobApplication) => void;
   onAddApplication: () => void;
   searchTerm: string;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  statusFilters: string[];
-  onStatusFilterChange: (status: string) => void;
+  statusFilters: ApplicationStatus[];
+  onStatusFilterChange: (status: ApplicationStatus) => void;
   onDelete: (id: number) => void;
 }
 
@@ -46,7 +47,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   }, [applications, searchTerm, statusFilters, showActive]);
 
   const relevantStatuses = useMemo(() => {
-    return APPLICATION_STATUSES.filter(status =>
+    return Object.values(ApplicationStatus).filter(status =>
       showActive ? !INACTIVE_STATUSES.includes(status) : INACTIVE_STATUSES.includes(status)
     );
   }, [showActive]);
@@ -58,11 +59,30 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
 
   const handleProgressConfirm = (newStatus: string) => {
     if (selectedApplication) {
-      onStatusChange(selectedApplication.id, newStatus);
+      onStatusChange(selectedApplication.id, newStatus as ApplicationStatus);
     }
     setShowProgressModal(false);
     setSelectedApplication(null);
   };
+
+  const renderStatusFilters = () => (
+    <div className="status-filters">
+      {Object.values(ApplicationStatus).map((status) => (
+        <div key={status} className="form-check">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            id={`status-${status}`}
+            checked={statusFilters.includes(status)}
+            onChange={() => onStatusFilterChange(status)}
+          />
+          <label className="form-check-label" htmlFor={`status-${status}`}>
+            {status}
+          </label>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div>
@@ -136,7 +156,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                       Progress
                     </button>
                   )}
-                  <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Delete</button>
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Archive</button>
                 </td>
               </tr>
             );

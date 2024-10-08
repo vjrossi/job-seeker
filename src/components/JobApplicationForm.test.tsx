@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import JobApplicationForm from './JobApplicationForm';
 import { JobApplication } from './JobApplicationTracker';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 describe('JobApplicationForm', () => {
     const mockOnSubmit = jest.fn();
@@ -36,7 +37,7 @@ describe('JobApplicationForm', () => {
                 jobDescription: '',
                 applicationMethod: '',
                 statusHistory: [{
-                    status: 'Applied',
+                    status: ApplicationStatus.Applied,
                     timestamp: new Date().toISOString()
                 }]
             }}

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { JobApplication } from './JobApplicationTracker';
-import { APPLICATION_STATUSES, INACTIVE_STATUSES } from '../constants/applicationStatuses';
+import { ApplicationStatus, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import './Timeline.css';
 import ProgressModal from './ProgressModal';
 
 interface TimelineProps {
   applications: JobApplication[];
   onViewApplication: (id: number) => void;
-  onStatusChange: (id: number, newStatus: string) => void;
+  onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
 }
 
 const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, onStatusChange }) => {
@@ -23,12 +23,15 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case APPLICATION_STATUSES[0]: return '#0088FE';
-      case APPLICATION_STATUSES[1]: return '#00C49F';
-      case APPLICATION_STATUSES[2]: return '#FFBB28';
-      case APPLICATION_STATUSES[3]: return '#FF8042';
-      case APPLICATION_STATUSES[4]: return '#FF0000';
-      case APPLICATION_STATUSES[5]: return '#808080';
+      case ApplicationStatus.Applied: return '#0088FE';
+      case ApplicationStatus.InterviewScheduled: return '#00C49F';
+      case ApplicationStatus.NoResponse: return '#FFBB28';
+      case ApplicationStatus.NotAccepted: return '#FF8042';
+      case ApplicationStatus.OfferReceived: return '#FF0000';
+      case ApplicationStatus.OfferAccepted: return '#808080';
+      case ApplicationStatus.OfferDeclined: return '#808080';
+      case ApplicationStatus.Withdrawn: return '#808080';
+      case ApplicationStatus.Archived: return '#808080';
       default: return '#8884D8';
     }
   };
@@ -50,12 +53,16 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
     setShowProgressModal(true);
   };
 
-  const handleProgressConfirm = (newStatus: string) => {
+  const handleProgressConfirm = (newStatus: ApplicationStatus) => {
     if (selectedApplication) {
       onStatusChange(selectedApplication.id, newStatus);
     }
     setShowProgressModal(false);
     setSelectedApplication(null);
+  };
+
+  const handleStatusChange = (application: JobApplication, newStatus: ApplicationStatus) => {
+    onStatusChange(application.id, newStatus);
   };
 
   let lastMonth = '';
@@ -123,7 +130,7 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
         <ProgressModal
           application={selectedApplication}
           onClose={() => setShowProgressModal(false)}
-          onConfirm={handleProgressConfirm}
+          onConfirm={(newStatus: string) => handleProgressConfirm(newStatus as ApplicationStatus)}
         />
       )}
     </div>

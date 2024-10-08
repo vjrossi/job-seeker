@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import Dashboard from './Dashboard';
 import { JobApplication } from '../components/JobApplicationTracker';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 describe('Dashboard', () => {
     const mockOnViewApplication = jest.fn();
@@ -15,7 +16,7 @@ describe('Dashboard', () => {
             jobDescription: 'Description A',
             applicationMethod: 'Online',
             statusHistory: [
-                { status: 'Applied', timestamp: '2023-01-01T00:00:00.000Z' }
+                { status: ApplicationStatus.Applied, timestamp: '2023-01-01T00:00:00.000Z' }
             ],
             interviewDateTime: '2023-01-15T10:00:00.000Z'
         },
@@ -26,8 +27,8 @@ describe('Dashboard', () => {
             jobDescription: 'Description B',
             applicationMethod: 'Email',
             statusHistory: [
-                { status: 'Applied', timestamp: '2023-01-02T00:00:00.000Z' },
-                { status: 'Interview Scheduled', timestamp: '2023-01-10T00:00:00.000Z' }
+                { status: ApplicationStatus.Applied, timestamp: '2023-01-02T00:00:00.000Z' },
+                { status: ApplicationStatus.InterviewScheduled, timestamp: '2023-01-10T00:00:00.000Z' }
             ],
             interviewDateTime: '2023-01-20T14:00:00.000Z'
         },
@@ -48,11 +49,11 @@ describe('Dashboard', () => {
         expect(screen.getByText('Application Timeline')).toBeInTheDocument();
     });
 
-    test('renders Upcoming Events', () => {
-        expect(screen.getByText('Upcoming Events')).toBeInTheDocument();
+    test('renders Upcoming Interviews', () => {
+        expect(screen.getByText('Upcoming Interviews')).toBeInTheDocument();
     });
     test('displays upcoming interviews', () => {
         expect(screen.getByText('Interview with Company B')).toBeInTheDocument();
-        expect(screen.getByText('21/01/2023, 1:00:00 am')).toBeInTheDocument();
+        expect(screen.getByText('21 Jan 2023, 1:00 am')).toBeInTheDocument();
     });
 });

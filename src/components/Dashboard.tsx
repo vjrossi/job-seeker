@@ -1,13 +1,13 @@
 import React from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import Timeline from './Timeline';
-import { INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/applicationStatuses';
+import { ApplicationStatus, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import './Dashboard.css'; // Make sure to create this CSS file
 
 interface DashboardProps {
   applications: JobApplication[];
   onViewApplication: (id: number) => void;
-  onStatusChange: (id: number, newStatus: string) => void;
+  onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, onStatusChange }) => {
@@ -19,7 +19,7 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, 
   const upcomingInterviews = activeApplications
     .filter(app => {
       const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-      return currentStatus === 'Interview Scheduled' && app.interviewDateTime;
+      return currentStatus === ApplicationStatus.InterviewScheduled && app.interviewDateTime;
     })
     .sort((a, b) => new Date(a.interviewDateTime!).getTime() - new Date(b.interviewDateTime!).getTime())
     .slice(0, 5);
@@ -34,6 +34,18 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, 
     return `in ${diffDays} days`;
   };
 
+  const formatInterviewDateTime = (dateTime: string) => {
+    const date = new Date(dateTime);
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   return (
     <div className="dashboard">
       <h2>Dashboard</h2>
@@ -44,9 +56,9 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, 
               <h5 className="mb-0">Application Timeline</h5>
             </div>
             <div className="card-body">
-              <Timeline 
-                applications={applications} 
-                onViewApplication={onViewApplication} 
+              <Timeline
+                applications={applications}
+                onViewApplication={onViewApplication}
                 onStatusChange={onStatusChange}
               />
             </div>
@@ -55,7 +67,7 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, 
         <div className="col-md-4">
           <div className="card mb-4">
             <div className="card-header">
-              <h5 className="mb-0">Upcoming Events</h5>
+              <h5 className="mb-0">Upcoming Interviews</h5>
             </div>
             <div className="card-body">
               {upcomingInterviews.length > 0 ? (
@@ -64,11 +76,10 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, 
                     <li key={app.id} className="list-group-item">
                       <div className="d-flex justify-content-between align-items-start">
                         <div>
-                          <strong>Interview with {app.companyName}</strong>
-                          <br />
-                          <small>{new Date(app.interviewDateTime!).toLocaleString()}</small>
+                          <strong>Interview with {app.companyName}</strong>                          <br />
+                          <small>{formatInterviewDateTime(app.interviewDateTime!)}</small>
                         </div>
-                        <span className="badge bg-primary rounded-pill days-until">
+                        <span className="badge bg-primary rounded-pill">
                           {getDaysUntil(app.interviewDateTime!)}
                         </span>
                       </div>

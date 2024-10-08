@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { JobApplication } from './JobApplicationTracker';
-import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 interface ViewEditApplicationFormProps {
   application: JobApplication;
   onSave: (updatedApplication: JobApplication) => void;
   onCancel: () => void;
-  onStatusChange: (id: number, newStatus: string) => void;
+  onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
 }
 
 const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({ 
@@ -33,10 +33,10 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
         const currentStatus = prev.statusHistory[prev.statusHistory.length - 1].status;
         if (value !== currentStatus) {
           console.log(`Status changed to ${value}, calling onStatusChange`);
-          onStatusChange(application.id, value);
+          onStatusChange(application.id, value as ApplicationStatus);
           updatedData.statusHistory = [
             ...prev.statusHistory,
-            { status: value, timestamp: new Date().toISOString() }
+            { status: value as ApplicationStatus, timestamp: new Date().toISOString() }
           ];
         }
       } else if (name in updatedData) {
@@ -58,6 +58,11 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     setIsEditing(true);
   };
 
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value as ApplicationStatus;
+    onStatusChange(application.id, newStatus);
+  };
+
   const renderViewField = (label: string, value: string) => (
     <div className="mb-3">
       <h6 className="text-muted mb-1">{label}</h6>
@@ -77,7 +82,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
           onChange={handleChange}
           required
         >
-          {APPLICATION_STATUSES.map(status => (
+          {Object.values(ApplicationStatus).map(status => (
             <option key={status} value={status}>{status}</option>
           ))}
         </select>
@@ -102,7 +107,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
             setFormData(prev => ({
               ...prev,
               statusHistory: [
-                { status: 'Applied', timestamp: `${newDate}T00:00:00.000Z` },
+                { status: ApplicationStatus.Applied, timestamp: `${newDate}T00:00:00.000Z` },
                 ...prev.statusHistory.slice(1)
               ]
             }));

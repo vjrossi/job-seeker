@@ -6,10 +6,13 @@ import Dashboard from './Dashboard';
 import Notification from './Notification';
 import ConfirmationModal from './ConfirmationModal';
 import { indexedDBService } from '../services/indexedDBService';
+import { devIndexedDBService } from '../services/devIndexedDBService';
+import { generateDummyApplications } from '../utils/generateDummyApplications';
 import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
 import Reports from './Reports';
 import ViewEditApplicationForm from './ViewEditApplicationForm';
 import InterviewScheduleModal from './InterviewScheduleModal';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 export interface JobApplication {
     id: number;
@@ -18,12 +21,11 @@ export interface JobApplication {
     jobDescription: string;
     applicationMethod: string;
     statusHistory: {
-        status: string;
+        status: ApplicationStatus;
         timestamp: string;
     }[];
     interviewDateTime?: string;
 }
-
 
 interface JobApplicationTrackerProps {
     currentView: 'dashboard' | 'view' | 'reports';
@@ -36,18 +38,17 @@ const initialFormData: Omit<JobApplication, 'id'> = {
     jobDescription: '',
     applicationMethod: '',
     statusHistory: [{
-        status: APPLICATION_STATUSES[0],
+        status: ApplicationStatus.Applied,
         timestamp: new Date().toISOString()
     }],
     interviewDateTime: undefined
 };
 
-
 const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentView, setIsFormDirty }) => {
     const [applications, setApplications] = useState<JobApplication[]>([]);
     const [filteredApplications, setFilteredApplications] = useState<JobApplication[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilters, setStatusFilters] = useState<string[]>([]);
+    const [statusFilters, setStatusFilters] = useState<ApplicationStatus[]>([]);
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [pendingApplication, setPendingApplication] = useState<JobApplication | null>(null);
@@ -58,17 +59,40 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const notificationTimerRef = useRef<number | null>(null);
     const [showInterviewModal, setShowInterviewModal] = useState(false);
     const [currentApplicationId, setCurrentApplicationId] = useState<number | null>(null);
+    const [isDev, setIsDev] = useState(false);
 
     useEffect(() => {
         loadApplications();
     }, []);
 
+    const toggleDevMode = () => {
+        setIsDev(!isDev);
+        loadApplications();
+    };
+
     const loadApplications = async () => {
         try {
-            const loadedApplications = await indexedDBService.getAllApplications();
+            const loadedApplications = isDev
+                ? await devIndexedDBService.getAllApplications()
+                : await indexedDBService.getAllApplications();
             setApplications(loadedApplications);
         } catch (error) {
             console.error('Error loading applications:', error);
+        }
+    };
+
+    const populateDummyData = async () => {
+        try {
+            await devIndexedDBService.clearAllApplications();
+            const dummyApplications = generateDummyApplications(20);
+            for (const app of dummyApplications) {
+                await devIndexedDBService.addApplication(app);
+            }
+            await loadApplications();
+            showNotification('Dummy data populated successfully', 'success');
+        } catch (error) {
+            console.error('Error populating dummy data:', error);
+            showNotification('Failed to populate dummy data', 'error');
         }
     };
 
@@ -97,7 +121,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         filterApplications();
     }, [filterApplications]);
 
-    const handleStatusFilterChange = (status: string) => {
+    const handleStatusFilterChange = (status: ApplicationStatus) => {
         setStatusFilters(prev =>
             prev.includes(status)
                 ? prev.filter(s => s !== status)
@@ -123,11 +147,11 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 ...application,
                 id: Date.now(),
                 statusHistory: [{
-                    status: 'Applied',
+                    status: ApplicationStatus.Applied,
                     timestamp: new Date().toISOString()
                 }]
             };
-            await indexedDBService.addApplication(newApplication);
+            await (isDev ? devIndexedDBService : indexedDBService).addApplication(newApplication);
             setApplications(prev => [...prev, newApplication]);
             setNotification({ message: 'Application added.', type: 'success' });
         } catch (error) {
@@ -151,8 +175,8 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         setIsFormDirty(true);
     };
 
-    const handleStatusChange = (id: number, newStatus: string) => {
-        if (newStatus === 'Interview Scheduled') {
+    const handleStatusChange = (id: number, newStatus: ApplicationStatus) => {
+        if (newStatus === ApplicationStatus.InterviewScheduled) {
             setCurrentApplicationId(id);
             setShowInterviewModal(true);
         } else {
@@ -160,8 +184,8 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     };
 
-    const updateApplicationStatus = async (id: number, newStatus: string, interviewDateTime?: string) => {
-        if (!APPLICATION_STATUSES.includes(newStatus)) {
+    const updateApplicationStatus = async (id: number, newStatus: ApplicationStatus, interviewDateTime?: string) => {
+        if (!Object.values(ApplicationStatus).includes(newStatus)) {
             console.error(`Invalid status: ${newStatus}`);
             showNotification('Invalid application status.', 'error');
             return;
@@ -176,7 +200,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 if (interviewDateTime) {
                     updatedApplication.interviewDateTime = interviewDateTime;
                 }
-                await indexedDBService.updateApplication(updatedApplication);
+                await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
                 showNotification('Application status updated.', 'success');
             }
@@ -188,7 +212,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
     const handleInterviewSchedule = async (dateTime: string) => {
         if (currentApplicationId) {
-            await updateApplicationStatus(currentApplicationId, 'Interview Scheduled', dateTime);
+            await updateApplicationStatus(currentApplicationId, ApplicationStatus.InterviewScheduled, dateTime);
             setShowInterviewModal(false);
             setCurrentApplicationId(null);
         }
@@ -200,7 +224,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
     const handleEditSubmit = async (updatedApplication: JobApplication) => {
         try {
-            await indexedDBService.updateApplication(updatedApplication);
+            await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
             setApplications(applications.map(app => app.id === updatedApplication.id ? updatedApplication : app));
             setNotification({ message: 'Application updated.', type: 'success' });
         } catch (error) {
@@ -284,10 +308,10 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             const updatedApplication = applications.find(app => app.id === id);
             if (updatedApplication) {
                 updatedApplication.statusHistory.push({
-                    status: 'Archived',
+                    status: ApplicationStatus.Archived,
                     timestamp: new Date().toISOString()
                 });
-                await indexedDBService.updateApplication(updatedApplication);
+                await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
                 showNotification('Application archived.', 'success');
             }
@@ -369,9 +393,27 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 onHide={() => setShowInterviewModal(false)}
                 onSchedule={handleInterviewSchedule}
             />
+            {isDev && (
+                <div className="mb-3">
+                    <button className="btn btn-warning me-2" onClick={populateDummyData}>
+                        Populate Dummy Data
+                    </button>
+                </div>
+            )}
+            <div className="form-check form-switch mb-3">
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="devModeSwitch"
+                    checked={isDev}
+                    onChange={toggleDevMode}
+                />
+                <label className="form-check-label" htmlFor="devModeSwitch">
+                    Dev Mode
+                </label>
+            </div>
         </div>
     );
 };
-
 
 export default JobApplicationTracker;

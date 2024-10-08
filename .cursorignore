@@ -1,0 +1,25 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+*.png
+*.svg
+*.ico
+*.webp
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.webp
+
+# ignore test files
+*.test.tsx
+*.test.ts
+*.spec.tsx
+*.spec.ts
+
+package-lock.json
+tsconfig.json
+
+build/
+node_modules/
+
+robots.txt

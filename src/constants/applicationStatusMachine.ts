@@ -1,21 +1,21 @@
-import { APPLICATION_STATUSES } from './applicationStatuses';
+import { ApplicationStatus } from './ApplicationStatus';
 
 type StatusTransitions = {
-  [key: string]: string[];
+  [key in ApplicationStatus]?: ApplicationStatus[];
 };
 
 export const statusTransitions: StatusTransitions = {
-  'Applied': ['Interview Scheduled', 'No Response', 'Not Accepted', 'Withdrawn'],
-  'Interview Scheduled': ['Offer Received', 'Not Accepted', 'Withdrawn'],
-  'No Response': ['Interview Scheduled', 'Not Accepted', 'Withdrawn'],
-  'Not Accepted': ['Archived'],
-  'Offer Received': ['Offer Accepted', 'Offer Declined', 'Withdrawn'],
-  'Offer Accepted': ['Archived'],
-  'Offer Declined': ['Archived'],
-  'Withdrawn': ['Archived'],
-  'Archived': [],
+  [ApplicationStatus.Applied]: [ApplicationStatus.InterviewScheduled, ApplicationStatus.NoResponse, ApplicationStatus.NotAccepted, ApplicationStatus.Withdrawn],
+  [ApplicationStatus.InterviewScheduled]: [ApplicationStatus.OfferReceived, ApplicationStatus.NotAccepted, ApplicationStatus.Withdrawn],
+  [ApplicationStatus.NoResponse]: [ApplicationStatus.InterviewScheduled, ApplicationStatus.NotAccepted, ApplicationStatus.Withdrawn],
+  [ApplicationStatus.NotAccepted]: [ApplicationStatus.Archived],
+  [ApplicationStatus.OfferReceived]: [ApplicationStatus.OfferAccepted, ApplicationStatus.OfferDeclined, ApplicationStatus.Withdrawn],
+  [ApplicationStatus.OfferAccepted]: [ApplicationStatus.Archived],
+  [ApplicationStatus.OfferDeclined]: [ApplicationStatus.Archived],
+  [ApplicationStatus.Withdrawn]: [ApplicationStatus.Archived],
+  [ApplicationStatus.Archived]: [],
 };
 
-export const getNextStatuses = (currentStatus: string): string[] => {
+export const getNextStatuses = (currentStatus: ApplicationStatus): ApplicationStatus[] => {
   return statusTransitions[currentStatus] || [];
 };

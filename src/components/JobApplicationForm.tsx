@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { JobApplication } from './JobApplicationTracker';
-import { INACTIVE_STATUSES } from '../constants/applicationStatuses';
+import { ApplicationStatus, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 
 interface JobApplicationFormProps {
     onSubmit: (application: Omit<JobApplication, 'id'>) => void;
@@ -103,6 +103,15 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         onSubmit(localFormData);
     };
 
+    const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newStatus = e.target.value as ApplicationStatus;
+        const updatedStatusHistory = [
+            ...formData.statusHistory,
+            { status: newStatus, timestamp: new Date().toISOString() }
+        ];
+        onFormChange({ ...formData, statusHistory: updatedStatusHistory });
+    };
+
     return (
         <form onSubmit={handleSubmit}>
             <div className="mb-3">
@@ -165,13 +174,28 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                         const newDate = e.target.value;
                         setLocalFormData(prev => ({
                             ...prev,
-                            statusHistory: [{ status: 'Applied', timestamp: `${newDate}T00:00:00.000Z` }]
+                            statusHistory: [{ status: ApplicationStatus.Applied, timestamp: `${newDate}T00:00:00.000Z` }]
                         }));
                     }}
                     max={new Date().toISOString().split('T')[0]}
                 />
                 {errors.statusHistory && <div className="invalid-feedback">{errors.statusHistory}</div>}
                 {dateWarning && <div className="text-warning">{dateWarning}</div>}
+            </div>
+            <div className="mb-3">
+                <label htmlFor="status" className="form-label">Status</label>
+                <select
+                    id="status"
+                    className="form-select"
+                    value={formData.statusHistory[formData.statusHistory.length - 1].status}
+                    onChange={handleStatusChange}
+                >
+                    {Object.values(ApplicationStatus).map((status) => (
+                        <option key={status} value={status}>
+                            {status}
+                        </option>
+                    ))}
+                </select>
             </div>
             <button type="submit" className="btn btn-primary">Submit</button>
             <button type="button" className="btn btn-secondary ms-2" onClick={onCancel}>Cancel</button>
