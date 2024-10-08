@@ -58,67 +58,49 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     setIsEditing(true);
   };
 
-  const renderViewField = (label: string, value: string) => (
-    <div className="mb-3">
-      <h6 className="text-muted mb-1">{label}</h6>
-      <p className="lead">{value || 'N/A'}</p>
-    </div>
-  );
-
-  const renderEditField = (label: string, value: string, name: keyof JobApplication | 'currentStatus' | 'dateApplied') => (
-    <div className="mb-3">
-      <label htmlFor={name} className="form-label">{label}</label>
-      {name === 'currentStatus' ? (
-        <select
-          className="form-select"
-          id={name}
-          name={name}
-          value={formData.statusHistory[formData.statusHistory.length - 1].status}
-          onChange={handleChange}
-          required
-        >
-          {Object.values(ApplicationStatus).map(status => (
-            <option key={status} value={status}>{status}</option>
-          ))}
-        </select>
-      ) : name === 'jobDescription' ? (
-        <textarea
-          className="form-control"
-          id={name}
-          name={name}
-          value={value}
-          onChange={handleChange}
-          rows={3}
-        />
-      ) : name === 'dateApplied' ? (
-        <input
-          type="date"
-          className="form-control"
-          id={name}
-          name={name}
-          value={value}
-          onChange={(e) => {
-            const newDate = e.target.value;
-            setFormData(prev => ({
-              ...prev,
-              statusHistory: [
-                { status: ApplicationStatus.Applied, timestamp: `${newDate}T00:00:00.000Z` },
-                ...prev.statusHistory.slice(1)
-              ]
-            }));
-          }}
-          required
-        />
+  const renderField = (label: string, value: string, name: keyof JobApplication | 'currentStatus' | 'dateApplied') => (
+    <div className="mb-4">
+      <h6 className="text-muted mb-2">{label}</h6>
+      {isEditing ? (
+        name === 'jobDescription' ? (
+          <textarea
+            className="form-control"
+            id={name}
+            name={name}
+            value={value}
+            onChange={handleChange}
+            rows={5}
+          />
+        ) : name === 'currentStatus' ? (
+          <select
+            className="form-select"
+            id={name}
+            name={name}
+            value={value}
+            onChange={handleChange}
+          >
+            {Object.values(ApplicationStatus).map(status => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type={name === 'dateApplied' ? 'date' : 'text'}
+            className="form-control"
+            id={name}
+            name={name}
+            value={value}
+            onChange={handleChange}
+          />
+        )
       ) : (
-        <input
-          type="text"
-          className="form-control"
-          id={name}
-          name={name}
-          value={value}
-          onChange={handleChange}
-          required
-        />
+        name === 'jobDescription' ? (
+          <pre className="lead bg-light p-2 rounded" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
+            {value || 'N/A'}
+          </pre>
+        ) : (
+          <p className="lead bg-light p-2 rounded">{value || 'N/A'}</p>
+        )
       )}
     </div>
   );
@@ -127,47 +109,26 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
   const dateApplied = new Date(formData.statusHistory[0].timestamp).toISOString().split('T')[0];
 
   return (
-    <div className="container py-4">
-      <div className="card mb-4">
-        <div className="card-header bg-primary text-white py-3">
-          <h4 className="mb-0">{formData.jobTitle} at {formData.companyName}</h4>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
+    <div className="card shadow-sm">
+      <div className="card-body">
+        <h2 className="card-title mb-4">{isEditing ? 'Edit Application' : application.jobTitle}</h2>
+        <form onSubmit={handleSubmit}>
+          {renderField('Company Name', formData.companyName, 'companyName')}
+          {renderField('Job Title', formData.jobTitle, 'jobTitle')}
+          {renderField('Job Description', formData.jobDescription, 'jobDescription')}
+          {renderField('Application Method', formData.applicationMethod, 'applicationMethod')}
+          {renderField('Current Status', currentStatus, 'currentStatus')}
+          {renderField('Date Applied', new Date(formData.statusHistory[0].timestamp).toLocaleDateString(), 'dateApplied')}
+          
+          <div className="mt-4">
             {isEditing ? (
-              <>
-                {renderEditField('Company Name', formData.companyName, 'companyName')}
-                {renderEditField('Job Title', formData.jobTitle, 'jobTitle')}
-                {renderEditField('Job Description', formData.jobDescription, 'jobDescription')}
-                {renderEditField('Date Applied', dateApplied, 'dateApplied')}
-                {renderEditField('Status', currentStatus, 'currentStatus')}
-                {renderEditField('Application Method', formData.applicationMethod, 'applicationMethod')}
-              </>
+              <button type="submit" className="btn btn-primary me-2">Save</button>
             ) : (
-              <>
-                {renderViewField('Company Name', formData.companyName)}
-                {renderViewField('Job Title', formData.jobTitle)}
-                {renderViewField('Job Description', formData.jobDescription)}
-                {renderViewField('Date Applied', dateApplied)}
-                {renderViewField('Status', currentStatus)}
-                {renderViewField('Application Method', formData.applicationMethod)}
-              </>
-            )}
-          </form>
-        </div>
-        <div className="card-footer">
-          {isEditing ? (
-            <>
-              <button type="submit" className="btn btn-primary me-2" onClick={handleSubmit}>Save Changes</button>
-              <button type="button" className="btn btn-secondary" onClick={() => setIsEditing(false)}>Cancel Edit</button>
-            </>
-          ) : (
-            <>
               <button type="button" className="btn btn-primary me-2" onClick={handleEditClick}>Edit</button>
-              <button type="button" className="btn btn-secondary" onClick={onCancel}>Close</button>
-            </>
-          )}
-        </div>
+            )}
+            <button type="button" className="btn btn-secondary" onClick={onCancel}>Close</button>
+          </div>
+        </form>
       </div>
     </div>
   );
