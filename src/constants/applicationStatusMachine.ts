@@ -5,11 +5,40 @@ type StatusTransitions = {
 };
 
 export const statusTransitions: StatusTransitions = {
-  [ApplicationStatus.Applied]: [ApplicationStatus.InterviewScheduled, ApplicationStatus.NoResponse, ApplicationStatus.NotAccepted, ApplicationStatus.Withdrawn],
-  [ApplicationStatus.InterviewScheduled]: [ApplicationStatus.OfferReceived, ApplicationStatus.NotAccepted, ApplicationStatus.Withdrawn],
-  [ApplicationStatus.NoResponse]: [ApplicationStatus.InterviewScheduled, ApplicationStatus.NotAccepted, ApplicationStatus.Withdrawn],
+  [ApplicationStatus.Applied]: [
+    ApplicationStatus.InterviewScheduled,
+    ApplicationStatus.NoResponse,
+    ApplicationStatus.NotAccepted,
+    ApplicationStatus.Withdrawn
+  ],
+  [ApplicationStatus.InterviewScheduled]: [
+    ApplicationStatus.SecondRoundScheduled,
+    ApplicationStatus.OfferReceived,
+    ApplicationStatus.NotAccepted,
+    ApplicationStatus.Withdrawn
+  ],
+  [ApplicationStatus.SecondRoundScheduled]: [
+    ApplicationStatus.ThirdRoundScheduled,
+    ApplicationStatus.OfferReceived,
+    ApplicationStatus.NotAccepted,
+    ApplicationStatus.Withdrawn
+  ],
+  [ApplicationStatus.ThirdRoundScheduled]: [
+    ApplicationStatus.OfferReceived,
+    ApplicationStatus.NotAccepted,
+    ApplicationStatus.Withdrawn
+  ],
+  [ApplicationStatus.NoResponse]: [
+    ApplicationStatus.InterviewScheduled,
+    ApplicationStatus.NotAccepted,
+    ApplicationStatus.Withdrawn
+  ],
   [ApplicationStatus.NotAccepted]: [ApplicationStatus.Archived],
-  [ApplicationStatus.OfferReceived]: [ApplicationStatus.OfferAccepted, ApplicationStatus.OfferDeclined, ApplicationStatus.Withdrawn],
+  [ApplicationStatus.OfferReceived]: [
+    ApplicationStatus.OfferAccepted,
+    ApplicationStatus.OfferDeclined,
+    ApplicationStatus.Withdrawn
+  ],
   [ApplicationStatus.OfferAccepted]: [ApplicationStatus.Archived],
   [ApplicationStatus.OfferDeclined]: [ApplicationStatus.Archived],
   [ApplicationStatus.Withdrawn]: [ApplicationStatus.Archived],

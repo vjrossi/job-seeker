@@ -15,6 +15,7 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 import Settings from './Settings';
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Tooltip from './Tooltip';
+import { statusTransitions, getNextStatuses } from '../constants/applicationStatusMachine';
 
 export interface JobApplication {
     id: number;
@@ -65,6 +66,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [noResponseDays, setNoResponseDays] = useLocalStorage('noResponseDays', 14);
     const [showSettings, setShowSettings] = useState(false);
     const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+    const [currentInterviewStatus, setCurrentInterviewStatus] = useState<ApplicationStatus | null>(null);
 
     useEffect(() => {
         loadApplications();
@@ -185,23 +187,38 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     };
 
     const handleStatusChange = (id: number, newStatus: ApplicationStatus) => {
-        if (newStatus === ApplicationStatus.InterviewScheduled) {
-            setCurrentApplicationId(id);
-            setShowInterviewModal(true);
-        } else {
-            updateApplicationStatus(id, newStatus);
+        const application = applications.find(app => app.id === id);
+        if (application) {
+            const currentStatus = application.statusHistory[application.statusHistory.length - 1].status;
+            const validNextStatuses = getNextStatuses(currentStatus);
+
+            if (validNextStatuses.includes(newStatus)) {
+                if ([ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled, ApplicationStatus.ThirdRoundScheduled].includes(newStatus)) {
+                    setCurrentApplicationId(id);
+                    setCurrentInterviewStatus(currentStatus);
+                    setShowInterviewModal(true);
+                } else {
+                    updateApplicationStatus(id, newStatus);
+                }
+            } else {
+                showNotification('Invalid status progression.', 'error');
+            }
         }
     };
 
     const updateApplicationStatus = async (id: number, newStatus: ApplicationStatus, interviewDateTime?: string) => {
-        if (!Object.values(ApplicationStatus).includes(newStatus)) {
-            console.error(`Invalid status: ${newStatus}`);
-            showNotification('Invalid application status.', 'error');
-            return;
-        }
         try {
             const updatedApplication = applications.find(app => app.id === id);
             if (updatedApplication) {
+                const currentStatus = updatedApplication.statusHistory[updatedApplication.statusHistory.length - 1].status;
+
+                // Check if the new status is a valid progression using the state machine
+                const validNextStatuses = getNextStatuses(currentStatus);
+                if (!validNextStatuses.includes(newStatus)) {
+                    showNotification('Invalid status progression.', 'error');
+                    return;
+                }
+
                 updatedApplication.statusHistory.push({
                     status: newStatus,
                     timestamp: new Date().toISOString()
@@ -219,9 +236,9 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     };
 
-    const handleInterviewSchedule = async (dateTime: string) => {
+    const handleInterviewSchedule = async (dateTime: string, newStatus: ApplicationStatus) => {
         if (currentApplicationId) {
-            await updateApplicationStatus(currentApplicationId, ApplicationStatus.InterviewScheduled, dateTime);
+            await updateApplicationStatus(currentApplicationId, newStatus, dateTime);
             setShowInterviewModal(false);
             setCurrentApplicationId(null);
         }
@@ -341,8 +358,13 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 if (application && application.statusHistory.length > 1) {
                     const updatedStatusHistory = application.statusHistory.slice(0, -1);
                     const updatedApplication = { ...application, statusHistory: updatedStatusHistory };
-                    
-                    // Use the correct service to update the application
+
+                    // Clear interview date if undoing from an interview state
+                    const lastStatus = updatedStatusHistory[updatedStatusHistory.length - 1].status;
+                    if (![ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled, ApplicationStatus.ThirdRoundScheduled].includes(lastStatus)) {
+                        updatedApplication.interviewDateTime = undefined;
+                    }
+
                     await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
                     setApplications(prevApps => prevApps.map(app => app.id === id ? updatedApplication : app));
                     setFeedbackMessage('Status change undone successfully');
@@ -430,11 +452,14 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 onConfirm={handleConfirmSubmit}
                 message="An active application for this company already exists. Do you want to submit another application?"
             />
-            <InterviewScheduleModal
-                show={showInterviewModal}
-                onHide={() => setShowInterviewModal(false)}
-                onSchedule={handleInterviewSchedule}
-            />
+            {showInterviewModal && (
+                <InterviewScheduleModal
+                    show={showInterviewModal}
+                    onHide={() => setShowInterviewModal(false)}
+                    onSchedule={handleInterviewSchedule}
+                    currentStatus={currentInterviewStatus || ApplicationStatus.Applied}
+                />
+            )}
             {isDev && (
                 <div className="mb-3">
                     <button className="btn btn-warning me-2" onClick={populateDummyData}>

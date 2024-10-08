@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { JobApplication } from './JobApplicationTracker';
-import { getNextStatuses } from '../constants/applicationStatusMachine';
-import { ApplicationStatus, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/ApplicationStatus';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { ACTIVE_STATUSES, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import ProgressModal from './ProgressModal';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { getNextStatuses } from '../constants/applicationStatusMachine';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -38,21 +39,13 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [showActive, setShowActive] = useState(true);
 
-  const relevantStatuses = showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES;
-
-  const filteredApplications = useMemo(() => {
-    return applications?.filter(app => {
-      if (app && app.statusHistory && app.statusHistory.length > 0) {
-        const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-        const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
-        const matchesActiveFilter = showActive ? ACTIVE_STATUSES.includes(currentStatus) : INACTIVE_STATUSES.includes(currentStatus);
-        return matchesSearch && matchesStatus && matchesActiveFilter;
-      }
-      return false;
-    }) || [];
-  }, [applications, searchTerm, statusFilters, showActive]);
+  const filteredApplications = applications.filter(app => {
+    const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+    const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
+    return matchesSearch && matchesStatus;
+  });
 
   const oneMonthAgo = useMemo(() => {
     const date = new Date();
@@ -200,11 +193,10 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
       <div className="mb-3">
         <h5>Filter by Status:</h5>
         <div className="btn-group flex-wrap" role="group">
-          {relevantStatuses.map((status: ApplicationStatus) => (
+          {ACTIVE_STATUSES.map(status => (
             <button
               key={status}
-              type="button"
-              className={`btn btn-outline-primary ${statusFilters.includes(status) ? 'active' : ''}`}
+              className={`btn btn-sm me-2 ${statusFilters.includes(status) ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={() => onStatusFilterChange(status)}
             >
               {status}

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './InterviewScheduleModal.css';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { getNextStatuses } from '../constants/applicationStatusMachine';
 
 interface InterviewScheduleModalProps {
     show: boolean;
     onHide: () => void;
-    onSchedule: (dateTime: string) => void;
+    onSchedule: (dateTime: string, status: ApplicationStatus) => void;
+    currentStatus: ApplicationStatus;
 }
 
-const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({ show, onHide, onSchedule }) => {
+const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({ show, onHide, onSchedule, currentStatus }) => {
     const [interviewDateTime, setInterviewDateTime] = useState('');
 
     useEffect(() => {
@@ -18,8 +21,23 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({ show, o
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         console.log('Scheduling interview for:', interviewDateTime);
-        onSchedule(interviewDateTime);
-        onHide();
+        
+        const nextStatuses = getNextStatuses(currentStatus);
+        const interviewStatuses = [
+            ApplicationStatus.InterviewScheduled,
+            ApplicationStatus.SecondRoundScheduled,
+            ApplicationStatus.ThirdRoundScheduled
+        ];
+        
+        const newStatus = nextStatuses.find(status => interviewStatuses.includes(status));
+
+        if (newStatus) {
+            onSchedule(interviewDateTime, newStatus);
+            onHide();
+        } else {
+            console.error('No valid interview status found');
+            // You might want to show an error message to the user here
+        }
     };
 
     if (!show) return null;

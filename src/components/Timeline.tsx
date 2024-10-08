@@ -82,7 +82,6 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
   return (
     <div className="timeline-container">
       <div className="timeline-header">
-        <h2>Application Timeline</h2>
         <button onClick={toggleSortOrder} className="btn btn-outline-primary btn-sm">
           {isRecentFirst ? 'Show Oldest First' : 'Show Recent First'}
         </button>

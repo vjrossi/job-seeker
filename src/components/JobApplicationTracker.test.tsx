@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import JobApplicationTracker from './JobApplicationTracker';
-import { APPLICATION_STATUSES } from '../constants/applicationStatuses';
+import { INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 
 describe('JobApplicationTracker', () => {
   const mockSetIsFormDirty = jest.fn();
@@ -22,7 +22,7 @@ describe('JobApplicationTracker', () => {
 
   test('renders status filter buttons based on active state', () => {
     const activeStatuses = ['Applied', 'Interview Scheduled', 'No Response', 'Offer Received', 'Offer Accepted'];
-    const inactiveStatuses = APPLICATION_STATUSES.filter(status => !activeStatuses.includes(status));
+    const inactiveStatuses = INACTIVE_STATUSES;
 
     activeStatuses.forEach(status => {
       const filterButton = screen.getByRole('button', { name: status });
