@@ -130,16 +130,8 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
                             className="btn btn-outline-primary btn-sm" 
                             onClick={() => onViewApplication(app.id)}
                           >
-                            View Details
+                            View
                           </button>
-                          {!inactive && (
-                            <button
-                              className="btn btn-outline-success btn-sm"
-                              onClick={() => handleProgressClick(app)}
-                            >
-                              Progress
-                            </button>
-                          )}
                         </div>
                       </div>
                     </div>
