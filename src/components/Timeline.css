@@ -1,102 +1,139 @@
 .timeline-container {
-    max-width: 100%;
-    padding: 20px 20px 20px 80px;
-    position: relative;
-  }
-  
-  .timeline-item {
-    position: relative;
-    padding-bottom: 20px;
-    border-left: 2px solid #ccc;
-    padding-left: 20px;
-    margin-left: 10px;
-  }
-  
-  .timeline-item.inactive {
-    opacity: 0.7;
-  }
-  
-  .timeline-item-content {
-    background-color: #f8f9fa;
-    border-radius: 5px;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .inactive-badge {
-    display: inline-block;
-    background-color: #6c757d;
-    color: white;
-    font-size: 0.8rem;
-    padding: 2px 6px;
-    border-radius: 3px;
-    margin-left: 10px;
-  }
-  
-  .timeline-stages {
-    margin-top: 10px;
-  }
-  
-  .timeline-stage {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  
-  .timeline-stage-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-right: 10px;
-  }
-  
-  .timeline-stage-content {
-    flex-grow: 1;
-  }
-  
-  .timeline-stage-content p {
-    margin: 0;
-    font-weight: bold;
-  }
-  
-  .timeline-stage-content small {
-    color: #6c757d;
-  }
-  
-  .timeline-year {
-    position: absolute;
-    left: -70px;
-    top: -10px;
-    font-weight: bold;
-    font-size: 1.2em;
-    color: #6c757d;
-  }
-  
-  .timeline-month {
-    position: absolute;
-    left: -80px;
-    top: 0;
-    font-weight: bold;
-    font-size: 0.9em;
-    color: #6c757d;
-  }
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
-  .timeline-year-month {
-    position: absolute;
-    left: -80px;
-    top: 0;
-    font-weight: bold;
-    font-size: 0.9em;
-    color: #6c757d;
-  }
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
-  .timeline-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
+.timeline-content {
+  border-left: 2px solid #e0e0e0;
+  padding-left: 20px;
+}
 
-  .timeline-header h3 {
-    margin: 0;
-  }
+.timeline-month-group {
+  margin-bottom: 20px;
+}
+
+.timeline-month-header {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.timeline-month-header:hover {
+  background-color: #e9ecef;
+}
+
+.timeline-month-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.expand-icon {
+  transition: transform 0.3s ease;
+}
+
+.timeline-month-header.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.timeline-month-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+
+.timeline-month-content.expanded {
+  max-height: 1000px; /* Adjust this value based on your needs */
+}
+
+.timeline-item {
+  position: relative;
+  padding: 20px 0;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 24px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #007bff;
+}
+
+.timeline-item-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-item.inactive .timeline-item-content {
+  opacity: 0.7;
+}
+
+.timeline-item h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.inactive-badge {
+  display: inline-block;
+  background-color: #6c757d;
+  color: white;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 10px;
+}
+
+.timeline-stages {
+  margin-top: 15px;
+}
+
+.timeline-stage {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.timeline-stage-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.timeline-stage-content {
+  flex-grow: 1;
+}
+
+.timeline-stage-content p {
+  margin: 0;
+  font-weight: bold;
+}
+
+.timeline-stage-content small {
+  color: #6c757d;
+}
+
+.timeline-item-actions {
+  margin-top: 15px;
+}
+
+.timeline-item-actions button {
+  margin-right: 10px;
+}

@@ -3,6 +3,7 @@ import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import './Timeline.css';
 import ProgressModal from './ProgressModal';
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
 interface TimelineProps {
   applications: JobApplication[];
@@ -14,12 +15,7 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
   const [isRecentFirst, setIsRecentFirst] = useState(true);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
-
-  const sortedApplications = applications.sort((a, b) => {
-    const aDate = new Date(a.statusHistory[0].timestamp);
-    const bDate = new Date(b.statusHistory[0].timestamp);
-    return isRecentFirst ? bDate.getTime() - aDate.getTime() : aDate.getTime() - bDate.getTime();
-  });
+  const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -61,71 +57,96 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
     setSelectedApplication(null);
   };
 
-  const handleStatusChange = (application: JobApplication, newStatus: ApplicationStatus) => {
-    onStatusChange(application.id, newStatus);
+  const toggleMonth = (month: string) => {
+    setExpandedMonths(prev => 
+      prev.includes(month) ? prev.filter(m => m !== month) : [...prev, month]
+    );
   };
 
-  let lastMonth = '';
+  const groupedApplications = applications
+    .sort((a, b) => {
+      const aDate = new Date(a.statusHistory[0].timestamp);
+      const bDate = new Date(b.statusHistory[0].timestamp);
+      return isRecentFirst ? bDate.getTime() - aDate.getTime() : aDate.getTime() - bDate.getTime();
+    })
+    .reduce((acc, app) => {
+      const appliedDate = new Date(app.statusHistory[0].timestamp);
+      const month = appliedDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+      if (!acc[month]) {
+        acc[month] = [];
+      }
+      acc[month].push(app);
+      return acc;
+    }, {} as Record<string, JobApplication[]>);
 
   return (
     <div className="timeline-container">
       <div className="timeline-header">
-        <button onClick={toggleSortOrder} className="btn btn-outline-secondary btn-sm">
+        <h2>Application Timeline</h2>
+        <button onClick={toggleSortOrder} className="btn btn-outline-primary btn-sm">
           {isRecentFirst ? 'Show Oldest First' : 'Show Recent First'}
         </button>
       </div>
-      {sortedApplications.map((app) => {
-        const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-        const inactive = INACTIVE_STATUSES.includes(currentStatus);
-        const appliedDate = new Date(app.statusHistory[0].timestamp);
-        const month = appliedDate.toLocaleString('default', { month: 'long' });
-        const showMonth = month !== lastMonth;
-        lastMonth = month;
+      <div className="timeline-content">
+        {Object.entries(groupedApplications).map(([month, apps]) => (
+          <div key={month} className="timeline-month-group">
+            <div 
+              className={`timeline-month-header ${expandedMonths.includes(month) ? 'expanded' : ''}`} 
+              onClick={() => toggleMonth(month)}
+            >
+              <h3>{month}</h3>
+              <span className="expand-icon">
+                {expandedMonths.includes(month) ? <FaChevronUp /> : <FaChevronDown />}
+              </span>
+            </div>
+            <div className={`timeline-month-content ${expandedMonths.includes(month) ? 'expanded' : ''}`}>
+              {apps.map((app) => {
+                const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+                const inactive = INACTIVE_STATUSES.includes(currentStatus);
 
-        return (
-          <div key={app.id} className={`timeline-item ${inactive ? 'inactive' : ''}`}>
-            {showMonth && (
-              <div className="timeline-month">
-                {month}
-              </div>
-            )}
-            <div className="timeline-item-content">
-              <h4>{app.companyName} - {app.jobTitle}</h4>
-              {inactive && <span className="inactive-badge">{currentStatus}</span>}
-              <div className="timeline-stages">
-                {app.statusHistory.map((status, index) => (
-                  <div key={index} className="timeline-stage">
-                    <div 
-                      className="timeline-stage-dot" 
-                      style={{ backgroundColor: getStatusColor(status.status) }}
-                    ></div>
-                    <div className="timeline-stage-content">
-                      <p>{status.status}</p>
-                      <small>{formatDate(new Date(status.timestamp))}</small>
+                return (
+                  <div key={app.id} className={`timeline-item ${inactive ? 'inactive' : ''}`}>
+                    <div className="timeline-item-content">
+                      <h4>{app.companyName} - {app.jobTitle}</h4>
+                      {inactive && <span className="inactive-badge">{currentStatus}</span>}
+                      <div className="timeline-stages">
+                        {app.statusHistory.map((status, index) => (
+                          <div key={index} className="timeline-stage">
+                            <div 
+                              className="timeline-stage-dot" 
+                              style={{ backgroundColor: getStatusColor(status.status) }}
+                            ></div>
+                            <div className="timeline-stage-content">
+                              <p>{status.status}</p>
+                              <small>{formatDate(new Date(status.timestamp))}</small>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="timeline-item-actions">
+                        <button 
+                          className="btn btn-outline-primary btn-sm" 
+                          onClick={() => onViewApplication(app.id)}
+                        >
+                          View Details
+                        </button>
+                        {!inactive && (
+                          <button
+                            className="btn btn-outline-success btn-sm"
+                            onClick={() => handleProgressClick(app)}
+                          >
+                            Progress
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-              <div className="mt-2">
-                <button 
-                  className="btn btn-outline-primary btn-sm me-2" 
-                  onClick={() => onViewApplication(app.id)}
-                >
-                  View Details
-                </button>
-                {!inactive && (
-                  <button
-                    className="btn btn-outline-success btn-sm"
-                    onClick={() => handleProgressClick(app)}
-                  >
-                    Progress
-                  </button>
-                )}
-              </div>
+                );
+              })}
             </div>
           </div>
-        );
-      })}
+        ))}
+      </div>
       {showProgressModal && selectedApplication && (
         <ProgressModal
           application={selectedApplication}
