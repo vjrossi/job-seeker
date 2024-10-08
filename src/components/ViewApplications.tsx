@@ -4,6 +4,8 @@ import { ApplicationStatus, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../consta
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import ProgressModal from './ProgressModal';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { FaStar } from 'react-icons/fa';
+import '../ViewApplications.css';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -43,7 +45,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
       .filter(app => {
         const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
         const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
+          app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
         const isNotArchived = currentStatus !== ApplicationStatus.Archived;
         const matchesActiveFilter = showActive ? ACTIVE_STATUSES.includes(currentStatus) : INACTIVE_STATUSES.includes(currentStatus);
@@ -123,8 +125,8 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           <tr>
             <th>Company</th>
             <th>Job Title</th>
-            <th>Date Applied</th>
             <th>Status</th>
+            <th>Rating</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -135,8 +137,8 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
               <tr key={app.id}>
                 <td>{app.companyName}</td>
                 <td>{app.jobTitle}</td>
-                <td>{formatDate(app.statusHistory[0].timestamp)}</td>
                 <td>{currentStatus}</td>
+                <td>{renderSmallStarRating(app.rating)}</td>
                 <td>
                   <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEdit(app)}>View</button>
                   {!INACTIVE_STATUSES.includes(currentStatus) && (
@@ -203,6 +205,20 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         </button>
       </span>
     </OverlayTrigger>
+  );
+
+  const renderSmallStarRating = (rating: number) => (
+    <div className="small-star-rating">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <FaStar
+          key={star}
+          className="star"
+          color={star <= rating ? "#ffc107" : "#e4e5e9"}
+          size={12}
+          style={{ marginRight: 2 }}
+        />
+      ))}
+    </div>
   );
 
   return (

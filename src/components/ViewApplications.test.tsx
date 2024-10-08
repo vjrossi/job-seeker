@@ -6,8 +6,8 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 describe('ViewApplications', () => {
   const mockApplications: JobApplication[] = [
-    { id: 1, companyName: 'Company A', jobTitle: 'Job A', statusHistory: [{ status: ApplicationStatus.Applied, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '' },
-    { id: 2, companyName: 'Company B', jobTitle: 'Job B', statusHistory: [{ status: ApplicationStatus.InterviewScheduled, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '' },
+    { id: 1, companyName: 'Company A', jobTitle: 'Job A', statusHistory: [{ status: ApplicationStatus.Applied, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '', rating: 0 },
+    { id: 2, companyName: 'Company B', jobTitle: 'Job B', statusHistory: [{ status: ApplicationStatus.InterviewScheduled, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '', rating: 0 },
   ];
 
   const mockProps = {

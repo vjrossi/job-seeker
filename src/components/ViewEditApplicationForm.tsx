@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { FaStar } from 'react-icons/fa';
 
 interface ViewEditApplicationFormProps {
   application: JobApplication;
@@ -22,7 +23,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     setFormData(application);
   }, [application]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { target: { name: string; value: number } }) => {
     const { name, value } = e.target;
     console.log(`handleChange called in ViewEditApplicationForm: ${name} = ${value}`);
     
@@ -39,6 +40,8 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
             { status: value as ApplicationStatus, timestamp: new Date().toISOString() }
           ];
         }
+      } else if (name === 'rating') {
+        updatedData.rating = value as number;
       } else if (name in updatedData) {
         (updatedData as any)[name] = value;
       }
@@ -58,52 +61,77 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     setIsEditing(true);
   };
 
-  const renderField = (label: string, value: string, name: keyof JobApplication | 'currentStatus' | 'dateApplied') => (
+  const renderField = (label: string, value: string | number, name: keyof JobApplication | 'currentStatus' | 'dateApplied') => (
     <div className="mb-4">
-      <h6 className="text-muted mb-2">{label}</h6>
-      {isEditing ? (
-        name === 'jobDescription' ? (
-          <textarea
-            className="form-control"
-            id={name}
-            name={name}
-            value={value}
-            onChange={handleChange}
-            rows={5}
-          />
-        ) : name === 'currentStatus' ? (
-          <select
-            className="form-select"
-            id={name}
-            name={name}
-            value={value}
-            onChange={handleChange}
-          >
-            {Object.values(ApplicationStatus).map(status => (
-              <option key={status} value={status}>{status}</option>
-            ))}
-          </select>
+        <h6 className="text-muted mb-2">{label}</h6>
+        {isEditing ? (
+            name === 'jobDescription' ? (
+                <textarea
+                    className="form-control"
+                    id={name}
+                    name={name}
+                    value={value}
+                    onChange={handleChange}
+                    rows={5}
+                />
+            ) : name === 'currentStatus' ? (
+                <select
+                    className="form-select"
+                    id={name}
+                    name={name}
+                    value={value}
+                    onChange={handleChange}
+                >
+                    {Object.values(ApplicationStatus).map(status => (
+                        <option key={status} value={status}>{status}</option>
+                    ))}
+                </select>
+            ) : name === 'rating' ? (
+                <div>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                            key={star}
+                            className="star"
+                            color={star <= (value as number) ? "#ffc107" : "#e4e5e9"}
+                            size={24}
+                            style={{ marginRight: 10, cursor: "pointer" }}
+                            onClick={() => handleChange({ target: { name: 'rating', value: star } })}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <input
+                    type={name === 'dateApplied' ? 'date' : 'text'}
+                    className="form-control"
+                    id={name}
+                    name={name}
+                    value={value}
+                    onChange={handleChange}
+                />
+            )
         ) : (
-          <input
-            type={name === 'dateApplied' ? 'date' : 'text'}
-            className="form-control"
-            id={name}
-            name={name}
-            value={value}
-            onChange={handleChange}
-          />
-        )
-      ) : (
-        name === 'jobDescription' ? (
-          <pre className="lead bg-light p-2 rounded" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
-            {value || 'N/A'}
-          </pre>
-        ) : (
-          <p className="lead bg-light p-2 rounded">{value || 'N/A'}</p>
-        )
-      )}
+            name === 'jobDescription' ? (
+                <pre className="lead bg-light p-2 rounded" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
+                    {value || 'N/A'}
+                </pre>
+            ) : name === 'rating' ? (
+                <div>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                            key={star}
+                            className="star"
+                            color={star <= (value as number) ? "#ffc107" : "#e4e5e9"}
+                            size={24}
+                            style={{ marginRight: 10 }}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <p className="lead bg-light p-2 rounded">{value || 'N/A'}</p>
+            )
+        )}
     </div>
-  );
+);
 
   const currentStatus = formData.statusHistory[formData.statusHistory.length - 1].status;
   const dateApplied = new Date(formData.statusHistory[0].timestamp).toISOString().split('T')[0];
@@ -119,6 +147,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
           {renderField('Application Method', formData.applicationMethod, 'applicationMethod')}
           {renderField('Current Status', currentStatus, 'currentStatus')}
           {renderField('Date Applied', new Date(formData.statusHistory[0].timestamp).toLocaleDateString(), 'dateApplied')}
+          {renderField('Job Rating', formData.rating, 'rating')}
           
           <div className="mt-4">
             {isEditing ? (

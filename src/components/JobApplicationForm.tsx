@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
+import { FaStar } from 'react-icons/fa';
 
 interface JobApplicationFormProps {
     onSubmit: (application: JobApplication) => void;
@@ -11,16 +12,17 @@ interface JobApplicationFormProps {
     onCancel: () => void;
 }
 
-const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formData, onFormChange, existingApplications, onCancel }) => {
+const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formData, onFormChange, onCancel }) => {
     const today = new Date().toISOString().split('T')[0];
     const initialFormData: Partial<JobApplication> = {
         ...formData,
+        rating: 0,
         statusHistory: [{ status: ApplicationStatus.Applied, timestamp: today }]
     };
 
+
     const [localFormData, setLocalFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [dateWarning, setDateWarning] = useState<string | null>(null);
 
     useEffect(() => {
         onFormChange(localFormData);
@@ -29,6 +31,10 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setLocalFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleRatingChange = (rating: number) => {
+        setLocalFormData(prev => ({ ...prev, rating }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -91,56 +97,26 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     rows={3}
                 />
             </div>
-            <div className="mb-3">
-                <label htmlFor="applicationMethod" className="form-label">Application Method</label>
-                <select
-                    className="form-select mb-2"
-                    id="applicationMethod"
-                    name="applicationMethod"
-                    value={localFormData.applicationMethod || ''}
-                    onChange={handleChange}
-                >
-                    <option value="">Select an application method</option>
-                    {STANDARD_APPLICATION_METHODS.map(method => (
-                        <option key={method} value={method}>{method}</option>
+            <div className="mb-4">
+                <label className="form-label">Job Rating</label>
+                <div>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                            key={star}
+                            className="star"
+                            color={star <= (localFormData.rating || 0) ? "#ffc107" : "#e4e5e9"}
+                            size={24}
+                            style={{ marginRight: 10, cursor: "pointer" }}
+                            onClick={() => handleRatingChange(star)}
+                        />
                     ))}
-                </select>
-                {localFormData.applicationMethod === 'Other' && (
-                    <input
-                        type="text"
-                        className="form-control"
-                        id="customApplicationMethod"
-                        name="applicationMethod"
-                        value={localFormData.applicationMethod === 'Other' ? '' : localFormData.applicationMethod}
-                        onChange={handleChange}
-                        placeholder="Enter custom application method"
-                    />
-                )}
-            </div>
-            <div className="mb-3">
-                <label htmlFor="dateApplied" className="form-label">Date Applied</label>
-                <input
-                    type="date"
-                    className={`form-control ${errors.statusHistory ? 'is-invalid' : ''}`}
-                    id="dateApplied"
-                    name="dateApplied"
-                    value={localFormData.statusHistory?.[0]?.timestamp.split('T')[0] || ''}
-                    onChange={(e) => {
-                        const newDate = e.target.value;
-                        setLocalFormData(prev => ({
-                            ...prev,
-                            statusHistory: [{ status: ApplicationStatus.Applied, timestamp: `${newDate}T00:00:00.000Z` }]
-                        }));
-                    }}
-                    max={new Date().toISOString().split('T')[0]}
-                />
-                {errors.statusHistory && <div className="invalid-feedback">{errors.statusHistory}</div>}
-                {dateWarning && <div className="text-warning">{dateWarning}</div>}
+                </div>
             </div>
             <button type="submit" className="btn btn-primary me-2">Submit</button>
             <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
         </form>
     );
 };
+
 
 export default JobApplicationForm;

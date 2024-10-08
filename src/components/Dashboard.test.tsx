@@ -14,6 +14,7 @@ describe('Dashboard', () => {
             companyName: 'Company A',
             jobTitle: 'Job A',
             jobDescription: 'Description A',
+            rating: 0, // Add this line
             applicationMethod: 'Online',
             statusHistory: [
                 { status: ApplicationStatus.Applied, timestamp: '2023-01-01T00:00:00.000Z' }
@@ -30,7 +31,8 @@ describe('Dashboard', () => {
                 { status: ApplicationStatus.Applied, timestamp: '2023-01-02T00:00:00.000Z' },
                 { status: ApplicationStatus.InterviewScheduled, timestamp: '2023-01-10T00:00:00.000Z' }
             ],
-            interviewDateTime: '2023-01-20T14:00:00.000Z'
+            interviewDateTime: '2023-01-20T14:00:00.000Z',
+            rating: 0 // Add this line
         },
     ];
 

@@ -23,6 +23,7 @@ export interface JobApplication {
     jobTitle: string;
     jobDescription: string;
     applicationMethod: string;
+    rating: number; // Add this line
     statusHistory: {
         status: ApplicationStatus;
         timestamp: string;
@@ -40,6 +41,7 @@ const initialFormData: Omit<JobApplication, 'id'> = {
     jobTitle: '',
     jobDescription: '',
     applicationMethod: '',
+    rating: 0, // Add this line
     statusHistory: [{
         status: ApplicationStatus.Applied,
         timestamp: new Date().toISOString()

@@ -87,6 +87,7 @@ export const generateDummyApplications = (count: number, noResponseDays: number)
     const application: JobApplication = {
       id: i + 1,
       companyName: companyName,
+      rating: Math.floor(Math.random() * 5) + 1, // Add this line
       jobTitle: jobTitle,
       jobDescription: `This is a job description for ${jobTitle} at ${companyName}.`,
       applicationMethod: Math.random() > 0.5 ? 'Online' : 'Email',
