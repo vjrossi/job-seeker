@@ -13,6 +13,8 @@ import Reports from './Reports';
 import ViewEditApplicationForm from './ViewEditApplicationForm';
 import InterviewScheduleModal from './InterviewScheduleModal';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
+import Settings from './Settings';
+import { useLocalStorage } from '../hooks/useLocalStorage'
 
 export interface JobApplication {
     id: number;
@@ -60,6 +62,8 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [showInterviewModal, setShowInterviewModal] = useState(false);
     const [currentApplicationId, setCurrentApplicationId] = useState<number | null>(null);
     const [isDev, setIsDev] = useState(false);
+    const [noResponseDays, setNoResponseDays] = useLocalStorage('noResponseDays', 14);
+    const [showSettings, setShowSettings] = useState(false);
 
     useEffect(() => {
         loadApplications();
@@ -72,22 +76,23 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
     const loadApplications = async () => {
         try {
-            const loadedApplications = isDev
-                ? await devIndexedDBService.getAllApplications()
-                : await indexedDBService.getAllApplications();
-            setApplications(loadedApplications);
+            let apps = await (isDev ? devIndexedDBService : indexedDBService).getAllApplications();
+            if (apps.length === 0 && isDev) {
+                apps = generateDummyApplications(10, noResponseDays);
+                await Promise.all(apps.map(app => devIndexedDBService.addApplication(app)));
+            }
+            setApplications(apps);
         } catch (error) {
             console.error('Error loading applications:', error);
+            showNotification('Failed to load applications. Please try again.', 'error');
         }
     };
 
     const populateDummyData = async () => {
         try {
             await devIndexedDBService.clearAllApplications();
-            const dummyApplications = generateDummyApplications(20);
-            for (const app of dummyApplications) {
-                await devIndexedDBService.addApplication(app);
-            }
+            const dummyApplications = generateDummyApplications(20, noResponseDays);
+            await Promise.all(dummyApplications.map(app => devIndexedDBService.addApplication(app)));
             await loadApplications();
             showNotification('Dummy data populated successfully', 'success');
         } catch (error) {
@@ -412,6 +417,19 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     Dev Mode
                 </label>
             </div>
+            {showSettings && (
+                <Settings
+                    noResponseDays={noResponseDays}
+                    onNoResponseDaysChange={(days) => {
+                        setNoResponseDays(days);
+                        setShowSettings(false);
+                        showNotification('Settings updated successfully', 'success');
+                    }}
+                />
+            )}
+            <button className="btn btn-secondary mt-3" onClick={() => setShowSettings(!showSettings)}>
+                {showSettings ? 'Hide Settings' : 'Show Settings'}
+            </button>
         </div>
     );
 };

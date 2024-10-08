@@ -1,66 +1,90 @@
 import { JobApplication } from '../components/JobApplicationTracker';
-import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 
-const companies = ['Google', 'Amazon', 'Microsoft', 'Apple', 'Facebook', 'Netflix', 'Tesla', 'IBM', 'Oracle', 'Intel'];
-const jobTitles = ['Software Engineer', 'Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'DevOps Engineer', 'Data Scientist', 'Product Manager', 'UX Designer', 'QA Engineer', 'Systems Architect'];
-
-function randomDate(start: Date, end: Date) {
+const generateRandomDate = (start: Date, end: Date): Date => {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-}
+};
 
-function generateApplicationHistory(startDate: Date): { statusHistory: { status: ApplicationStatus; timestamp: string }[], interviewDateTime?: string } {
-  let currentStatus = ApplicationStatus.Applied;
-  let currentDate = startDate;
-  const statusHistory: { status: ApplicationStatus; timestamp: string }[] = [
-    { status: currentStatus as ApplicationStatus.Applied, timestamp: currentDate.toISOString() }
-  ];
-  let interviewDateTime: string | undefined;
+const generateFutureDate = (): Date => {
+  const now = new Date();
+  const futureDate = new Date(now.getTime() + Math.random() * (30 * 24 * 60 * 60 * 1000)); // Random date within the next 30 days
+  return futureDate;
+};
 
-  while (getNextStatuses(currentStatus).length > 0) {
-    const nextStatuses = getNextStatuses(currentStatus);
-    const nextStatus = nextStatuses[Math.floor(Math.random() * nextStatuses.length)];
-    currentDate = randomDate(currentDate, new Date());
-    
-    statusHistory.push({ status: nextStatus, timestamp: currentDate.toISOString() });
-    
-    if (nextStatus === ApplicationStatus.InterviewScheduled) {
-      interviewDateTime = randomDate(currentDate, new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000)).toISOString();
-    }
-    
-    currentStatus = nextStatus;
-    
-    // 30% chance to stop progressing, unless it's an offer
-    if (Math.random() < 0.3 && ![ApplicationStatus.OfferAccepted, ApplicationStatus.OfferDeclined, ApplicationStatus.Withdrawn].includes(currentStatus)) {
-      break;
-    }
-  }
+// Configuration
+const OFFER_PROBABILITY = 0.03; // 3% chance of receiving an offer
+const INTERVIEW_PROBABILITY = 0.1; // 10% chance of getting an interview
 
-  return { statusHistory, interviewDateTime };
-}
+const companies = [
+  'Google', 'Microsoft', 'Amazon', 'Apple', 'Facebook', 'Netflix', 'Adobe', 
+  'Salesforce', 'IBM', 'Oracle', 'Intel', 'Cisco', 'VMware', 'Uber', 'Airbnb', 
+  'Twitter', 'LinkedIn', 'Dropbox', 'Slack', 'Zoom', 'Shopify', 'Square', 
+  'Stripe', 'Twilio', 'Atlassian', 'Palantir', 'Snowflake', 'Databricks', 
+  'Instacart', 'DoorDash', 'Robinhood', 'Coinbase', 'SpaceX', 'Tesla'
+];
 
-export function generateDummyApplications(count: number): JobApplication[] {
+const jobTitles = [
+  'Software Engineer', 'Full Stack Developer', 'Frontend Developer', 'Backend Developer',
+  'DevOps Engineer', 'Site Reliability Engineer', 'Data Scientist', 'Machine Learning Engineer',
+  'AI Research Scientist', 'Cloud Architect', 'Mobile App Developer', 'iOS Developer',
+  'Android Developer', 'React Native Developer', 'UI/UX Developer', 'QA Engineer',
+  'Test Automation Engineer', 'Security Engineer', 'Blockchain Developer', 'Game Developer',
+  'AR/VR Developer', 'Embedded Systems Engineer', 'Firmware Engineer', 'Network Engineer',
+  'Database Administrator', 'Data Engineer', 'Big Data Engineer', 'Product Manager',
+  'Technical Project Manager', 'Scrum Master'
+];
+
+const getRandomItem = (array: string[]) => array[Math.floor(Math.random() * array.length)];
+
+export const generateDummyApplications = (count: number, noResponseDays: number): JobApplication[] => {
   const applications: JobApplication[] = [];
+  const startDate = new Date(2023, 0, 1); // January 1, 2023
+  const endDate = new Date(); // Current date
 
   for (let i = 0; i < count; i++) {
-    const company = companies[Math.floor(Math.random() * companies.length)];
-    const jobTitle = jobTitles[Math.floor(Math.random() * jobTitles.length)];
-    const appliedDate = randomDate(new Date(2023, 0, 1), new Date());
+    const appliedDate = generateRandomDate(startDate, endDate);
+    const daysSinceApplied = Math.floor((endDate.getTime() - appliedDate.getTime()) / (1000 * 60 * 60 * 24));
 
-    const { statusHistory, interviewDateTime } = generateApplicationHistory(appliedDate);
+    let currentStatus: ApplicationStatus;
+    const statusHistory = [
+      { status: ApplicationStatus.Applied, timestamp: appliedDate.toISOString() }
+    ];
+
+    const random = Math.random();
+    if (random < OFFER_PROBABILITY) {
+      currentStatus = ApplicationStatus.OfferReceived;
+    } else if (random < OFFER_PROBABILITY + INTERVIEW_PROBABILITY) {
+      currentStatus = ApplicationStatus.InterviewScheduled;
+    } else if (daysSinceApplied > noResponseDays) {
+      currentStatus = ApplicationStatus.NoResponse;
+    } else {
+      currentStatus = ApplicationStatus.Applied;
+    }
+
+    if (currentStatus !== ApplicationStatus.Applied) {
+      const statusDate = new Date(appliedDate);
+      statusDate.setDate(statusDate.getDate() + Math.min(daysSinceApplied, noResponseDays));
+      statusHistory.push({ status: currentStatus, timestamp: statusDate.toISOString() });
+    }
+
+    const companyName = getRandomItem(companies);
+    const jobTitle = getRandomItem(jobTitles);
 
     const application: JobApplication = {
-      id: Date.now() + i,
-      companyName: company,
-      jobTitle: jobTitle,
-      jobDescription: `This is a dummy job description for ${jobTitle} position at ${company}.`,
-      applicationMethod: Math.random() > 0.5 ? 'Company Website' : 'LinkedIn',
-      statusHistory,
-      interviewDateTime,
+      id: i + 1,
+      companyName,
+      jobTitle,
+      jobDescription: `This is a job description for ${jobTitle} position at ${companyName}.`,
+      applicationMethod: Math.random() > 0.5 ? 'Online' : 'Email',
+      statusHistory: statusHistory,
     };
+
+    if (currentStatus === ApplicationStatus.InterviewScheduled) {
+      application.interviewDateTime = generateFutureDate().toISOString();
+    }
 
     applications.push(application);
   }
 
   return applications;
-}
+};
