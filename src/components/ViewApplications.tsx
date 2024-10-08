@@ -1,10 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { JobApplication } from './JobApplicationTracker';
-import { ApplicationStatus } from '../constants/ApplicationStatus';
-import { ACTIVE_STATUSES, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
+import { ApplicationStatus, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/ApplicationStatus';
+import { getNextStatuses } from '../constants/applicationStatusMachine';
 import ProgressModal from './ProgressModal';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { getNextStatuses } from '../constants/applicationStatusMachine';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -31,7 +30,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   statusFilters,
   onStatusFilterChange,
   onDelete,
-  isTest: isTest,
+  isTest,
   refreshApplications,
   onUndo
 }) => {
@@ -39,13 +38,23 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [showActive, setShowActive] = useState(true);
 
-  const filteredApplications = applications.filter(app => {
-    const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-    const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
-    return matchesSearch && matchesStatus;
-  });
+  const filteredAndSortedApplications = useMemo(() => {
+    return applications
+      .filter(app => {
+        const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+        const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                              app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
+        const isNotArchived = currentStatus !== ApplicationStatus.Archived;
+        const matchesActiveFilter = showActive ? ACTIVE_STATUSES.includes(currentStatus) : INACTIVE_STATUSES.includes(currentStatus);
+        return matchesSearch && matchesStatus && isNotArchived && matchesActiveFilter;
+      })
+      .sort((a, b) => {
+        const aDate = new Date(a.statusHistory[0].timestamp);
+        const bDate = new Date(b.statusHistory[0].timestamp);
+        return bDate.getTime() - aDate.getTime(); // Sort in descending order
+      });
+  }, [applications, searchTerm, statusFilters, showActive]);
 
   const oneMonthAgo = useMemo(() => {
     const date = new Date();
@@ -57,7 +66,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     const recent: JobApplication[] = [];
     const older: JobApplication[] = [];
 
-    filteredApplications.forEach(app => {
+    filteredAndSortedApplications.forEach(app => {
       const appliedDate = new Date(app.statusHistory[0].timestamp);
       if (appliedDate >= oneMonthAgo) {
         recent.push(app);
@@ -67,7 +76,16 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     });
 
     return { recentApplications: recent, olderApplications: older };
-  }, [filteredApplications, oneMonthAgo]);
+  }, [filteredAndSortedApplications, oneMonthAgo]);
+
+  const canBeArchived = (status: ApplicationStatus): boolean => {
+    return [
+      ApplicationStatus.NoResponse,
+      ApplicationStatus.Withdrawn,
+      ApplicationStatus.NotAccepted,
+      ApplicationStatus.OfferDeclined
+    ].includes(status);
+  };
 
   const renderApplicationTable = (applications: JobApplication[], title: string) => (
     <>
@@ -105,7 +123,9 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                       {renderUndoButton(app)}
                     </>
                   )}
-                  <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Archive</button>
+                  {canBeArchived(currentStatus) && (
+                    <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Archive</button>
+                  )}
                 </td>
               </tr>
             );
@@ -159,10 +179,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     </OverlayTrigger>
   );
 
-  useEffect(() => {
-    refreshApplications();
-  }, [isTest, refreshApplications]);
-
   return (
     <div>
       <h2>Job Applications {isTest && '(Test Mode)'}</h2>
@@ -193,7 +209,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
       <div className="mb-3">
         <h5>Filter by Status:</h5>
         <div className="btn-group flex-wrap" role="group">
-          {ACTIVE_STATUSES.map(status => (
+          {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
             <button
               key={status}
               className={`btn btn-sm me-2 ${statusFilters.includes(status) ? 'btn-primary' : 'btn-outline-primary'}`}

@@ -67,6 +67,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [showSettings, setShowSettings] = useState(false);
     const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
     const [currentInterviewStatus, setCurrentInterviewStatus] = useState<ApplicationStatus | null>(null);
+    const [currentApplication, setCurrentApplication] = useState<JobApplication | null>(null);
 
     useEffect(() => {
         loadApplications();
@@ -196,6 +197,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 if ([ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled, ApplicationStatus.ThirdRoundScheduled].includes(newStatus)) {
                     setCurrentApplicationId(id);
                     setCurrentInterviewStatus(currentStatus);
+                    setCurrentApplication(application);
                     setShowInterviewModal(true);
                 } else {
                     updateApplicationStatus(id, newStatus);
@@ -452,12 +454,13 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 onConfirm={handleConfirmSubmit}
                 message="An active application for this company already exists. Do you want to submit another application?"
             />
-            {showInterviewModal && (
+            {showInterviewModal && currentApplication && (
                 <InterviewScheduleModal
                     show={showInterviewModal}
                     onHide={() => setShowInterviewModal(false)}
                     onSchedule={handleInterviewSchedule}
                     currentStatus={currentInterviewStatus || ApplicationStatus.Applied}
+                    interviewHistory={currentApplication.statusHistory}
                 />
             )}
             {isDev && (

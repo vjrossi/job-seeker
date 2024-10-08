@@ -9,18 +9,53 @@ interface InterviewScheduleModalProps {
     onHide: () => void;
     onSchedule: (dateTime: string, status: ApplicationStatus) => void;
     currentStatus: ApplicationStatus;
+    interviewHistory: { status: ApplicationStatus; timestamp: string }[];
 }
 
-const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({ show, onHide, onSchedule, currentStatus }) => {
+const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({ 
+    show, 
+    onHide, 
+    onSchedule, 
+    currentStatus, 
+    interviewHistory 
+}) => {
     const [interviewDateTime, setInterviewDateTime] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        console.log('InterviewScheduleModal rendered, show:', show);
+        if (show) {
+            setInterviewDateTime('');
+            setError(null);
+        }
     }, [show]);
+
+    const validateInterviewDate = (dateTime: string, newStatus: ApplicationStatus): string | null => {
+        const newDate = new Date(dateTime);
+        const now = new Date();
+
+        if (newDate <= now) {
+            return "Interview date must be in the future.";
+        }
+
+        if (newStatus === ApplicationStatus.SecondRoundScheduled || newStatus === ApplicationStatus.ThirdRoundScheduled) {
+            const previousInterviews = interviewHistory.filter(interview => 
+                interview.status === ApplicationStatus.InterviewScheduled || 
+                interview.status === ApplicationStatus.SecondRoundScheduled
+            );
+
+            for (const interview of previousInterviews) {
+                const interviewDate = new Date(interview.timestamp);
+                if (newDate.toDateString() === interviewDate.toDateString()) {
+                    return `Cannot schedule ${newStatus} on the same day as a previous interview.`;
+                }
+            }
+        }
+
+        return null;
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Scheduling interview for:', interviewDateTime);
         
         const nextStatuses = getNextStatuses(currentStatus);
         const interviewStatuses = [
@@ -32,11 +67,15 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({ show, o
         const newStatus = nextStatuses.find(status => interviewStatuses.includes(status));
 
         if (newStatus) {
-            onSchedule(interviewDateTime, newStatus);
-            onHide();
+            const validationError = validateInterviewDate(interviewDateTime, newStatus);
+            if (validationError) {
+                setError(validationError);
+            } else {
+                onSchedule(interviewDateTime, newStatus);
+                onHide();
+            }
         } else {
-            console.error('No valid interview status found');
-            // You might want to show an error message to the user here
+            setError('No valid interview status found');
         }
     };
 
@@ -57,6 +96,7 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({ show, o
                             required
                         />
                     </div>
+                    {error && <div className="error-message">{error}</div>}
                     <div className="interview-modal-buttons">
                         <button type="button" onClick={onHide}>Cancel</button>
                         <button type="submit">Schedule</button>
