@@ -38,12 +38,4 @@ describe('JobApplicationTracker', () => {
     const table = screen.getByRole('table');
     expect(table).toBeInTheDocument();
   });
-
-  test('renders table headers', () => {
-    const headers = ['Company', 'Job Title', 'Date Applied', 'Status', 'Actions'];
-    headers.forEach(header => {
-      const headerElement = screen.getByRole('columnheader', { name: header });
-      expect(headerElement).toBeInTheDocument();
-    });
-  });
 });

@@ -6,8 +6,8 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 describe('ViewApplications', () => {
   const mockApplications: JobApplication[] = [
-    { id: 1, companyName: 'Company A', jobTitle: 'Job A', statusHistory: [{ status: ApplicationStatus.Applied, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '', rating: 0 },
-    { id: 2, companyName: 'Company B', jobTitle: 'Job B', statusHistory: [{ status: ApplicationStatus.InterviewScheduled, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '', rating: 0 },
+    { id: 1, companyName: 'Company A', jobTitle: 'Job A', statusHistory: [{ status: ApplicationStatus.Applied, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '', rating: 3 },
+    { id: 2, companyName: 'Company B', jobTitle: 'Job B', statusHistory: [{ status: ApplicationStatus.InterviewScheduled, timestamp: new Date().toISOString() }], jobDescription: '', applicationMethod: '', rating: 4 },
   ];
 
   const mockProps = {
@@ -41,7 +41,7 @@ describe('ViewApplications', () => {
   });
 
   test('table headers are present and unchanged', () => {
-    const headers = ['Company', 'Job Title', 'Date Applied', 'Status', 'Actions'];
+    const headers = ['Company', 'Job Title', 'Status', 'Rating', 'Actions'];
     headers.forEach(header => {
       const headerElement = screen.getByRole('columnheader', { name: header });
       expect(headerElement).toBeInTheDocument();
@@ -55,6 +55,7 @@ describe('ViewApplications', () => {
       expect(row).toHaveTextContent(mockApplications[index].companyName);
       expect(row).toHaveTextContent(mockApplications[index].jobTitle);
       expect(row).toHaveTextContent(mockApplications[index].statusHistory[0].status);
+      expect(row.querySelector('.small-star-rating')).toBeInTheDocument();
       expect(row).toHaveTextContent('View');
       expect(row).toHaveTextContent('Progress');
       expect(row).toHaveTextContent('Undo');
@@ -81,7 +82,7 @@ describe('ViewApplications', () => {
   });
 
   test('renders table headers including Method', () => {
-    const headers = ['Company', 'Job Title', 'Date Applied', 'Status', 'Actions'];
+    const headers = ['Company', 'Job Title', 'Status', 'Rating', 'Actions'];
     headers.forEach(header => {
       const headerElement = screen.getByRole('columnheader', { name: header });
       expect(headerElement).toBeInTheDocument();
