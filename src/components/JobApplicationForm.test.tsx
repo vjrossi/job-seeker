@@ -9,21 +9,6 @@ describe('JobApplicationForm', () => {
     const mockOnFormChange = jest.fn();
     const mockOnCancel = jest.fn();
 
-    const defaultProps = {
-        onSubmit: mockOnSubmit,
-        formData: {
-            companyName: '',
-            jobTitle: '',
-            dateApplied: '',
-            status: 'Applied',
-            jobDescription: '',
-            applicationMethod: '',
-        },
-        onFormChange: mockOnFormChange,
-        existingApplications: [],
-        onCancel: mockOnCancel,
-    };
-
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -45,5 +30,31 @@ describe('JobApplicationForm', () => {
             existingApplications={[]}
             onCancel={mockOnCancel}
         />);
+    });
+
+    // check all fields are present in the HTML
+    it('renders with all fields', () => {
+        render(<JobApplicationForm 
+            onSubmit={mockOnSubmit} 
+            formData={{
+                companyName: 'Company A',
+                jobTitle: 'Job A',
+                jobDescription: 'Job Description A',
+                applicationMethod: 'Method A',
+                statusHistory: [{
+                    status: ApplicationStatus.Applied,
+                    timestamp: new Date().toISOString()
+                }]
+            }}
+            onFormChange={mockOnFormChange}
+            existingApplications={[]}
+            onCancel={mockOnCancel}
+        />);
+
+        expect(screen.getByLabelText('Company Name')).toBeInTheDocument();
+        expect(screen.getByLabelText('Job Title')).toBeInTheDocument();
+        expect(screen.getByLabelText('Job Description')).toBeInTheDocument();
+        expect(screen.getByLabelText('Application Method')).toBeInTheDocument();
+        expect(screen.getByLabelText('Job Rating')).toBeInTheDocument();
     });
 });

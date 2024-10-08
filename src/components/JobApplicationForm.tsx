@@ -87,7 +87,10 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 {errors.jobTitle && <div className="invalid-feedback">{errors.jobTitle}</div>}
             </div>
             <div className="mb-3">
-                <label htmlFor="jobDescription" className="form-label">Job Description</label>
+                <label htmlFor="jobDescription" className="form-label">
+                    Job Description 
+                    <span className="ms-2 text-muted small">(or copy & paste from job post)</span>
+                </label>
                 <textarea
                     className="form-control"
                     id="jobDescription"
@@ -96,6 +99,20 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     onChange={handleChange}
                     rows={3}
                 />
+            </div>
+            <div className="mb-3">
+                <label htmlFor="applicationMethod" className="form-label">Application Method</label>
+                <select
+                    className="form-control"
+                    id="applicationMethod"
+                    name="applicationMethod"
+                    value={localFormData.applicationMethod || ''}
+                    onChange={handleChange}
+                >
+                    {STANDARD_APPLICATION_METHODS.map((method) => (
+                        <option key={method} value={method}>{method}</option>
+                    ))}
+                </select>
             </div>
             <div className="mb-4">
                 <label className="form-label">Job Rating</label>
