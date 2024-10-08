@@ -58,11 +58,6 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     setIsEditing(true);
   };
 
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStatus = e.target.value as ApplicationStatus;
-    onStatusChange(application.id, newStatus);
-  };
-
   const renderViewField = (label: string, value: string) => (
     <div className="mb-3">
       <h6 className="text-muted mb-1">{label}</h6>

@@ -15,7 +15,7 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 import Settings from './Settings';
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Tooltip from './Tooltip';
-import { statusTransitions, getNextStatuses } from '../constants/applicationStatusMachine';
+import { getNextStatuses } from '../constants/applicationStatusMachine';
 
 export interface JobApplication {
     id: number;

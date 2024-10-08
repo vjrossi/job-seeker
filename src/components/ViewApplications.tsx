@@ -87,6 +87,34 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     ].includes(status);
   };
 
+  const renderArchiveButton = (app: JobApplication) => {
+    const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+    const isArchivable = canBeArchived(currentStatus);
+
+    return (
+      <OverlayTrigger
+        placement="top"
+        overlay={
+          <Tooltip id={`tooltip-archive-${app.id}`}>
+            {isArchivable
+              ? "Archive this application"
+              : "This application cannot be archived in its current status"}
+          </Tooltip>
+        }
+      >
+        <span className="d-inline-block">
+          <button
+            className="btn btn-sm btn-outline-danger"
+            onClick={() => onDelete(app.id)}
+            disabled={!isArchivable}
+          >
+            Archive
+          </button>
+        </span>
+      </OverlayTrigger>
+    );
+  };
+
   const renderApplicationTable = (applications: JobApplication[], title: string) => (
     <>
       <h3>{title}</h3>
@@ -123,9 +151,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                       {renderUndoButton(app)}
                     </>
                   )}
-                  {canBeArchived(currentStatus) && (
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(app.id)}>Archive</button>
-                  )}
+                  {renderArchiveButton(app)}
                 </td>
               </tr>
             );
