@@ -46,12 +46,29 @@ const Instructions: React.FC = () => {
       </ol>
 
       <h3>Reports</h3>
-      <p>Access the Reports section to view statistics about your job search, including:</p>
+      <p>Access the Reports section to view valuable insights about your job search. The Reports page provides various visualizations and statistics to help you understand your application process better:</p>
       <ul>
-        <li>Total number of applications</li>
-        <li>Applications by status</li>
-        <li>Success rate for interviews</li>
+        <li><strong>Application Status Overview:</strong> A pie chart showing the distribution of your applications across different statuses.</li>
+        <li><strong>Application Methods Used:</strong> A bar chart displaying the frequency of different application methods you've used.</li>
+        <li><strong>Key Metrics:</strong>
+          <ul>
+            <li>Response Rate: The percentage of applications that received any response from employers.</li>
+            <li>Interview Success Rate: The percentage of applications that resulted in an interview.</li>
+            <li>Offer Rate: The percentage of applications that led to job offers.</li>
+          </ul>
+        </li>
+        <li><strong>Average Time to Response:</strong> The average number of days between submitting an application and receiving an initial response.</li>
+        <li><strong>Total Applications:</strong> The overall count of job applications you've submitted.</li>
       </ul>
+      <p>Use these reports to:
+        <ul>
+          <li>Identify which application methods are most effective for you.</li>
+          <li>Understand your success rates at different stages of the application process.</li>
+          <li>Track your progress over time and adjust your job search strategy accordingly.</li>
+          <li>Set realistic expectations for response times and plan your follow-ups.</li>
+        </ul>
+      </p>
+      <p>Remember to keep your application statuses up-to-date to ensure the accuracy of these reports.</p>
 
       <h3>Settings</h3>
       <p>Customize your experience in the Settings section:</p>

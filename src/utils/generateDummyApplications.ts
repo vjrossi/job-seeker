@@ -1,5 +1,6 @@
 import { ApplicationStatus, getNextStatuses } from '../constants/ApplicationStatus';
 import { JobApplication } from '../components/JobApplicationTracker';
+import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 
 const generateRandomDate = (start: Date, end: Date): Date => {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
@@ -120,7 +121,7 @@ export const generateDummyApplications = (count: number, stalePeriod: number): J
       rating: Math.floor(Math.random() * 5) + 1,
       jobTitle: jobTitle,
       jobDescription: `This is a job description for ${jobTitle} at ${companyName}.`,
-      applicationMethod: Math.random() > 0.5 ? 'Online' : 'Email',
+      applicationMethod: getRandomItem(STANDARD_APPLICATION_METHODS),
       statusHistory: statusHistory,
       interviewDateTime: interviewDateTime
     };
@@ -204,7 +205,7 @@ function generateSingleApplication(now: Date, threeMonthsAgo: Date, oneMonthAgo:
     rating: Math.floor(Math.random() * 5) + 1,
     jobTitle: jobTitle,
     jobDescription: `This is a job description for ${jobTitle} at ${companyName}.`,
-    applicationMethod: Math.random() > 0.5 ? 'Online' : 'Email',
+    applicationMethod: getRandomItem(STANDARD_APPLICATION_METHODS),
     statusHistory: statusHistory,
     interviewDateTime: interviewDateTime
   };
