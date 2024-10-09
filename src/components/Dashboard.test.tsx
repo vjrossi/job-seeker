@@ -43,6 +43,7 @@ describe('Dashboard', () => {
                 applications={mockApplications} 
                 onViewApplication={mockOnViewApplication} 
                 onStatusChange={mockOnStatusChange}
+                stalePeriod={21}
             />
         );
     });

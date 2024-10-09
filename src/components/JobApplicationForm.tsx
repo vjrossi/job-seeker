@@ -115,8 +115,8 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 </select>
             </div>
             <div className="mb-4">
-                <label className="form-label">Job Rating</label>
-                <div>
+                <label className="form-label" htmlFor="jobRating">Job Rating</label>
+                <div id="jobRating" aria-label="Job Rating">
                     {[1, 2, 3, 4, 5].map((star) => (
                         <FaStar
                             key={star}

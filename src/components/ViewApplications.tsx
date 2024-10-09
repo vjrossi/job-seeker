@@ -6,6 +6,7 @@ import ProgressModal from './ProgressModal';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FaStar } from 'react-icons/fa';
 import '../ViewApplications.css';
+import RenderStaleApplications from './RenderStaleApplications';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -20,6 +21,7 @@ interface ViewApplicationsProps {
   isTest: boolean;
   refreshApplications: () => void;
   onUndo: (id: number) => void;
+  stalePeriod: number;
 }
 
 const ViewApplications: React.FC<ViewApplicationsProps> = ({
@@ -34,7 +36,8 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   onDelete,
   isTest,
   refreshApplications,
-  onUndo
+  onUndo,
+  stalePeriod
 }) => {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
@@ -79,6 +82,16 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
 
     return { recentApplications: recent, olderApplications: older };
   }, [filteredAndSortedApplications, oneMonthAgo]);
+
+  const staleApplications = useMemo(() => {
+    const staleDate = new Date();
+    staleDate.setDate(staleDate.getDate() - stalePeriod);
+    
+    return filteredAndSortedApplications.filter(app => {
+      const lastStatusChange = new Date(app.statusHistory[app.statusHistory.length - 1].timestamp);
+      return lastStatusChange < staleDate && !INACTIVE_STATUSES.includes(app.statusHistory[app.statusHistory.length - 1].status);
+    });
+  }, [filteredAndSortedApplications, stalePeriod]);
 
   const canBeArchived = (status: ApplicationStatus): boolean => {
     return [
@@ -273,6 +286,11 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           onConfirm={handleProgressConfirm}
         />
       )}
+      <RenderStaleApplications 
+        staleApplications={staleApplications} 
+        onEdit={onEdit} 
+        stalePeriod={stalePeriod} 
+      />
     </div>
   );
 };

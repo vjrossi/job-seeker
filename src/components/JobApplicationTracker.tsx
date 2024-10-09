@@ -70,6 +70,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
     const [currentInterviewStatus, setCurrentInterviewStatus] = useState<ApplicationStatus | null>(null);
     const [currentApplication, setCurrentApplication] = useState<JobApplication | null>(null);
+    const [stalePeriod, setStalePeriod] = useState(30); // Default to 30 days
 
     useEffect(() => {
         loadApplications();
@@ -390,6 +391,10 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     }, [feedbackMessage]);
 
+    const handleStalePeriodChange = (days: number) => {
+        setStalePeriod(days);
+    };
+
     return (
         <div className="mt-4">
             {notification && (
@@ -404,6 +409,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     applications={applications}
                     onViewApplication={handleViewApplication}
                     onStatusChange={handleStatusChange}
+                    stalePeriod={stalePeriod}
                 />
             )}
             {currentView === 'view' && (
@@ -421,6 +427,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                         isTest={isDev}
                         refreshApplications={loadApplications}
                         onUndo={handleUndo}
+                        stalePeriod={stalePeriod}  // Add this line
                     />
                     {showAddForm && (
                         <div className={`modal-overlay ${showAddForm ? 'show' : ''}`}>
@@ -493,6 +500,8 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                         setShowSettings(false);
                         showNotification('Settings updated successfully', 'success');
                     }}
+                    stalePeriod={stalePeriod}
+                    onStalePeriodChange={handleStalePeriodChange}
                 />
             )}
             <button className="btn btn-secondary mt-3" onClick={() => setShowSettings(!showSettings)}>

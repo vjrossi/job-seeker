@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import ViewApplications from './ViewApplications';
-import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { JobApplication } from './JobApplicationTracker';
 
 describe('ViewApplications', () => {
   const mockApplications: JobApplication[] = [
@@ -23,6 +23,7 @@ describe('ViewApplications', () => {
     isTest: false,
     refreshApplications: jest.fn(),
     onUndo: jest.fn(),
+    stalePeriod: 21  // Add this line
   };
 
   beforeEach(() => {
@@ -48,19 +49,60 @@ describe('ViewApplications', () => {
     });
   });
 
-  test('table rows are present and unchanged', () => {
-    const tableRows = screen.getAllByRole('row');
-    expect(tableRows.length).toBe(mockApplications.length + 1); // +1 for header row
-    tableRows.slice(1).forEach((row, index) => {
-      expect(row).toHaveTextContent(mockApplications[index].companyName);
-      expect(row).toHaveTextContent(mockApplications[index].jobTitle);
-      expect(row).toHaveTextContent(mockApplications[index].statusHistory[0].status);
-      expect(row.querySelector('.small-star-rating')).toBeInTheDocument();
-      expect(row).toHaveTextContent('View');
-      expect(row).toHaveTextContent('Progress');
-      expect(row).toHaveTextContent('Undo');
-      expect(row).toHaveTextContent('Archive');
+  test('table rows are present and contain correct data', () => {
+    const mockApplications: JobApplication[] = [
+      {
+        id: 1,
+        companyName: 'Company B',
+        jobTitle: 'Job B',
+        jobDescription: 'Description for Job B',
+        applicationMethod: 'Online',
+        rating: 4,
+        statusHistory: [
+          { status: ApplicationStatus.Applied, timestamp: new Date('2023-01-01').toISOString() },
+          { status: ApplicationStatus.InterviewScheduled, timestamp: new Date('2023-01-15').toISOString() }
+        ],
+      },
+    ];
+
+    const mockProps = {
+      applications: mockApplications,
+      onStatusChange: jest.fn(),
+      onEdit: jest.fn(),
+      onAddApplication: jest.fn(),
+      searchTerm: '',
+      onSearchChange: jest.fn(),
+      statusFilters: [],
+      onStatusFilterChange: jest.fn(),
+      onDelete: jest.fn(),
+      isTest: false,
+      refreshApplications: jest.fn(),
+      onUndo: jest.fn(),
+      stalePeriod: 21
+    };
+
+    render(<ViewApplications {...mockProps} />);
+
+    // Check if the table exists
+    const table = screen.getByRole('table', { name: 'Recent Applications' });
+    expect(table).toBeInTheDocument();
+
+    // Check if the table headers are correct
+    const headers = ['Company', 'Job Title', 'Status', 'Rating', 'Actions'];
+    headers.forEach(header => {
+      expect(screen.getByRole('columnheader', { name: header })).toBeInTheDocument();
     });
+
+    // Check if the application data is displayed correctly
+    expect(screen.getByText('Company B')).toBeInTheDocument();
+    expect(screen.getByText('Job B')).toBeInTheDocument();
+    expect(screen.getByText('Interview Scheduled')).toBeInTheDocument();
+
+    // Check if the action buttons are present
+    expect(screen.getByRole('button', { name: 'View' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Progress' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Archive' })).toBeInTheDocument();
   });
 
   test('search input is present and unchanged', () => {

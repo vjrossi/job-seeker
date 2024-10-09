@@ -8,9 +8,15 @@ interface DashboardProps {
   applications: JobApplication[];
   onViewApplication: (id: number) => void;
   onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
+  stalePeriod: number; // Add this line
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, onStatusChange }) => {
+const Dashboard: React.FC<DashboardProps> = ({ 
+  applications, 
+  onViewApplication, 
+  onStatusChange,
+  stalePeriod // Add this line
+}) => {
   const activeApplications = applications.filter(app => {
     const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
     return ACTIVE_STATUSES.includes(currentStatus);
@@ -22,6 +28,32 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, 
       return currentStatus === ApplicationStatus.InterviewScheduled && app.interviewDateTime;
     })
     .sort((a, b) => new Date(a.interviewDateTime!).getTime() - new Date(b.interviewDateTime!).getTime())
+    .slice(0, 5);
+
+  const becomingStaleApplications = activeApplications
+    .filter(app => {
+      const lastUpdateDate = new Date(app.statusHistory[app.statusHistory.length - 1].timestamp);
+      const daysSinceLastUpdate = Math.floor((new Date().getTime() - lastUpdateDate.getTime()) / (1000 * 3600 * 24));
+      return daysSinceLastUpdate >= 14 && daysSinceLastUpdate <= 30;
+    })
+    .sort((a, b) => {
+      const aDate = new Date(a.statusHistory[a.statusHistory.length - 1].timestamp);
+      const bDate = new Date(b.statusHistory[b.statusHistory.length - 1].timestamp);
+      return bDate.getTime() - aDate.getTime();
+    })
+    .slice(0, 5);
+
+  const staleApplications = activeApplications
+    .filter(app => {
+      const lastUpdateDate = new Date(app.statusHistory[app.statusHistory.length - 1].timestamp);
+      const daysSinceLastUpdate = Math.floor((new Date().getTime() - lastUpdateDate.getTime()) / (1000 * 3600 * 24));
+      return daysSinceLastUpdate >= 30;
+    })
+    .sort((a, b) => {
+      const aDate = new Date(a.statusHistory[a.statusHistory.length - 1].timestamp);
+      const bDate = new Date(b.statusHistory[b.statusHistory.length - 1].timestamp);
+      return bDate.getTime() - aDate.getTime();  // Reverse sort for stale applications
+    })
     .slice(0, 5);
 
   const getDaysUntil = (date: string) => {
@@ -64,7 +96,7 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, 
             </div>
           </div>
         </div>
-        <div className="col-md-4">
+        <div className="col-md-4" style={{ minWidth: '300px' }}>
           <div className="card mb-4">
             <div className="card-header">
               <h5 className="mb-0">Upcoming Interviews</h5>
@@ -76,7 +108,8 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, 
                     <li key={app.id} className="list-group-item">
                       <div className="d-flex justify-content-between align-items-start">
                         <div>
-                          <strong>Interview with {app.companyName}</strong>                          <br />
+                          <strong>Interview with {app.companyName}</strong>
+                          <br />
                           <small>{formatInterviewDateTime(app.interviewDateTime!)}</small>
                         </div>
                         <span className="badge bg-primary rounded-pill">
@@ -89,6 +122,62 @@ const Dashboard: React.FC<DashboardProps> = ({ applications, onViewApplication, 
                 </ul>
               ) : (
                 <p>No upcoming interviews scheduled.</p>
+              )}
+            </div>
+          </div>
+          <div className="card mb-4">
+            <div className="card-header">
+              <h5 className="mb-0">Becoming Stale</h5>
+            </div>
+            <div className="card-body">
+              {becomingStaleApplications.length > 0 ? (
+                <ul className="list-group list-group-flush">
+                  {becomingStaleApplications.map(app => (
+                    <li key={app.id} className="list-group-item">
+                      <div className="d-flex justify-content-between align-items-start">
+                        <div>
+                          <strong>{app.companyName}</strong> - {app.jobTitle}
+                          <br />
+                          <small>Last updated: {new Date(app.statusHistory[app.statusHistory.length - 1].timestamp).toLocaleDateString()}</small>
+                        </div>
+                        <span className="badge bg-warning rounded-pill">
+                          {Math.floor((new Date().getTime() - new Date(app.statusHistory[app.statusHistory.length - 1].timestamp).getTime()) / (1000 * 3600 * 24))} days
+                        </span>
+                      </div>
+                      <button className="btn btn-sm btn-outline-primary mt-2" onClick={() => onViewApplication(app.id)}>View Details</button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No applications becoming stale.</p>
+              )}
+            </div>
+          </div>
+          <div className="card mb-4">
+            <div className="card-header">
+              <h5 className="mb-0">Stale Applications</h5>
+            </div>
+            <div className="card-body">
+              {staleApplications.length > 0 ? (
+                <ul className="list-group list-group-flush">
+                  {staleApplications.map(app => (
+                    <li key={app.id} className="list-group-item">
+                      <div className="d-flex justify-content-between align-items-start">
+                        <div>
+                          <strong>{app.companyName}</strong> - {app.jobTitle}
+                          <br />
+                          <small>Last updated: {new Date(app.statusHistory[app.statusHistory.length - 1].timestamp).toLocaleDateString()}</small>
+                        </div>
+                        <span className="badge bg-danger rounded-pill">
+                          {Math.floor((new Date().getTime() - new Date(app.statusHistory[app.statusHistory.length - 1].timestamp).getTime()) / (1000 * 3600 * 24))} days
+                        </span>
+                      </div>
+                      <button className="btn btn-sm btn-outline-primary mt-2" onClick={() => onViewApplication(app.id)}>View Details</button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No stale applications.</p>
               )}
             </div>
           </div>

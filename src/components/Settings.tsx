@@ -3,14 +3,23 @@ import React, { useState } from 'react';
 interface SettingsProps {
   noResponseDays: number;
   onNoResponseDaysChange: (days: number) => void;
+  stalePeriod: number;
+  onStalePeriodChange: (days: number) => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ noResponseDays, onNoResponseDaysChange }) => {
+const Settings: React.FC<SettingsProps> = ({ 
+  noResponseDays, 
+  onNoResponseDaysChange, 
+  stalePeriod, 
+  onStalePeriodChange 
+}) => {
   const [localNoResponseDays, setLocalNoResponseDays] = useState(noResponseDays);
+  const [localStalePeriod, setLocalStalePeriod] = useState(stalePeriod);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onNoResponseDaysChange(localNoResponseDays);
+    onStalePeriodChange(localStalePeriod);
   };
 
   return (
@@ -27,6 +36,19 @@ const Settings: React.FC<SettingsProps> = ({ noResponseDays, onNoResponseDaysCha
             id="noResponseDays"
             value={localNoResponseDays}
             onChange={(e) => setLocalNoResponseDays(Number(e.target.value))}
+            min="1"
+          />
+        </div>
+        <div className="mb-3">
+          <label htmlFor="stalePeriod" className="form-label">
+            Days before application is considered "Becoming Stale":
+          </label>
+          <input
+            type="number"
+            className="form-control"
+            id="stalePeriod"
+            value={localStalePeriod}
+            onChange={(e) => setLocalStalePeriod(Number(e.target.value))}
             min="1"
           />
         </div>

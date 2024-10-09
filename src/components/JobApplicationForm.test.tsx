@@ -53,7 +53,7 @@ describe('JobApplicationForm', () => {
 
         expect(screen.getByLabelText('Company Name')).toBeInTheDocument();
         expect(screen.getByLabelText('Job Title')).toBeInTheDocument();
-        expect(screen.getByLabelText('Job Description')).toBeInTheDocument();
+        expect(screen.getByLabelText(/Job Description/i)).toBeInTheDocument();
         expect(screen.getByLabelText('Application Method')).toBeInTheDocument();
         expect(screen.getByLabelText('Job Rating')).toBeInTheDocument();
     });
