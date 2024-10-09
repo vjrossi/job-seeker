@@ -7,13 +7,15 @@ import Footer from './components/Footer';
 import ConfirmationModal from './components/ConfirmationModal';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+type ViewType = 'dashboard' | 'view' | 'reports' | 'instructions';
+
 function App() {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'view' | 'reports'>('dashboard');
+  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [isFormDirty, setIsFormDirty] = useState(false);
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
-  const [pendingView, setPendingView] = useState<'dashboard' | 'view' | 'reports' | null>(null);
+  const [pendingView, setPendingView] = useState<ViewType | null>(null);
 
-  const handleViewChange = useCallback((newView: 'dashboard' | 'view' | 'reports') => {
+  const handleViewChange = useCallback((newView: ViewType) => {
     if (isFormDirty) {
       setShowLeaveConfirmation(true);
       setPendingView(newView);

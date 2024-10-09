@@ -1,38 +1,50 @@
 import React from 'react';
 
 interface SidebarProps {
-  currentView: 'dashboard' | 'view' | 'reports';
-  onViewChange: (view: 'dashboard' | 'view' | 'reports') => void;
+  currentView: 'dashboard' | 'view' | 'reports' | 'instructions';
+  onViewChange: (view: 'dashboard' | 'view' | 'reports' | 'instructions') => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   return (
-    <nav id="sidebarMenu" className="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+    <nav className="col-md-3 col-lg-2 d-md-block bg-light sidebar">
       <div className="position-sticky pt-3">
         <ul className="nav flex-column">
           <li className="nav-item">
-            <button
-              className={`nav-link btn btn-link text-start w-100 ${currentView === 'dashboard' ? 'active' : ''}`}
+            <a 
+              className={`nav-link ${currentView === 'dashboard' ? 'active' : ''}`} 
+              href="#" 
               onClick={() => onViewChange('dashboard')}
             >
               Dashboard
-            </button>
+            </a>
           </li>
           <li className="nav-item">
-            <button
-              className={`nav-link btn btn-link text-start w-100 ${currentView === 'view' ? 'active' : ''}`}
+            <a 
+              className={`nav-link ${currentView === 'view' ? 'active' : ''}`} 
+              href="#" 
               onClick={() => onViewChange('view')}
             >
-              Job Applications
-            </button>
+              View Applications
+            </a>
           </li>
           <li className="nav-item">
-            <button
-              className={`nav-link btn btn-link text-start w-100 ${currentView === 'reports' ? 'active' : ''}`}
+            <a 
+              className={`nav-link ${currentView === 'reports' ? 'active' : ''}`} 
+              href="#" 
               onClick={() => onViewChange('reports')}
             >
               Reports
-            </button>
+            </a>
+          </li>
+          <li className="nav-item">
+            <a 
+              className={`nav-link ${currentView === 'instructions' ? 'active' : ''}`} 
+              href="#" 
+              onClick={() => onViewChange('instructions')}
+            >
+              Instructions
+            </a>
           </li>
         </ul>
       </div>
