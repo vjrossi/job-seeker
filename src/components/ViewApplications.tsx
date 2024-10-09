@@ -5,8 +5,7 @@ import { getNextStatuses } from '../constants/applicationStatusMachine';
 import ProgressModal from './ProgressModal';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FaStar } from 'react-icons/fa';
-import '../ViewApplications.css';
-import RenderStaleApplications from './RenderStaleApplications';
+import './ViewApplications.css';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -35,10 +34,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   onStatusFilterChange,
   onDelete,
   isTest,
-  refreshApplications,
-  onUndo,
-  stalePeriod
-}) => {
+  onUndo}) => {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [showActive, setShowActive] = useState(true);
@@ -82,16 +78,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
 
     return { recentApplications: recent, olderApplications: older };
   }, [filteredAndSortedApplications, oneMonthAgo]);
-
-  const staleApplications = useMemo(() => {
-    const staleDate = new Date();
-    staleDate.setDate(staleDate.getDate() - stalePeriod);
-    
-    return filteredAndSortedApplications.filter(app => {
-      const lastStatusChange = new Date(app.statusHistory[app.statusHistory.length - 1].timestamp);
-      return lastStatusChange < staleDate && !INACTIVE_STATUSES.includes(app.statusHistory[app.statusHistory.length - 1].status);
-    });
-  }, [filteredAndSortedApplications, stalePeriod]);
 
   const canBeArchived = (status: ApplicationStatus): boolean => {
     return [
@@ -189,13 +175,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     setSelectedApplication(null);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    return `${day}-${month}-${year}`;
-  };
 
   const renderUndoButton = (app: JobApplication) => (
     <OverlayTrigger
@@ -235,7 +214,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   );
 
   return (
-    <div>
+    <div className="view-applications">
       <h2>Job Applications {isTest && '(Test Mode)'}</h2>
       <button className="btn btn-primary mb-3" onClick={onAddApplication}>Add New Application</button>
       <div className="mb-3">
@@ -286,11 +265,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           onConfirm={handleProgressConfirm}
         />
       )}
-      <RenderStaleApplications 
-        staleApplications={staleApplications} 
-        onEdit={onEdit} 
-        stalePeriod={stalePeriod} 
-      />
     </div>
   );
 };

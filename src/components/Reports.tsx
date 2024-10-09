@@ -3,6 +3,7 @@ import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
+import './Reports.css';
 
 interface ReportsProps {
   applications: JobApplication[];
