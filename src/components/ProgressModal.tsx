@@ -1,27 +1,27 @@
 import React from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 interface ProgressModalProps {
   application: JobApplication;
   onClose: () => void;
-  onConfirm: (newStatus: string) => void;
+  onConfirm: (newStatus: ApplicationStatus) => void;
 }
 
-const statusToQuestionMap: { [key: string]: string } = {
-  'Interview Scheduled': 'I got an interview!',
-  'No Response': 'I haven\'t heard back yet',
-  'Not Accepted': 'I wasn\'t accepted for the next stage',
-  'Offer Received': 'I received a job offer!',
-  'Offer Accepted': 'I accepted the job offer!',
-  'Offer Declined': 'I declined the job offer',
-  'Withdrawn': 'I have decided to withdraw my application',
-  'Archived': 'I want to archive this application'
+const statusToQuestionMap: { [key in ApplicationStatus]?: string } = {
+  [ApplicationStatus.InterviewScheduled]: 'I got an interview!',
+  [ApplicationStatus.NotAccepted]: 'I wasn\'t accepted for the next stage',
+  [ApplicationStatus.OfferReceived]: 'I received a job offer!',
+  [ApplicationStatus.OfferAccepted]: 'I accepted the job offer!',
+  [ApplicationStatus.OfferDeclined]: 'I declined the job offer',
+  [ApplicationStatus.Withdrawn]: 'I have decided to withdraw my application',
+  [ApplicationStatus.Archived]: 'I want to archive this application'
 };
 
 const ProgressModal: React.FC<ProgressModalProps> = ({ application, onClose, onConfirm }) => {
   const currentStatus = application.statusHistory[application.statusHistory.length - 1].status;
-  const nextStatuses = getNextStatuses(currentStatus);
+  const nextStatuses = getNextStatuses(currentStatus).filter(status => status !== ApplicationStatus.NoResponse);
 
   return (
     <div className="modal d-block" tabIndex={-1}>
