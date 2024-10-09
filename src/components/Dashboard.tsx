@@ -125,12 +125,12 @@ const Dashboard: React.FC<DashboardProps> = ({
               )}
             </div>
           </div>
-          <div className="card mb-4">
-            <div className="card-header">
-              <h5 className="mb-0">Becoming Stale</h5>
-            </div>
-            <div className="card-body">
-              {becomingStaleApplications.length > 0 ? (
+          {becomingStaleApplications.length > 0 && (
+            <div className="card mb-4">
+              <div className="card-header">
+                <h5 className="mb-0">Becoming Stale</h5>
+              </div>
+              <div className="card-body">
                 <ul className="list-group list-group-flush">
                   {becomingStaleApplications.map(app => (
                     <li key={app.id} className="list-group-item">
@@ -148,17 +148,15 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p>No applications becoming stale.</p>
-              )}
+              </div>
             </div>
-          </div>
-          <div className="card mb-4">
-            <div className="card-header">
-              <h5 className="mb-0">Stale Applications</h5>
-            </div>
-            <div className="card-body">
-              {staleApplications.length > 0 ? (
+          )}
+          {staleApplications.length > 0 && (
+            <div className="card mb-4">
+              <div className="card-header">
+                <h5 className="mb-0">Stale Applications</h5>
+              </div>
+              <div className="card-body">
                 <ul className="list-group list-group-flush">
                   {staleApplications.map(app => (
                     <li key={app.id} className="list-group-item">
@@ -176,11 +174,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p>No stale applications.</p>
-              )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
