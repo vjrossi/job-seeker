@@ -2,6 +2,8 @@
 
 Job Seeker Helper is a React-based web application designed to assist job seekers in tracking and managing their job applications. It provides a user-friendly interface for adding, viewing, and updating job application statuses, as well as generating insightful reports.
 
+Try it now at https://vjrossi.github.io/job-seeker/
+
 ## Features
 
 - Add and manage job applications
