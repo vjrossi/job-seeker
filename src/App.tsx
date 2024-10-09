@@ -10,7 +10,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 type ViewType = 'dashboard' | 'view' | 'reports' | 'instructions';
 
 function App() {
-  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
+  const [currentView, setCurrentView] = useState<ViewType>('view');
   const [isFormDirty, setIsFormDirty] = useState(false);
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
   const [pendingView, setPendingView] = useState<ViewType | null>(null);
