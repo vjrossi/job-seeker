@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { JobApplication } from './JobApplicationTracker';
-import { ApplicationStatus, INACTIVE_STATUSES, ACTIVE_STATUSES } from '../constants/ApplicationStatus';
+import { ApplicationStatus, ACTIVE_STATUSES, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import ProgressModal from './ProgressModal';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { FaStar } from 'react-icons/fa';
+import { OverlayTrigger, Tooltip, Offcanvas, Button, Form, Badge } from 'react-bootstrap';
+import { FaStar, FaFilter } from 'react-icons/fa';
 import './ViewApplications.css';
 
 interface ViewApplicationsProps {
@@ -34,14 +34,18 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   onStatusFilterChange,
   onDelete,
   isTest,
-  onUndo}) => {
+  onUndo,
+  refreshApplications,
+  stalePeriod
+}) => {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [showActive, setShowActive] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
   const filteredAndSortedApplications = useMemo(() => {
     return applications
-      .filter(app => {
+      .filter((app: JobApplication) => {
         const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
         const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
@@ -50,10 +54,10 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         const matchesActiveFilter = showActive ? ACTIVE_STATUSES.includes(currentStatus) : INACTIVE_STATUSES.includes(currentStatus);
         return matchesSearch && matchesStatus && isNotArchived && matchesActiveFilter;
       })
-      .sort((a, b) => {
+      .sort((a: JobApplication, b: JobApplication) => {
         const aDate = new Date(a.statusHistory[0].timestamp);
         const bDate = new Date(b.statusHistory[0].timestamp);
-        return bDate.getTime() - aDate.getTime(); // Sort in descending order
+        return bDate.getTime() - aDate.getTime();
       });
   }, [applications, searchTerm, statusFilters, showActive]);
 
@@ -67,7 +71,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     const recent: JobApplication[] = [];
     const older: JobApplication[] = [];
 
-    filteredAndSortedApplications.forEach(app => {
+    filteredAndSortedApplications.forEach((app: JobApplication) => {
       const appliedDate = new Date(app.statusHistory[0].timestamp);
       if (appliedDate >= oneMonthAgo) {
         recent.push(app);
@@ -213,51 +217,164 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     </div>
   );
 
-  return (
-    <div className="view-applications">
-      <h2>Job Applications {isTest && '(Test Mode)'}</h2>
-      <button className="btn btn-primary mb-3" onClick={onAddApplication}>Add New Application</button>
-      <div className="mb-3">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search applications..."
-          value={searchTerm}
-          onChange={onSearchChange}
-        />
-      </div>
-      <div className="mb-3">
-        <div className="form-check form-switch">
-          <input
-            className="form-check-input"
-            type="checkbox"
+  const renderMobileView = (applications: JobApplication[]) => (
+    applications.map(app => {
+      const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
+      return (
+        <div key={app.id} className="mobile-card">
+          <div className="mobile-card-header">
+            <h4>{app.companyName}</h4>
+            {renderSmallStarRating(app.rating)}
+          </div>
+          <div className="mobile-card-content">
+            <div><strong>Job Title:</strong> {app.jobTitle}</div>
+            <div><strong>Status:</strong> {currentStatus}</div>
+          </div>
+          <div className="mobile-card-actions">
+            <button className="btn btn-sm btn-outline-primary" onClick={() => onEdit(app)}>View</button>
+            {!INACTIVE_STATUSES.includes(currentStatus) && (
+              <>
+                <button
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={() => handleProgressClick(app)}
+                  disabled={getNextStatuses(currentStatus).length === 0}
+                >
+                  Progress
+                </button>
+                {renderUndoButton(app)}
+              </>
+            )}
+            {renderArchiveButton(app)}
+          </div>
+        </div>
+      );
+    })
+  );
+
+  const renderFilterDrawer = () => (
+    <Offcanvas 
+      show={showFilters} 
+      onHide={() => setShowFilters(false)} 
+      placement="bottom" 
+      className="filter-drawer"
+    >
+      <Offcanvas.Header closeButton>
+        <Offcanvas.Title>Filter Applications</Offcanvas.Title>
+      </Offcanvas.Header>
+      <Offcanvas.Body>
+        <Form.Group className="mb-3">
+          <Form.Control
+            type="text"
+            placeholder="Search applications..."
+            value={searchTerm}
+            onChange={onSearchChange}
+            className="mb-3"
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Check
+            type="switch"
             id="activeSwitch"
+            label={showActive ? 'Active Applications' : 'Inactive Applications'}
             checked={showActive}
             onChange={() => setShowActive(!showActive)}
           />
-          <label className="form-check-label" htmlFor="activeSwitch">
-            {showActive ? 'Active Applications' : 'Inactive Applications'}
-          </label>
-        </div>
-      </div>
-      <div className="mb-3">
-        <h5>Filter by Status:</h5>
-        <div className="btn-group flex-wrap" role="group">
+        </Form.Group>
+
+        <div className="filter-chips">
           {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
-            <button
+            <Badge
               key={status}
-              className={`btn btn-sm me-2 ${statusFilters.includes(status) ? 'btn-primary' : 'btn-outline-primary'}`}
+              bg={statusFilters.includes(status) ? "primary" : "light"}
+              text={statusFilters.includes(status) ? "white" : "dark"}
+              className="filter-chip"
               onClick={() => onStatusFilterChange(status)}
             >
               {status}
-            </button>
+            </Badge>
           ))}
         </div>
+      </Offcanvas.Body>
+    </Offcanvas>
+  );
+
+  const handleAddClick = () => {
+    onAddApplication();
+  };
+
+  return (
+    <div className="view-applications">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>Job Applications {isTest && '(Test Mode)'}</h2>
+        <div className="d-flex gap-2">
+          <Button variant="primary" onClick={handleAddClick}>
+            Add New
+          </Button>
+          <Button 
+            variant="outline-secondary" 
+            onClick={() => setShowFilters(true)}
+            className="d-lg-none"
+          >
+            <FaFilter />
+          </Button>
+        </div>
       </div>
+
+      {/* Desktop Filters */}
+      <div className="d-none d-lg-block">
+        <div className="mb-3">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search applications..."
+            value={searchTerm}
+            onChange={onSearchChange}
+          />
+        </div>
+        <div className="mb-3">
+          <Form.Check
+            type="switch"
+            id="desktopActiveSwitch"
+            label={showActive ? 'Active Applications' : 'Inactive Applications'}
+            checked={showActive}
+            onChange={() => setShowActive(!showActive)}
+          />
+        </div>
+        <div className="mb-3">
+          <h5>Filter by Status:</h5>
+          <div className="btn-group flex-wrap" role="group">
+            {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
+              <button
+                key={status}
+                className={`btn btn-sm me-2 ${statusFilters.includes(status) ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => onStatusFilterChange(status)}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Filter Drawer */}
+      {renderFilterDrawer()}
+
+      {/* Desktop Table View */}
       {renderApplicationTable(recentApplications, "Recent Applications (Last 30 Days)")}
-      {olderApplications.length > 0 && (
-        renderApplicationTable(olderApplications, "Older Applications")
-      )}
+      {olderApplications.length > 0 && renderApplicationTable(olderApplications, "Older Applications")}
+      
+      {/* Mobile Card View */}
+      <div className="d-block d-lg-none">
+        {renderMobileView(recentApplications)}
+        {olderApplications.length > 0 && (
+          <>
+            <h3>Older Applications</h3>
+            {renderMobileView(olderApplications)}
+          </>
+        )}
+      </div>
+      
       {showProgressModal && selectedApplication && (
         <ProgressModal
           application={selectedApplication}

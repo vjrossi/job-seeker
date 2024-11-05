@@ -2,7 +2,7 @@ import React from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import './Reports.css';
 
 interface ReportsProps {
@@ -87,21 +87,18 @@ const Reports: React.FC<ReportsProps> = ({ applications }) => {
     return (sum / responseTimes.length).toFixed(2);
   };
 
-  return (
-    <div className="reports">
-      <h2>Reports</h2>
-      
-      <div className="row">
-        <div className="col-md-6">
-          <h3>Application Status Overview</h3>
-          <PieChart width={400} height={400}>
+  const renderMobileLayout = () => (
+    <div className="d-block d-lg-none">
+      <div className="chart-container">
+        <h3>Application Status</h3>
+        <div className="chart-wrapper">
+          <PieChart width={300} height={300}>
             <Pie
               data={countByStatus()}
-              cx={200}
-              cy={200}
+              cx={150}
+              cy={150}
               labelLine={false}
               outerRadius={80}
-              fill="#8884d8"
               dataKey="value"
             >
               {countByStatus().map((entry, index) => (
@@ -112,40 +109,80 @@ const Reports: React.FC<ReportsProps> = ({ applications }) => {
             <Legend />
           </PieChart>
         </div>
-        
-        <div className="col-md-6">
-          <h3>Top Application Methods</h3>
-          <BarChart width={400} height={400} data={countByMethod()}>
+      </div>
+
+      <div className="stats-card">
+        <h3>Key Metrics</h3>
+        <div>Response Rate: {responseRate().toFixed(2)}%</div>
+        <div>Interview Rate: {interviewSuccessRate().toFixed(2)}%</div>
+        <div>Offer Rate: {offerRate().toFixed(2)}%</div>
+        <div>Avg Response Time: {averageTimeToResponse()} days</div>
+      </div>
+
+      <div className="chart-container">
+        <h3>Application Methods</h3>
+        <div className="chart-wrapper">
+          <BarChart width={300} height={300} data={countByMethod()}>
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip />
-            <Legend />
             <Bar dataKey="value" fill="#8884d8" />
           </BarChart>
         </div>
       </div>
+    </div>
+  );
 
-      <div className="row mt-4">
-        <div className="col-md-4">
-          <h3>Response Rate</h3>
-          <p>{responseRate().toFixed(2)}%</p>
-        </div>
-        <div className="col-md-4">
-          <h3>Interview Success Rate</h3>
-          <p>{interviewSuccessRate().toFixed(2)}%</p>
-        </div>
-        <div className="col-md-4">
-          <h3>Offer Rate</h3>
-          <p>{offerRate().toFixed(2)}%</p>
+  const renderDesktopLayout = () => (
+    <div className="d-none d-lg-block">
+      <div className="chart-container full-width">
+        <h3>Application Overview</h3>
+        <div className="stats-grid">
+          <div>Response Rate: {responseRate().toFixed(2)}%</div>
+          <div>Interview Rate: {interviewSuccessRate().toFixed(2)}%</div>
+          <div>Offer Rate: {offerRate().toFixed(2)}%</div>
+          <div>Avg Response Time: {averageTimeToResponse()} days</div>
         </div>
       </div>
 
-      <div className="row mt-4">
-        <div className="col-md-6">
-          <h3>Average Time to Response</h3>
-          <p>{averageTimeToResponse()} {averageTimeToResponse() !== "N/A" ? "days" : ""}</p>
+      <div className="charts-grid">
+        <div className="chart-container">
+          <h3>Application Status</h3>
+          <PieChart width={400} height={400}>
+            <Pie
+              data={countByStatus()}
+              cx={200}
+              cy={200}
+              labelLine={false}
+              outerRadius={120}
+              dataKey="value"
+            >
+              {countByStatus().map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </div>
+
+        <div className="chart-container">
+          <h3>Application Methods</h3>
+          <BarChart width={400} height={400} data={countByMethod()}>
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="value" fill="#8884d8" />
+          </BarChart>
         </div>
       </div>
+    </div>
+  );
+
+  return (
+    <div className="reports">
+      {renderMobileLayout()}
+      {renderDesktopLayout()}
     </div>
   );
 };

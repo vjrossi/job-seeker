@@ -7,7 +7,15 @@ describe('JobApplicationTracker', () => {
   const mockSetIsFormDirty = jest.fn();
 
   beforeEach(() => {
-    render(<JobApplicationTracker currentView="view" setIsFormDirty={mockSetIsFormDirty} />);
+    render(
+      <JobApplicationTracker 
+        currentView="view" 
+        setIsFormDirty={mockSetIsFormDirty}
+        isDev={false}
+        noResponseDays={14}
+        stalePeriod={30}
+      />
+    );
   });
 
   test('renders the "Add New Application" button', () => {

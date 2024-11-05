@@ -1,7 +1,48 @@
+/* Common styles */
 .reports {
-    margin: 20px;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+  width: 100%;
+}
+
+/* Mobile layout */
+@media (max-width: 991px) {
+  .reports {
+    padding: 1rem;
+  }
+
+  .chart-container {
+    margin-bottom: 2rem;
+  }
+
+  .stats-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .chart-wrapper {
+    overflow-x: auto;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+}
+
+/* Desktop layout */
+@media (min-width: 992px) {
+  .reports {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    padding: 2rem;
+  }
+
+  .chart-container.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
 }

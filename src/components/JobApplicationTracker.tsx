@@ -3,7 +3,7 @@ import JobApplicationForm from './JobApplicationForm';
 import ViewApplications from './ViewApplications';
 import Dashboard from './Dashboard';
 
-import Notification from './Notification';
+import Toast from './Toast';
 import ConfirmationModal from './ConfirmationModal';
 import { indexedDBService } from '../services/indexedDBService';
 import { devIndexedDBService } from '../services/devIndexedDBService';
@@ -12,10 +12,8 @@ import Reports from './Reports';
 import ViewEditApplicationForm from './ViewEditApplicationForm';
 import InterviewScheduleModal from './InterviewScheduleModal';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
-import Settings from './Settings';
-import { useLocalStorage } from '../hooks/useLocalStorage'
-import Tooltip from './Tooltip';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
+import { Modal } from 'react-bootstrap';
 
 export interface JobApplication {
     id: number;
@@ -34,6 +32,9 @@ export interface JobApplication {
 interface JobApplicationTrackerProps {
     currentView: 'dashboard' | 'view' | 'reports';
     setIsFormDirty: (isDirty: boolean) => void;
+    isDev: boolean;
+    noResponseDays: number;
+    stalePeriod: number;
 }
 
 const initialFormData: Omit<JobApplication, 'id'> = {
@@ -49,12 +50,11 @@ const initialFormData: Omit<JobApplication, 'id'> = {
     interviewDateTime: undefined
 };
 
-const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentView, setIsFormDirty }) => {
+const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentView, setIsFormDirty, isDev, noResponseDays, stalePeriod }) => {
     const [applications, setApplications] = useState<JobApplication[]>([]);
     const [filteredApplications, setFilteredApplications] = useState<JobApplication[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilters, setStatusFilters] = useState<ApplicationStatus[]>([]);
-    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [pendingApplication, setPendingApplication] = useState<JobApplication | null>(null);
     const [formData, setFormData] = useState<Partial<JobApplication>>(initialFormData);
@@ -64,21 +64,22 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const notificationTimerRef = useRef<number | null>(null);
     const [showInterviewModal, setShowInterviewModal] = useState(false);
     const [currentApplicationId, setCurrentApplicationId] = useState<number | null>(null);
-    const [isDev, setIsDev] = useState(false);
-    const [noResponseDays, setNoResponseDays] = useLocalStorage('noResponseDays', 14);
-    const [showSettings, setShowSettings] = useState(false);
     const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
     const [currentInterviewStatus, setCurrentInterviewStatus] = useState<ApplicationStatus | null>(null);
     const [currentApplication, setCurrentApplication] = useState<JobApplication | null>(null);
-    const [stalePeriod, setStalePeriod] = useState(30); // Default to 30 days
+    const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
+        show: false,
+        message: '',
+        type: 'success'
+    });
 
-    useEffect(() => {
-        loadApplications();
+    const showToast = useCallback((message: string, type: 'success' | 'error') => {
+        setToast({ show: true, message, type });
     }, []);
 
-    const toggleDevMode = () => {
-        setIsDev(prevIsDev => !prevIsDev);
-    };
+    const hideToast = useCallback(() => {
+        setToast(prev => ({ ...prev, show: false }));
+    }, []);
 
     const loadApplications = useCallback(async () => {
         try {
@@ -90,26 +91,13 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             setApplications(apps);
         } catch (error) {
             console.error('Error loading applications:', error);
-            showNotification('Failed to load applications. Please try again.', 'error');
+            showToast('Failed to load applications. Please try again.', 'error');
         }
-    }, [isDev, noResponseDays]);
+    }, [isDev, noResponseDays, showToast]);
 
     useEffect(() => {
         loadApplications();
     }, [loadApplications]);
-
-    const populateDummyData = async () => {
-        try {
-            await devIndexedDBService.clearAllApplications();
-            const dummyApplications = generateDummyApplications(20, noResponseDays);
-            await Promise.all(dummyApplications.map(app => devIndexedDBService.addApplication(app)));
-            await loadApplications();
-            showNotification('Test data created successfully', 'success');
-        } catch (error) {
-            console.error('Error creating test data:', error);
-            showNotification('Failed to create test data', 'error');
-        }
-    };
 
     const filterApplications = useCallback(() => {
         let filtered = applications;
@@ -168,10 +156,10 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             };
             await (isDev ? devIndexedDBService : indexedDBService).addApplication(newApplication);
             setApplications(prev => [...prev, newApplication]);
-            setNotification({ message: 'Application added.', type: 'success' });
+            showToast('Application added successfully', 'success');
         } catch (error) {
             console.error('Error adding application:', error);
-            setNotification({ message: 'Failed to add application. Please try again.', type: 'error' });
+            showToast('Failed to add application. Please try again.', 'error');
         }
     };
 
@@ -206,7 +194,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     updateApplicationStatus(id, newStatus);
                 }
             } else {
-                showNotification('Invalid status progression.', 'error');
+                showToast('Invalid status progression.', 'error');
             }
         }
     };
@@ -220,7 +208,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 // Check if the new status is a valid progression using the state machine
                 const validNextStatuses = getNextStatuses(currentStatus);
                 if (!validNextStatuses.includes(newStatus)) {
-                    showNotification('Invalid status progression.', 'error');
+                    showToast('Invalid status progression.', 'error');
                     return;
                 }
 
@@ -233,11 +221,11 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 }
                 await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
-                showNotification('Application status updated.', 'success');
+                showToast('Application status updated.', 'success');
             }
         } catch (error) {
             console.error('Error updating application status:', error);
-            showNotification('Failed to update application status. Please try again.', 'error');
+            showToast('Failed to update application status. Please try again.', 'error');
         }
     };
 
@@ -257,15 +245,16 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         try {
             await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
             setApplications(applications.map(app => app.id === updatedApplication.id ? updatedApplication : app));
-            setNotification({ message: 'Application updated.', type: 'success' });
+            showToast('Application updated.', 'success');
         } catch (error) {
             console.error('Error updating application:', error);
-            setNotification({ message: 'Failed to update application. Please try again.', type: 'error' });
+            showToast('Failed to update application. Please try again.', 'error');
         }
     };
 
     const handleAddApplication = () => {
-        clearNotification();
+        clearToast();
+        setFormData(initialFormData);
         setShowAddForm(true);
     };
 
@@ -298,25 +287,8 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         };
     }, [showAddForm, handleClickOutside, handleKeyDown]);
 
-    const showNotification = useCallback((message: string, type: 'success' | 'error') => {
-        setNotification({ message, type });
-
-        // Clear any existing timer
-        if (notificationTimerRef.current) {
-            clearTimeout(notificationTimerRef.current);
-        }
-
-        // Set a new timer to clear the notification after 5 seconds
-        notificationTimerRef.current = window.setTimeout(() => {
-            setNotification(null);
-        }, 5000);
-    }, []);
-
-    const clearNotification = useCallback(() => {
-        setNotification(null);
-        if (notificationTimerRef.current) {
-            clearTimeout(notificationTimerRef.current);
-        }
+    const clearToast = useCallback(() => {
+        setToast(prev => ({ ...prev, show: false }));
     }, []);
 
     useEffect(() => {
@@ -344,11 +316,11 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 });
                 await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
-                showNotification('Application archived.', 'success');
+                showToast('Application archived.', 'success');
             }
         } catch (error) {
             console.error('Error archiving application:', error);
-            showNotification('Failed to archive application. Please try again.', 'error');
+            showToast('Failed to archive application. Please try again.', 'error');
         }
     };
 
@@ -391,19 +363,14 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     }, [feedbackMessage]);
 
-    const handleStalePeriodChange = (days: number) => {
-        setStalePeriod(days);
-    };
-
     return (
         <div className="mt-4">
-            {notification && (
-                <Notification
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => setNotification(null)}
-                />
-            )}
+            <Toast
+                show={toast.show}
+                message={toast.message}
+                type={toast.type}
+                onClose={hideToast}
+            />
             {currentView === 'dashboard' && (
                 <Dashboard
                     applications={applications}
@@ -427,25 +394,28 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                         isTest={isDev}
                         refreshApplications={loadApplications}
                         onUndo={handleUndo}
-                        stalePeriod={stalePeriod}  // Add this line
+                        stalePeriod={stalePeriod}
                     />
-                    {showAddForm && (
-                        <div className={`modal-overlay ${showAddForm ? 'show' : ''}`}>
-                            <div className="modal-content" ref={modalRef}>
-                                <div className="modal-header">
-                                    <h2>Add New Application</h2>
-                                    <button type="button" className="btn-close" onClick={handleAddFormClose} aria-label="Close"></button>
-                                </div>
-                                <JobApplicationForm
-                                    onSubmit={handleSubmit}
-                                    formData={formData}
-                                    onFormChange={handleFormChange}
-                                    existingApplications={applications}
-                                    onCancel={handleAddFormClose}
-                                />
-                            </div>
-                        </div>
-                    )}
+                    <Modal
+                        show={showAddForm}
+                        onHide={handleAddFormClose}
+                        backdrop="static"
+                        keyboard={false}
+                        size="lg"
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>Add New Application</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <JobApplicationForm
+                                onSubmit={handleSubmit}
+                                formData={formData}
+                                onFormChange={handleFormChange}
+                                existingApplications={applications}
+                                onCancel={handleAddFormClose}
+                            />
+                        </Modal.Body>
+                    </Modal>
                 </>
             )}
             {currentView === 'reports' && <Reports applications={applications} />}
@@ -472,41 +442,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     interviewHistory={currentApplication.statusHistory}
                 />
             )}
-            {isDev && (
-                <div className="mb-3">
-                    <button className="btn btn-warning me-2" onClick={populateDummyData}>
-                        Regenerate Dummy Data
-                    </button>
-                </div>
-            )}
-            <div className="form-check form-switch mb-3">
-                <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="devModeSwitch"
-                    checked={isDev}
-                    onChange={toggleDevMode}
-                />
-                <label className="form-check-label" htmlFor="devModeSwitch">
-                    Test Mode
-                    <Tooltip text="Test mode uses dummy data for testing purposes. It does not affect your actual job application data." />
-                </label>
-            </div>
-            {showSettings && (
-                <Settings
-                    noResponseDays={noResponseDays}
-                    onNoResponseDaysChange={(days) => {
-                        setNoResponseDays(days);
-                        setShowSettings(false);
-                        showNotification('Settings updated successfully', 'success');
-                    }}
-                    stalePeriod={stalePeriod}
-                    onStalePeriodChange={handleStalePeriodChange}
-                />
-            )}
-            <button className="btn btn-secondary mt-3" onClick={() => setShowSettings(!showSettings)}>
-                {showSettings ? 'Hide Settings' : 'Show Settings'}
-            </button>
             {feedbackMessage && (
                 <div className="alert alert-info" role="alert">
                     {feedbackMessage}

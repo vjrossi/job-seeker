@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
@@ -23,10 +23,17 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
 
     const [localFormData, setLocalFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const companyNameInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         onFormChange(localFormData);
     }, [localFormData, onFormChange]);
+
+    useEffect(() => {
+        if (companyNameInputRef.current) {
+            companyNameInputRef.current.focus();
+        }
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -70,6 +77,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     value={localFormData.companyName || ''}
                     onChange={handleChange}
                     required
+                    ref={companyNameInputRef}
                 />
                 {errors.companyName && <div className="invalid-feedback">{errors.companyName}</div>}
             </div>
