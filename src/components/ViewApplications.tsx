@@ -71,6 +71,60 @@ const canBeArchived = (status: ApplicationStatus): boolean => {
   return status !== ApplicationStatus.Archived;
 };
 
+const getStatusDescription = (app: JobApplication): string => {
+  const currentStatus = app.statusHistory[app.statusHistory.length - 1];
+  const timeDiff = new Date().getTime() - new Date(currentStatus.timestamp).getTime();
+  const daysWaiting = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+  
+  switch (currentStatus.status) {
+    case ApplicationStatus.Applied:
+      return daysWaiting === 0 
+        ? 'Waiting for response since today'
+        : `Waiting ${daysWaiting} days for response to application`;
+    
+    case ApplicationStatus.InterviewScheduled:
+    case ApplicationStatus.SecondRoundScheduled:
+    case ApplicationStatus.ThirdRoundScheduled:
+      if (app.interviewDateTime) {
+        const interviewDate = new Date(app.interviewDateTime);
+        const daysUntil = Math.floor((interviewDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+        const round = currentStatus.status === ApplicationStatus.InterviewScheduled ? '1st' :
+                     currentStatus.status === ApplicationStatus.SecondRoundScheduled ? '2nd' : '3rd';
+        return `${round} round interview scheduled for ${interviewDate.toLocaleDateString()} at ${interviewDate.toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })} (${daysUntil} days)`;
+      }
+      return 'Interview scheduled (awaiting details)';
+    
+    case ApplicationStatus.NoResponse:
+      return daysWaiting === 0 
+        ? 'No response since today'
+        : `No response after ${daysWaiting} days`;
+    
+    case ApplicationStatus.NotAccepted:
+      return 'Application rejected';
+    
+    case ApplicationStatus.OfferReceived:
+      return 'Received job offer - awaiting decision';
+    
+    case ApplicationStatus.OfferAccepted:
+      return 'Offer accepted - starting soon';
+    
+    case ApplicationStatus.OfferDeclined:
+      return 'Offer declined';
+    
+    case ApplicationStatus.Withdrawn:
+      return 'Application withdrawn';
+    
+    case ApplicationStatus.Archived:
+      return 'Application archived';
+    
+    default:
+      return currentStatus.status;
+  }
+};
+
 const ViewApplications: React.FC<ViewApplicationsProps> = ({
   applications,
   onStatusChange,
@@ -435,6 +489,9 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                   </div>
                 )
               ))}
+            </div>
+            <div className="text-muted mt-2" style={{ fontSize: '0.9rem' }}>
+              {getStatusDescription(app)}
             </div>
           </Card.Body>
         </Card>
