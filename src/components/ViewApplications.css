@@ -130,3 +130,123 @@
     border-radius: 0 0 0.5rem 0.5rem;
   }
 }
+
+/* Update the status timeline styles */
+.status-timeline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.status-step {
+  display: inline-flex;
+  align-items: center;
+  color: #6c757d;
+  white-space: nowrap;
+  position: relative;
+}
+
+.status-step.completed {
+  color: #28a745;
+}
+
+.status-step.active {
+  color: #007bff;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  padding: 2px 4px;
+}
+
+.status-step:not(:last-child)::after {
+  content: '—';
+  margin: 0 0.5rem;
+  color: #dee2e6;
+}
+
+.status-step.completed:not(:last-child)::after {
+  color: #28a745;
+}
+
+.status-step:last-child::after {
+  content: none;
+}
+
+/* Add to the existing status timeline styles */
+.status-step.active[style*="cursor: pointer"] {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  padding: 2px 4px;  /* Add some padding to make tap target larger */
+}
+
+.status-step.active[style*="cursor: pointer"]:hover {
+  opacity: 0.8;
+}
+
+/* Update the arrow indicator */
+.status-step.active[style*="cursor: pointer"]::after {
+  content: none;
+}
+
+/* Add styles for the dropdown */
+.dropdown-menu {
+  font-size: 0.9rem;
+  min-width: 200px;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dropdown-item {
+  padding: 0.5rem 1rem;
+}
+
+.dropdown-item:active {
+  background-color: #007bff;
+}
+
+/* Replace job-title-link with company-name-link styles */
+.company-name-link {
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-bottom: 0;  /* Remove default h4 margin */
+}
+
+.company-name-link:hover {
+  opacity: 0.8;
+}
+
+/* Update mobile card header for better tap target */
+.mobile-card-header h4 {
+  display: inline-block;
+  padding: 4px 0;
+  margin: 0;
+}
+
+/* Update mobile card content padding for better tap target */
+.mobile-card-content strong {
+  display: inline-block;
+  padding: 4px 0;
+}
+
+/* Add styles for the undo option in dropdown */
+.dropdown-item.text-muted {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.dropdown-item.text-muted:hover {
+  color: #495057;
+  background-color: #f8f9fa;
+}
+
+.dropdown-divider {
+  margin: 0.5rem 0;
+}

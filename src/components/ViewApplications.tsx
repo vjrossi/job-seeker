@@ -3,8 +3,8 @@ import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus, ACTIVE_STATUSES, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import ProgressModal from './ProgressModal';
-import { OverlayTrigger, Tooltip, Offcanvas, Button, Form, Badge } from 'react-bootstrap';
-import { FaStar, FaFilter } from 'react-icons/fa';
+import { OverlayTrigger, Tooltip, Offcanvas, Button, Form, Badge, Dropdown } from 'react-bootstrap';
+import { FaStar, FaFilter, FaUndo } from 'react-icons/fa';
 import './ViewApplications.css';
 
 interface ViewApplicationsProps {
@@ -22,6 +22,46 @@ interface ViewApplicationsProps {
   onUndo: (id: number) => void;
   stalePeriod: number;
 }
+
+const getStatusSequence = (currentStatus: ApplicationStatus): ApplicationStatus[] => {
+  // Base path always starts with Applied
+  const commonPath = [ApplicationStatus.Applied];
+  
+  switch (currentStatus) {
+    case ApplicationStatus.InterviewScheduled:
+      return [...commonPath, ApplicationStatus.InterviewScheduled];
+    
+    case ApplicationStatus.SecondRoundScheduled:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled];
+    
+    case ApplicationStatus.ThirdRoundScheduled:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled, ApplicationStatus.ThirdRoundScheduled];
+    
+    case ApplicationStatus.OfferReceived:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived];
+    
+    case ApplicationStatus.OfferAccepted:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferAccepted];
+    
+    case ApplicationStatus.OfferDeclined:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferDeclined];
+    
+    case ApplicationStatus.NoResponse:
+      return [...commonPath, ApplicationStatus.NoResponse];
+    
+    case ApplicationStatus.NotAccepted:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.NotAccepted];
+    
+    case ApplicationStatus.Withdrawn:
+      return [...commonPath, ApplicationStatus.Withdrawn];
+    
+    case ApplicationStatus.Archived:
+      return [...commonPath, ApplicationStatus.Archived];
+    
+    default:
+      return commonPath;
+  }
+};
 
 const ViewApplications: React.FC<ViewApplicationsProps> = ({
   applications,
@@ -271,27 +311,64 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
       return (
         <div key={app.id} className="mobile-card">
           <div className="mobile-card-header">
-            <h4>{app.companyName}</h4>
+            <h4 
+              className="company-name-link"
+              onClick={() => onEdit(app)}
+            >
+              {app.companyName}
+            </h4>
             {renderSmallStarRating(app.rating)}
           </div>
           <div className="mobile-card-content">
-            <div><strong>Job Title:</strong> {app.jobTitle}</div>
-            <div><strong>Status:</strong> {currentStatus}</div>
+            <div><strong>{app.jobTitle}</strong></div>
+            <div className="status-timeline">
+              {getStatusSequence(currentStatus).map((status: ApplicationStatus, index: number, sequence: ApplicationStatus[]) => (
+                status === currentStatus && !INACTIVE_STATUSES.includes(currentStatus) ? (
+                  <Dropdown key={status}>
+                    <Dropdown.Toggle 
+                      as="div" 
+                      className={`status-step active`}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {status}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      {getNextStatuses(currentStatus).map((nextStatus) => (
+                        <Dropdown.Item 
+                          key={nextStatus}
+                          onClick={() => onStatusChange(app.id, nextStatus)}
+                        >
+                          {nextStatus}
+                        </Dropdown.Item>
+                      ))}
+                      {app.statusHistory.length > 1 && (
+                        <>
+                          <Dropdown.Divider />
+                          <Dropdown.Item 
+                            onClick={() => onUndo(app.id)}
+                            className="text-muted"
+                          >
+                            <FaUndo className="me-2" />
+                            Undo last change
+                          </Dropdown.Item>
+                        </>
+                      )}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                ) : (
+                  <div 
+                    key={status} 
+                    className={`status-step ${
+                      index < sequence.indexOf(currentStatus) ? 'completed' : ''
+                    }`}
+                  >
+                    {status}
+                  </div>
+                )
+              ))}
+            </div>
           </div>
           <div className="mobile-card-actions">
-            <button className="btn btn-sm btn-outline-primary" onClick={() => onEdit(app)}>View</button>
-            {!INACTIVE_STATUSES.includes(currentStatus) && (
-              <>
-                <button
-                  className="btn btn-sm btn-outline-primary"
-                  onClick={() => handleProgressClick(app)}
-                  disabled={getNextStatuses(currentStatus).length === 0}
-                >
-                  Progress
-                </button>
-                {renderUndoButton(app)}
-              </>
-            )}
             {renderArchiveButton(app)}
           </div>
         </div>
