@@ -9,6 +9,7 @@ import './ViewApplications.css';
 import { devIndexedDBService } from '../services/devIndexedDBService';
 import { indexedDBService } from '../services/indexedDBService';
 import Toast from './Toast';
+import { METHOD_ICONS } from '../constants/standardApplicationMethods';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -286,6 +287,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
       <table className="table">
         <thead>
           <tr>
+            <th>Method</th>
             <th>Company</th>
             <th>Job Title</th>
             <th>Status</th>
@@ -298,6 +300,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
             const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
             return (
               <tr key={app.id}>
+                <td>{renderMethodIcon(app.applicationMethod)}</td>
                 <td>{app.companyName}</td>
                 <td>{app.jobTitle}</td>
                 <td>{currentStatus}</td>
@@ -385,18 +388,30 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     return <div className="stars">{stars}</div>;
   };
 
+  const renderMethodIcon = (method: string) => {
+    const IconComponent = METHOD_ICONS[method as keyof typeof METHOD_ICONS] || METHOD_ICONS.Other;
+    return (
+      <span className="method-icon">
+        <IconComponent />
+      </span>
+    );
+  };
+
   const renderMobileView = (applications: JobApplication[]) => (
     applications.map(app => {
       const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
       return (
         <Card key={app.id} className="mb-3">
           <Card.Header className="d-flex justify-content-between align-items-center">
-            <h4 
-              className="company-name-link mb-0"
-              onClick={() => onEdit(app)}
-            >
-              {app.companyName}
-            </h4>
+            <div className="d-flex align-items-center gap-2">
+              {renderMethodIcon(app.applicationMethod)}
+              <h4 
+                className="company-name-link mb-0"
+                onClick={() => onEdit(app)}
+              >
+                {app.companyName}
+              </h4>
+            </div>
             <div className="d-flex align-items-center gap-3">
               {renderStars(app)}
               {!canBeArchived(currentStatus) ? (

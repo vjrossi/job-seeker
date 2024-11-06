@@ -6,16 +6,7 @@ const generateRandomDate = (start: Date, end: Date): Date => {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 };
 
-const generateFutureDate = (): Date => {
-  const now = new Date();
-  const futureDate = new Date(now.getTime() + Math.random() * (30 * 24 * 60 * 60 * 1000)); // Random date within the next 30 days
-  return futureDate;
-};
-
-// Configuration
-const OFFER_PROBABILITY = 0.03; // 3% chance of receiving an offer
-const INTERVIEW_PROBABILITY = 0.1; // 10% chance of getting an interview
-const RECENT_APPLICATION_PROBABILITY = 0.6; // 60% chance of being within the last 30 days
+const RECENT_APPLICATION_PROBABILITY = 0.6;
 
 const companies = [
   'Google', 'Microsoft', 'Amazon', 'Apple', 'Facebook', 'Netflix', 'Adobe', 
@@ -36,7 +27,10 @@ const jobTitles = [
   'Technical Project Manager', 'Scrum Master'
 ];
 
-const getRandomItem = (array: string[]) => array[Math.floor(Math.random() * array.length)];
+// Update the getRandomItem function to handle readonly arrays
+function getRandomItem<T>(array: readonly T[]): T {
+  return array[Math.floor(Math.random() * array.length)] as T;
+}
 
 export const generateDummyApplications = (count: number, stalePeriod: number): JobApplication[] => {
   const applications: JobApplication[] = [];

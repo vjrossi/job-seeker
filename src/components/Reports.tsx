@@ -29,15 +29,13 @@ const Reports: React.FC<ReportsProps> = ({ applications }) => {
       counts[method] = 0;
     });
     applications.forEach(app => {
-      const method = app.applicationMethod || 'Unspecified';
-      console.log("Application method:", method); // Keep this for debugging
-      if (STANDARD_APPLICATION_METHODS.includes(method)) {
+      const method = app.applicationMethod || 'Other';
+      if (STANDARD_APPLICATION_METHODS.includes(method as typeof STANDARD_APPLICATION_METHODS[number])) {
         counts[method]++;
       } else {
         counts['Other']++;
       }
     });
-    console.log("Final counts:", counts); // Keep this for debugging
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .filter(item => item.value > 0)
