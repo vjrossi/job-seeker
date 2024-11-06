@@ -292,9 +292,11 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     }, []);
 
     useEffect(() => {
+        const timerRef = notificationTimerRef.current;
+        
         return () => {
-            if (notificationTimerRef.current) {
-                clearTimeout(notificationTimerRef.current);
+            if (timerRef) {
+                clearTimeout(timerRef);
             }
         };
     }, []);
@@ -419,14 +421,28 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 </>
             )}
             {currentView === 'reports' && <Reports applications={applications} />}
-            {editingApplication && (
-                <ViewEditApplicationForm
-                    application={editingApplication}
-                    onSave={handleEditSubmit}
-                    onCancel={() => setEditingApplication(null)}
-                    onStatusChange={handleStatusChange}
-                />
-            )}
+            <Modal
+                show={editingApplication !== null}
+                onHide={() => setEditingApplication(null)}
+                size="lg"
+                backdrop="static"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        {editingApplication?.jobTitle} at {editingApplication?.companyName}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {editingApplication && (
+                        <ViewEditApplicationForm
+                            application={editingApplication}
+                            onSave={handleEditSubmit}
+                            onCancel={() => setEditingApplication(null)}
+                            onStatusChange={handleStatusChange}
+                        />
+                    )}
+                </Modal.Body>
+            </Modal>
             <ConfirmationModal
                 show={showConfirmation}
                 onClose={() => setShowConfirmation(false)}

@@ -103,7 +103,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           <Tooltip id={`tooltip-archive-${app.id}`}>
             {isArchivable
               ? "Archive this application"
-              : "This application cannot be archived in its current status"}
+              : "Archiving is available for applications that are No Response, Withdrawn, Not Accepted, or Offer Declined"}
           </Tooltip>
         }
       >
@@ -120,9 +120,57 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     );
   };
 
-  const renderApplicationTable = (applications: JobApplication[], title: string) => (
+  const clearAllFilters = () => {
+    if (onSearchChange) {
+      const event = { target: { value: '' } } as React.ChangeEvent<HTMLInputElement>;
+      onSearchChange(event);
+    }
+    
+    statusFilters.forEach(status => {
+      onStatusFilterChange(status);
+    });
+  };
+
+  const getFilterIndicator = () => {
+    const activeFilters = [];
+    if (searchTerm) activeFilters.push('search');
+    if (statusFilters.length > 0) activeFilters.push('status');
+    
+    if (activeFilters.length === 0) return null;
+    
+    return (
+      <small className="text-muted ms-2">
+        <span style={{ fontSize: '0.75em' }}>
+          {/* Desktop version */}
+          <span className="d-none d-lg-inline">
+            (filtered)
+          </span>
+          {/* Mobile version */}
+          <span className="d-inline d-lg-none">
+            (filtered: 
+            <span 
+              className="text-primary text-decoration-underline" 
+              style={{ cursor: 'pointer' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                clearAllFilters();
+              }}
+            >
+              Clear Filter
+            </span>
+            )
+          </span>
+        </span>
+      </small>
+    );
+  };
+
+  const renderApplicationTable = (applications: JobApplication[], isRecent: boolean) => (
     <>
-      <h3>{title}</h3>
+      <h3>
+        Last {isRecent ? '30' : '30+'} days
+        {getFilterIndicator()}
+      </h3>
       <table className="table">
         <thead>
           <tr>
@@ -186,7 +234,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
       overlay={
         <Tooltip id={`tooltip-undo-${app.id}`}>
           {app.statusHistory.length <= 1
-            ? "Can't undo the initial status"
+            ? "Nothing to undo; job hasn't been progressed"
             : "Undo the last status change"}
         </Tooltip>
       }
@@ -251,54 +299,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     })
   );
 
-  const renderFilterDrawer = () => (
-    <Offcanvas 
-      show={showFilters} 
-      onHide={() => setShowFilters(false)} 
-      placement="bottom" 
-      className="filter-drawer"
-    >
-      <Offcanvas.Header closeButton>
-        <Offcanvas.Title>Filter Applications</Offcanvas.Title>
-      </Offcanvas.Header>
-      <Offcanvas.Body>
-        <Form.Group className="mb-3">
-          <Form.Control
-            type="text"
-            placeholder="Search applications..."
-            value={searchTerm}
-            onChange={onSearchChange}
-            className="mb-3"
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Check
-            type="switch"
-            id="activeSwitch"
-            label={showActive ? 'Active Applications' : 'Inactive Applications'}
-            checked={showActive}
-            onChange={() => setShowActive(!showActive)}
-          />
-        </Form.Group>
-
-        <div className="filter-chips">
-          {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
-            <Badge
-              key={status}
-              bg={statusFilters.includes(status) ? "primary" : "light"}
-              text={statusFilters.includes(status) ? "white" : "dark"}
-              className="filter-chip"
-              onClick={() => onStatusFilterChange(status)}
-            >
-              {status}
-            </Badge>
-          ))}
-        </div>
-      </Offcanvas.Body>
-    </Offcanvas>
-  );
-
   const handleAddClick = () => {
     onAddApplication();
   };
@@ -321,17 +321,19 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         </div>
       </div>
 
+      {/* Search bar for both mobile and desktop */}
+      <div className="mb-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Search applications..."
+          value={searchTerm}
+          onChange={onSearchChange}
+        />
+      </div>
+
       {/* Desktop Filters */}
       <div className="d-none d-lg-block">
-        <div className="mb-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search applications..."
-            value={searchTerm}
-            onChange={onSearchChange}
-          />
-        </div>
         <div className="mb-3">
           <Form.Check
             type="switch"
@@ -357,19 +359,62 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         </div>
       </div>
 
-      {/* Mobile Filter Drawer */}
-      {renderFilterDrawer()}
+      {/* Mobile Filter Drawer - without search */}
+      <Offcanvas 
+        show={showFilters} 
+        onHide={() => setShowFilters(false)} 
+        placement="bottom" 
+        className="filter-drawer"
+      >
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Filters</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+          <Form.Group className="mb-3">
+            <Form.Check
+              type="switch"
+              id="activeSwitch"
+              label={showActive ? 'Active Applications' : 'Inactive Applications'}
+              checked={showActive}
+              onChange={() => setShowActive(!showActive)}
+            />
+          </Form.Group>
+
+          <div className="filter-chips">
+            {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
+              <Badge
+                key={status}
+                bg={statusFilters.includes(status) ? "primary" : "light"}
+                text={statusFilters.includes(status) ? "white" : "dark"}
+                className="filter-chip"
+                onClick={() => onStatusFilterChange(status)}
+              >
+                {status}
+              </Badge>
+            ))}
+          </div>
+        </Offcanvas.Body>
+      </Offcanvas>
 
       {/* Desktop Table View */}
-      {renderApplicationTable(recentApplications, "Recent Applications (Last 30 Days)")}
-      {olderApplications.length > 0 && renderApplicationTable(olderApplications, "Older Applications")}
+      <div className="d-none d-lg-block">
+        {renderApplicationTable(recentApplications, true)}
+        {olderApplications.length > 0 && renderApplicationTable(olderApplications, false)}
+      </div>
       
       {/* Mobile Card View */}
       <div className="d-block d-lg-none">
+        <h3>
+          Last 30 days
+          {getFilterIndicator()}
+        </h3>
         {renderMobileView(recentApplications)}
         {olderApplications.length > 0 && (
           <>
-            <h3>Older Applications</h3>
+            <h3 className="mt-4">
+              Last 30+ days
+              {getFilterIndicator()}
+            </h3>
             {renderMobileView(olderApplications)}
           </>
         )}

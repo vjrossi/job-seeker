@@ -65,6 +65,29 @@ function App() {
     window.location.hash = `#${currentView}`;
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (expanded) {
+        const navbar = document.querySelector('.navbar-collapse');
+        const toggleButton = document.querySelector('.navbar-toggler');
+        
+        if (navbar && toggleButton && 
+            !navbar.contains(event.target as Node) && 
+            !toggleButton.contains(event.target as Node)) {
+          setExpanded(false);
+        }
+      }
+    };
+
+    if (expanded) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [expanded]);
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <Navbar 
@@ -84,18 +107,18 @@ function App() {
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
               <Nav.Link 
+                href="#view"
+                active={currentView === 'view'}
+                onClick={() => handleViewChange('view')}
+              >
+                Job Applications
+              </Nav.Link>
+              <Nav.Link 
                 href="#dashboard" 
                 active={currentView === 'dashboard'}
                 onClick={() => handleViewChange('dashboard')}
               >
                 Dashboard
-              </Nav.Link>
-              <Nav.Link 
-                href="#view"
-                active={currentView === 'view'}
-                onClick={() => handleViewChange('view')}
-              >
-                View Applications
               </Nav.Link>
               <Nav.Link 
                 href="#reports"
