@@ -1,6 +1,6 @@
 import { JobApplication } from '../components/JobApplicationTracker';
 
-const DB_NAME = 'JobSeekerHelperDB';
+const DB_NAME = 'ZynergyDB';
 const STORE_NAME = 'applications';
 const DB_VERSION = 1;
 

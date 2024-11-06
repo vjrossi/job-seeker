@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Container, Navbar, Nav, Button } from 'react-bootstrap';
+import { Container, Navbar, Nav, Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './App.css';
 import MainContent from './components/MainContent';
 import Footer from './components/Footer';
@@ -88,6 +88,14 @@ function App() {
     };
   }, [expanded]);
 
+  const demoModeTooltip = (
+    <Tooltip id="demo-mode-tooltip">
+      {isDev 
+        ? "Currently using sample data. Click to switch to your real data." 
+        : "Try the app with sample data. Click to switch to demo mode."}
+    </Tooltip>
+  );
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <Navbar 
@@ -99,7 +107,7 @@ function App() {
         onToggle={(expand) => setExpanded(expand)}
       >
         <Container fluid>
-          <Navbar.Brand href="#">Job Seeker Helper</Navbar.Brand>
+          <Navbar.Brand href="#">Zynergy</Navbar.Brand>
           <Navbar.Toggle 
             aria-controls="basic-navbar-nav" 
             ref={navbarToggleRef}
@@ -142,14 +150,19 @@ function App() {
                 Instructions
               </Nav.Link>
             </Nav>
-            <Button 
-              variant={isDev ? "warning" : "outline-light"}
-              size="sm"
-              onClick={() => setIsDev(!isDev)}
-              className="ms-2"
+            <OverlayTrigger
+              placement="bottom"
+              overlay={demoModeTooltip}
             >
-              {isDev ? "Demo Mode Is On" : "Demo Mode Is Off"}
-            </Button>
+              <Button 
+                variant={isDev ? "warning" : "outline-light"}
+                size="sm"
+                onClick={() => setIsDev(!isDev)}
+                className="ms-2"
+              >
+                {isDev ? "Demo Mode Is On" : "Demo Mode Is Off"}
+              </Button>
+            </OverlayTrigger>
           </Navbar.Collapse>
         </Container>
       </Navbar>

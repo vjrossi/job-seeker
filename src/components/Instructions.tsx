@@ -4,8 +4,8 @@ import './Instructions.css';
 const Instructions: React.FC = () => {
   return (
     <div className="instructions">
-      <h2>Job Seeker Helper Instructions</h2>
-      <p>Welcome to Job Seeker Helper! This application helps you track and manage your job applications efficiently. Here's how to use the main features:</p>
+      <h2>Zynergy Instructions</h2>
+      <p>Welcome to Zynergy! This application helps you track and manage your job applications efficiently. Here's how to use the main features:</p>
 
       <h3>Job Applications</h3>
       <p>The main view for managing your applications:</p>

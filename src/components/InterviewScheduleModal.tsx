@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './InterviewScheduleModal.css';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
@@ -21,13 +21,6 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
 }) => {
     const [interviewDateTime, setInterviewDateTime] = useState('');
     const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (show) {
-            setInterviewDateTime('');
-            setError(null);
-        }
-    }, [show]);
 
     const validateInterviewDate = (dateTime: string, newStatus: ApplicationStatus): string | null => {
         const newDate = new Date(dateTime);

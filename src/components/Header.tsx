@@ -15,7 +15,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         >
           ☰
         </button>
-        <h1 className="mb-0">Job Seeker Helper</h1>
+        <h1 className="mb-0">Zynergy</h1>
       </div>
     </header>
   );

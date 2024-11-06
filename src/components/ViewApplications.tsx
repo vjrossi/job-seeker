@@ -74,13 +74,20 @@ const canBeArchived = (status: ApplicationStatus): boolean => {
 const getStatusDescription = (app: JobApplication): string => {
   const currentStatus = app.statusHistory[app.statusHistory.length - 1];
   const timeDiff = new Date().getTime() - new Date(currentStatus.timestamp).getTime();
-  const daysWaiting = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+  const daysAgo = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+  
+  let timeAgoText;
+  if (daysAgo === 0) {
+    timeAgoText = 'Today';
+  } else if (daysAgo === 1) {
+    timeAgoText = 'Yesterday';
+  } else {
+    timeAgoText = `${daysAgo} days ago`;
+  }
   
   switch (currentStatus.status) {
     case ApplicationStatus.Applied:
-      return daysWaiting === 0 
-        ? 'Waiting for response since today'
-        : `Waiting ${daysWaiting} days for response to application`;
+      return `${timeAgoText}: applied for position`;
     
     case ApplicationStatus.InterviewScheduled:
     case ApplicationStatus.SecondRoundScheduled:
@@ -90,38 +97,33 @@ const getStatusDescription = (app: JobApplication): string => {
         const daysUntil = Math.floor((interviewDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
         const round = currentStatus.status === ApplicationStatus.InterviewScheduled ? '1st' :
                      currentStatus.status === ApplicationStatus.SecondRoundScheduled ? '2nd' : '3rd';
-        return `${round} round interview scheduled for ${interviewDate.toLocaleDateString()} at ${interviewDate.toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })} (${daysUntil} days)`;
+        return `${timeAgoText}: ${round} round interview scheduled for ${interviewDate.toLocaleDateString()} (${daysUntil} days)`;
       }
-      return 'Interview scheduled (awaiting details)';
+      return `${timeAgoText}: interview scheduled`;
     
     case ApplicationStatus.NoResponse:
-      return daysWaiting === 0 
-        ? 'No response since today'
-        : `No response after ${daysWaiting} days`;
+      return `${timeAgoText}: no response received`;
     
     case ApplicationStatus.NotAccepted:
-      return 'Application rejected';
+      return `${timeAgoText}: application rejected`;
     
     case ApplicationStatus.OfferReceived:
-      return 'Received job offer - awaiting decision';
+      return `${timeAgoText}: received job offer`;
     
     case ApplicationStatus.OfferAccepted:
-      return 'Offer accepted - starting soon';
+      return `${timeAgoText}: accepted job offer`;
     
     case ApplicationStatus.OfferDeclined:
-      return 'Offer declined';
+      return `${timeAgoText}: declined job offer`;
     
     case ApplicationStatus.Withdrawn:
-      return 'Application withdrawn';
+      return `${timeAgoText}: withdrew application`;
     
     case ApplicationStatus.Archived:
-      return 'Application archived';
+      return `${timeAgoText}: archived`;
     
     default:
-      return currentStatus.status;
+      return `${timeAgoText}: ${currentStatus.status}`;
   }
 };
 
@@ -566,6 +568,13 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     setApplicationToDelete(null);
   };
 
+  const renderEmptyState = () => (
+    <div className="text-center py-5">
+      <h4 className="text-muted mb-3">No applications yet</h4>
+      <p className="mb-4">Start tracking your job search by clicking the "Add New" button above</p>
+    </div>
+  );
+
   return (
     <div className="view-applications">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -584,153 +593,159 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         </div>
       </div>
 
-      {/* Search bar for both mobile and desktop */}
-      <div className="mb-3">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search applications..."
-          value={searchTerm}
-          onChange={onSearchChange}
-        />
-      </div>
-
-      {/* Desktop Filters */}
-      <div className="d-none d-lg-block">
-        <div className="mb-3">
-          <Form.Check
-            type="switch"
-            id="desktopActiveSwitch"
-            label={showActive ? 'Show Active Only' : 'Show All Applications'}
-            checked={showActive}
-            onChange={() => setShowActive(!showActive)}
-          />
-        </div>
-        <div className="mb-3">
-          <h5>Filter by Status:</h5>
-          <div className="btn-group flex-wrap" role="group">
-            {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
-              <button
-                key={status}
-                className={`btn btn-sm me-2 ${statusFilters.includes(status) ? 'btn-primary' : 'btn-outline-primary'}`}
-                onClick={() => onStatusFilterChange(status)}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Filter Drawer - without search */}
-      <Offcanvas 
-        show={showFilters} 
-        onHide={() => setShowFilters(false)} 
-        placement="bottom" 
-        className="filter-drawer"
-      >
-        <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Filters</Offcanvas.Title>
-        </Offcanvas.Header>
-        <Offcanvas.Body>
-          <Form.Group className="mb-3">
-            <Form.Check
-              type="switch"
-              id="activeSwitch"
-              label={showActive ? 'Show Active Only' : 'Show All Applications'}
-              checked={showActive}
-              onChange={() => setShowActive(!showActive)}
+      {applications.length === 0 ? (
+        renderEmptyState()
+      ) : (
+        <>
+          {/* Search bar for both mobile and desktop */}
+          <div className="mb-3">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search applications..."
+              value={searchTerm}
+              onChange={onSearchChange}
             />
-          </Form.Group>
-
-          <div className="filter-chips">
-            {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
-              <Badge
-                key={status}
-                bg={statusFilters.includes(status) ? "primary" : "light"}
-                text={statusFilters.includes(status) ? "white" : "dark"}
-                className="filter-chip"
-                onClick={() => onStatusFilterChange(status)}
-              >
-                {status}
-              </Badge>
-            ))}
           </div>
-        </Offcanvas.Body>
-      </Offcanvas>
 
-      {/* Desktop Table View */}
-      <div className="d-none d-lg-block">
-        {renderApplicationTable(recentApplications, true)}
-        {olderApplications.length > 0 && renderApplicationTable(olderApplications, false)}
-      </div>
-      
-      {/* Mobile Card View */}
-      <div className="d-block d-lg-none">
-        <h3>
-          Last 30 days
-          {getFilterIndicator()}
-        </h3>
-        {renderMobileView(recentApplications)}
-        {olderApplications.length > 0 && (
-          <>
-            <h3 className="mt-4">
-              Last 30+ days
+          {/* Desktop Filters */}
+          <div className="d-none d-lg-block">
+            <div className="mb-3">
+              <Form.Check
+                type="switch"
+                id="desktopActiveSwitch"
+                label={showActive ? 'Show Active Only' : 'Show All Applications'}
+                checked={showActive}
+                onChange={() => setShowActive(!showActive)}
+              />
+            </div>
+            <div className="mb-3">
+              <h5>Filter by Status:</h5>
+              <div className="btn-group flex-wrap" role="group">
+                {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
+                  <button
+                    key={status}
+                    className={`btn btn-sm me-2 ${statusFilters.includes(status) ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => onStatusFilterChange(status)}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Filter Drawer - without search */}
+          <Offcanvas 
+            show={showFilters} 
+            onHide={() => setShowFilters(false)} 
+            placement="bottom" 
+            className="filter-drawer"
+          >
+            <Offcanvas.Header closeButton>
+              <Offcanvas.Title>Filters</Offcanvas.Title>
+            </Offcanvas.Header>
+            <Offcanvas.Body>
+              <Form.Group className="mb-3">
+                <Form.Check
+                  type="switch"
+                  id="activeSwitch"
+                  label={showActive ? 'Show Active Only' : 'Show All Applications'}
+                  checked={showActive}
+                  onChange={() => setShowActive(!showActive)}
+                />
+              </Form.Group>
+
+              <div className="filter-chips">
+                {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
+                  <Badge
+                    key={status}
+                    bg={statusFilters.includes(status) ? "primary" : "light"}
+                    text={statusFilters.includes(status) ? "white" : "dark"}
+                    className="filter-chip"
+                    onClick={() => onStatusFilterChange(status)}
+                  >
+                    {status}
+                  </Badge>
+                ))}
+              </div>
+            </Offcanvas.Body>
+          </Offcanvas>
+
+          {/* Desktop Table View */}
+          <div className="d-none d-lg-block">
+            {renderApplicationTable(recentApplications, true)}
+            {olderApplications.length > 0 && renderApplicationTable(olderApplications, false)}
+          </div>
+          
+          {/* Mobile Card View */}
+          <div className="d-block d-lg-none">
+            <h3>
+              Last 30 days
               {getFilterIndicator()}
             </h3>
-            {renderMobileView(olderApplications)}
-          </>
-        )}
-      </div>
-      
-      {showProgressModal && selectedApplication && (
-        <ProgressModal
-          application={selectedApplication}
-          onClose={() => setShowProgressModal(false)}
-          onConfirm={handleProgressConfirm}
-        />
+            {renderMobileView(recentApplications)}
+            {olderApplications.length > 0 && (
+              <>
+                <h3 className="mt-4">
+                  Last 30+ days
+                  {getFilterIndicator()}
+                </h3>
+                {renderMobileView(olderApplications)}
+              </>
+            )}
+          </div>
+          
+          {showProgressModal && selectedApplication && (
+            <ProgressModal
+              application={selectedApplication}
+              onClose={() => setShowProgressModal(false)}
+              onConfirm={handleProgressConfirm}
+            />
+          )}
+
+          <Modal show={showArchiveModal} onHide={() => setShowArchiveModal(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Archive Application</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              The application will be archived. You can recover it at any time.
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowArchiveModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={handleArchiveConfirm}>
+                Archive
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Delete Application</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Warning: This will permanently delete this application and all its history. This action cannot be undone.
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={handleDeleteConfirm}>
+                Delete Permanently
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          <Toast 
+            show={toast.show}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(prev => ({ ...prev, show: false }))}
+          />
+        </>
       )}
-
-      <Modal show={showArchiveModal} onHide={() => setShowArchiveModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Archive Application</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          The application will be archived. You can recover it at any time.
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowArchiveModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleArchiveConfirm}>
-            Archive
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Delete Application</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Warning: This will permanently delete this application and all its history. This action cannot be undone.
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDeleteConfirm}>
-            Delete Permanently
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <Toast 
-        show={toast.show}
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast(prev => ({ ...prev, show: false }))}
-      />
     </div>
   );
 };

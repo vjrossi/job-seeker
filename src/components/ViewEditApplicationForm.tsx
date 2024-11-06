@@ -25,7 +25,6 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { target: { name: string; value: number } }) => {
     const { name, value } = e.target;
-    console.log(`handleChange called in ViewEditApplicationForm: ${name} = ${value}`);
     
     setFormData(prev => {
       const updatedData = { ...prev };
@@ -33,7 +32,6 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
       if (name === 'currentStatus') {
         const currentStatus = prev.statusHistory[prev.statusHistory.length - 1].status;
         if (value !== currentStatus) {
-          console.log(`Status changed to ${value}, calling onStatusChange`);
           onStatusChange(application.id, value as ApplicationStatus);
           updatedData.statusHistory = [
             ...prev.statusHistory,
@@ -134,7 +132,6 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
 );
 
   const currentStatus = formData.statusHistory[formData.statusHistory.length - 1].status;
-  const dateApplied = new Date(formData.statusHistory[0].timestamp).toISOString().split('T')[0];
 
   return (
     <div className="card shadow-sm">
