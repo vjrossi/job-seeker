@@ -2,13 +2,14 @@ import { JobApplication } from '../components/JobApplicationTracker';
 
 const DB_NAME = 'JobSeekerHelperDB';
 const STORE_NAME = 'applications';
+const DB_VERSION = 1;
 
 class IndexedDBService {
     private db: IDBDatabase | null = null;
 
     async initDB(): Promise<void> {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, 1);
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
 
             request.onerror = () => reject(request.error);
             request.onsuccess = () => {
@@ -56,6 +57,19 @@ class IndexedDBService {
             const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
             const store = transaction.objectStore(STORE_NAME);
             const request = store.put(application);
+
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve();
+        });
+    }
+
+    async deleteApplication(id: number): Promise<void> {
+        if (!this.db) await this.initDB();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.delete(id);
 
             request.onerror = () => reject(request.error);
             request.onsuccess = () => resolve();

@@ -156,7 +156,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             };
             await (isDev ? devIndexedDBService : indexedDBService).addApplication(newApplication);
             setApplications(prev => [...prev, newApplication]);
-            showToast('Application added successfully', 'success');
+            showToast('Application added', 'success');
         } catch (error) {
             console.error('Error adding application:', error);
             showToast('Failed to add application. Please try again.', 'error');
@@ -365,6 +365,15 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     }, [feedbackMessage]);
 
+    // Add the handler function
+    const handleRatingChange = (applicationId: number, newRating: number) => {
+        setApplications(applications.map(app => 
+            app.id === applicationId 
+                ? { ...app, rating: newRating }
+                : app
+        ));
+    };
+
     return (
         <div className="mt-4">
             <Toast
@@ -397,6 +406,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                         refreshApplications={loadApplications}
                         onUndo={handleUndo}
                         stalePeriod={stalePeriod}
+                        onRatingChange={handleRatingChange}
                     />
                     <Modal
                         show={showAddForm}

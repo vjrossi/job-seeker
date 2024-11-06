@@ -79,6 +79,19 @@ class DevIndexedDBService {
       request.onsuccess = () => resolve();
     });
   }
+
+  async deleteApplication(id: number): Promise<void> {
+    if (!this.db) await this.initDB();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([DEV_STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(DEV_STORE_NAME);
+      const request = store.delete(id);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
+    });
+  }
 }
 
 export const devIndexedDBService = new DevIndexedDBService();

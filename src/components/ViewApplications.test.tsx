@@ -23,7 +23,8 @@ describe('ViewApplications', () => {
     isTest: false,
     refreshApplications: jest.fn(),
     onUndo: jest.fn(),
-    stalePeriod: 21  // Add this line
+    stalePeriod: 21,
+    onRatingChange: jest.fn(),
   };
 
   beforeEach(() => {
@@ -78,7 +79,8 @@ describe('ViewApplications', () => {
       isTest: false,
       refreshApplications: jest.fn(),
       onUndo: jest.fn(),
-      stalePeriod: 21
+      stalePeriod: 21,
+      onRatingChange: jest.fn(),
     };
 
     render(<ViewApplications {...mockProps} />);

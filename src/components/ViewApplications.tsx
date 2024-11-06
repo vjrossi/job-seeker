@@ -3,9 +3,12 @@ import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus, ACTIVE_STATUSES, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import ProgressModal from './ProgressModal';
-import { OverlayTrigger, Tooltip, Offcanvas, Button, Form, Badge, Dropdown } from 'react-bootstrap';
-import { FaStar, FaFilter, FaUndo } from 'react-icons/fa';
+import { OverlayTrigger, Tooltip, Offcanvas, Button, Form, Badge, Dropdown, Card, Modal } from 'react-bootstrap';
+import { FaFilter, FaUndo, FaTrashAlt } from 'react-icons/fa';
 import './ViewApplications.css';
+import { devIndexedDBService } from '../services/devIndexedDBService';
+import { indexedDBService } from '../services/indexedDBService';
+import Toast from './Toast';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -21,6 +24,7 @@ interface ViewApplicationsProps {
   refreshApplications: () => void;
   onUndo: (id: number) => void;
   stalePeriod: number;
+  onRatingChange: (applicationId: number, newRating: number) => void;
 }
 
 const getStatusSequence = (currentStatus: ApplicationStatus): ApplicationStatus[] => {
@@ -63,6 +67,10 @@ const getStatusSequence = (currentStatus: ApplicationStatus): ApplicationStatus[
   }
 };
 
+const canBeArchived = (status: ApplicationStatus): boolean => {
+  return status !== ApplicationStatus.Archived;
+};
+
 const ViewApplications: React.FC<ViewApplicationsProps> = ({
   applications,
   onStatusChange,
@@ -76,12 +84,24 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   isTest,
   onUndo,
   refreshApplications,
-  stalePeriod
+  stalePeriod,
+  onRatingChange
 }) => {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
-  const [showActive, setShowActive] = useState(true);
+  const [showActive, setShowActive] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [applicationToArchive, setApplicationToArchive] = useState<number | null>(null);
+  const [tooltipVisibility, setTooltipVisibility] = useState<{ [key: number]: boolean }>({});
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] = useState<number | null>(null);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
 
   const filteredAndSortedApplications = useMemo(() => {
     return applications
@@ -90,9 +110,10 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
-        const isNotArchived = currentStatus !== ApplicationStatus.Archived;
-        const matchesActiveFilter = showActive ? ACTIVE_STATUSES.includes(currentStatus) : INACTIVE_STATUSES.includes(currentStatus);
-        return matchesSearch && matchesStatus && isNotArchived && matchesActiveFilter;
+        const matchesActiveFilter = showActive 
+          ? ACTIVE_STATUSES.includes(currentStatus) 
+          : true;
+        return matchesSearch && matchesStatus && matchesActiveFilter;
       })
       .sort((a: JobApplication, b: JobApplication) => {
         const aDate = new Date(a.statusHistory[0].timestamp);
@@ -123,35 +144,30 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     return { recentApplications: recent, olderApplications: older };
   }, [filteredAndSortedApplications, oneMonthAgo]);
 
-  const canBeArchived = (status: ApplicationStatus): boolean => {
-    return [
-      ApplicationStatus.NoResponse,
-      ApplicationStatus.Withdrawn,
-      ApplicationStatus.NotAccepted,
-      ApplicationStatus.OfferDeclined
-    ].includes(status);
-  };
-
   const renderArchiveButton = (app: JobApplication) => {
     const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
     const isArchivable = canBeArchived(currentStatus);
 
-    return (
+    return isArchivable ? (
+      <button
+        className="btn btn-sm btn-outline-danger"
+        onClick={() => onDelete(app.id)}
+      >
+        Archive
+      </button>
+    ) : (
       <OverlayTrigger
         placement="top"
         overlay={
           <Tooltip id={`tooltip-archive-${app.id}`}>
-            {isArchivable
-              ? "Archive this application"
-              : "Archiving is available for applications that are No Response, Withdrawn, Not Accepted, or Offer Declined"}
+            This application is already archived
           </Tooltip>
         }
       >
         <span className="d-inline-block">
           <button
             className="btn btn-sm btn-outline-danger"
-            onClick={() => onDelete(app.id)}
-            disabled={!isArchivable}
+            disabled
           >
             Archive
           </button>
@@ -229,7 +245,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                 <td>{app.companyName}</td>
                 <td>{app.jobTitle}</td>
                 <td>{currentStatus}</td>
-                <td>{renderSmallStarRating(app.rating)}</td>
+                <td>{renderStars(app)}</td>
                 <td>
                   <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEdit(app)}>View</button>
                   {!INACTIVE_STATUSES.includes(currentStatus) && (
@@ -291,35 +307,77 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     </OverlayTrigger>
   );
 
-  const renderSmallStarRating = (rating: number) => (
-    <div className="small-star-rating">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <FaStar
-          key={star}
-          className="star"
-          color={star <= rating ? "#ffc107" : "#e4e5e9"}
-          size={12}
-          style={{ marginRight: 2 }}
-        />
-      ))}
-    </div>
-  );
+  const renderStars = (application: JobApplication) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <span
+          key={i}
+          className={`star ${i <= application.rating ? 'filled' : 'empty'}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRatingChange(application.id, i);
+          }}
+          role="button"
+          aria-label={`Rate ${i} stars`}
+          style={{ cursor: 'pointer' }}
+        >
+          ★
+        </span>
+      );
+    }
+    return <div className="stars">{stars}</div>;
+  };
 
   const renderMobileView = (applications: JobApplication[]) => (
     applications.map(app => {
       const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
       return (
-        <div key={app.id} className="mobile-card">
-          <div className="mobile-card-header">
+        <Card key={app.id} className="mb-3">
+          <Card.Header className="d-flex justify-content-between align-items-center">
             <h4 
-              className="company-name-link"
+              className="company-name-link mb-0"
               onClick={() => onEdit(app)}
             >
               {app.companyName}
             </h4>
-            {renderSmallStarRating(app.rating)}
-          </div>
-          <div className="mobile-card-content">
+            <div className="d-flex align-items-center gap-3">
+              {renderStars(app)}
+              {!canBeArchived(currentStatus) ? (
+                <OverlayTrigger
+                  placement="top"
+                  show={tooltipVisibility[app.id]}
+                  overlay={
+                    <Tooltip id={`tooltip-archive-${app.id}`}>
+                      This application is already archived
+                    </Tooltip>
+                  }
+                >
+                  <span>
+                    <FaTrashAlt 
+                      className="archive-icon disabled"
+                      onClick={() => handleDisabledArchiveClick(app.id)}
+                      role="button"
+                      aria-label="Archive application (disabled)"
+                    />
+                  </span>
+                </OverlayTrigger>
+              ) : (
+                <FaTrashAlt 
+                  className="archive-icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleArchiveClick(app.id);
+                  }}
+                  onTouchStart={(e) => handleArchiveIconTouchStart(app.id, e)}
+                  onTouchEnd={handleArchiveIconTouchEnd}
+                  role="button"
+                  aria-label="Archive application"
+                />
+              )}
+            </div>
+          </Card.Header>
+          <Card.Body>
             <div><strong>{app.jobTitle}</strong></div>
             <div className="status-timeline">
               {getStatusSequence(currentStatus).map((status: ApplicationStatus, index: number, sequence: ApplicationStatus[]) => (
@@ -333,12 +391,23 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                       {status}
                     </Dropdown.Toggle>
                     <Dropdown.Menu>
+                      <Dropdown.Header>What has happened with this application?</Dropdown.Header>
                       {getNextStatuses(currentStatus).map((nextStatus) => (
                         <Dropdown.Item 
                           key={nextStatus}
                           onClick={() => onStatusChange(app.id, nextStatus)}
                         >
-                          {nextStatus}
+                          {nextStatus === ApplicationStatus.InterviewScheduled ? "I got an interview!" :
+                           nextStatus === ApplicationStatus.SecondRoundScheduled ? "Got a Second Interview!" :
+                           nextStatus === ApplicationStatus.ThirdRoundScheduled ? "Got a Third Interview!" :
+                           nextStatus === ApplicationStatus.OfferReceived ? "I received a job offer!" :
+                           nextStatus === ApplicationStatus.OfferAccepted ? "I accepted the job offer!" :
+                           nextStatus === ApplicationStatus.OfferDeclined ? "I declined the job offer" :
+                           nextStatus === ApplicationStatus.NoResponse ? "No Response" :
+                           nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted for the next stage" :
+                           nextStatus === ApplicationStatus.Withdrawn ? "I have decided to withdraw my application" :
+                           nextStatus === ApplicationStatus.Archived ? "I want to archive this application" :
+                           nextStatus}
                         </Dropdown.Item>
                       ))}
                       {app.statusHistory.length > 1 && (
@@ -367,17 +436,77 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                 )
               ))}
             </div>
-          </div>
-          <div className="mobile-card-actions">
-            {renderArchiveButton(app)}
-          </div>
-        </div>
+          </Card.Body>
+        </Card>
       );
     })
   );
 
   const handleAddClick = () => {
     onAddApplication();
+  };
+
+  const handleRatingChange = (applicationId: number, newRating: number) => {
+    onRatingChange(applicationId, newRating);
+  };
+
+  const handleArchiveClick = (appId: number) => {
+    setApplicationToArchive(appId);
+    setShowArchiveModal(true);
+  };
+
+  const handleArchiveConfirm = () => {
+    if (applicationToArchive !== null) {
+      onDelete(applicationToArchive);
+    }
+    setShowArchiveModal(false);
+    setApplicationToArchive(null);
+  };
+
+  const handleDisabledArchiveClick = (appId: number) => {
+    setTooltipVisibility(prev => ({ ...prev, [appId]: true }));
+    setTimeout(() => {
+      setTooltipVisibility(prev => ({ ...prev, [appId]: false }));
+    }, 2000);
+  };
+
+  const handleArchiveIconTouchStart = (appId: number, e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent default touch behavior
+    const timer = setTimeout(() => {
+      setApplicationToDelete(appId);
+      setShowDeleteModal(true);
+    }, 1000); // 1 second long press
+    setLongPressTimer(timer);
+  };
+
+  const handleArchiveIconTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (applicationToDelete !== null) {
+      try {
+        await (isTest ? devIndexedDBService : indexedDBService).deleteApplication(applicationToDelete);
+        refreshApplications();
+        setToast({
+          show: true,
+          message: 'Application permanently deleted',
+          type: 'success'
+        });
+      } catch (error) {
+        console.error('Error deleting application:', error);
+        setToast({
+          show: true,
+          message: 'Failed to delete application',
+          type: 'error'
+        });
+      }
+    }
+    setShowDeleteModal(false);
+    setApplicationToDelete(null);
   };
 
   return (
@@ -415,7 +544,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           <Form.Check
             type="switch"
             id="desktopActiveSwitch"
-            label={showActive ? 'Active Applications' : 'Inactive Applications'}
+            label={showActive ? 'Show Active Only' : 'Show All Applications'}
             checked={showActive}
             onChange={() => setShowActive(!showActive)}
           />
@@ -451,7 +580,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
             <Form.Check
               type="switch"
               id="activeSwitch"
-              label={showActive ? 'Active Applications' : 'Inactive Applications'}
+              label={showActive ? 'Show Active Only' : 'Show All Applications'}
               checked={showActive}
               onChange={() => setShowActive(!showActive)}
             />
@@ -504,6 +633,47 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           onConfirm={handleProgressConfirm}
         />
       )}
+
+      <Modal show={showArchiveModal} onHide={() => setShowArchiveModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Archive Application</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          The application will be archived. You can recover it at any time.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowArchiveModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleArchiveConfirm}>
+            Archive
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete Application</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Warning: This will permanently delete this application and all its history. This action cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDeleteConfirm}>
+            Delete Permanently
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Toast 
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 };

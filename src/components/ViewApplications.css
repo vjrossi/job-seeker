@@ -24,6 +24,7 @@
   .mobile-card-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 0.5rem;
   }
 
@@ -249,4 +250,72 @@
 
 .dropdown-divider {
   margin: 0.5rem 0;
+}
+
+/* Add or update these styles */
+.stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.star {
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  user-select: none;
+}
+
+.star:hover {
+  transform: scale(1.2);
+}
+
+.star.filled {
+  color: gold;
+}
+
+.star.empty {
+  color: #ccc;
+}
+
+/* Make sure stars are clickable in both views */
+.application-card .stars,
+.application-row .stars {
+  pointer-events: auto;
+}
+
+/* If you have a hover effect on cards/rows, add this to prevent star rating issues */
+.application-card:hover .stars,
+.application-row:hover .stars {
+  z-index: 1;
+}
+
+/* Add these styles for the dropdown header */
+.dropdown-header {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #212529;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Update the archive icon styles */
+.archive-icon {
+  color: #dc3545; /* Bootstrap's danger color */
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 4px;
+  transition: opacity 0.2s ease;
+  margin-left: 8px;
+}
+
+.archive-icon.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Update mobile card header to accommodate the icon */
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
