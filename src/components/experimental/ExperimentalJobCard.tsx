@@ -286,32 +286,39 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
           <div className="header-content">
             <h2 className="company-name">{application.companyName}</h2>
             <h3 className="job-title">{application.jobTitle}</h3>
-            <div style={{ marginTop: '0.5rem' }}>
-              <StarRating 
-                rating={application.rating}
-                onRatingChange={(newRating) => onRatingChange(application.id, newRating)}
-                size="small"
-              />
+            <StarRating 
+              rating={application.rating}
+              onRatingChange={(newRating) => onRatingChange(application.id, newRating)}
+              size="medium"
+            />
+          </div>
+          <div className="status-section">
+            <Badge 
+              className="status-badge"
+              bg="white"
+              style={{
+                color: statusStyle.color,
+                border: `1px solid ${statusStyle.borderColor}`,
+                fontWeight: '500',
+                letterSpacing: '0.3px',
+                minWidth: '120px',
+                maxHeight: '4.8em',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '8px 16px',
+                fontSize: '0.85rem',
+                lineHeight: '1.6'
+              }}
+            >
+              {formatStatus(currentStatus, application.statusHistory)}
+            </Badge>
+            <div className="time-since">
+              <FaHistory className="time-since-icon" />
+              <span>{formatTimeSince(application.statusHistory[application.statusHistory.length - 1].timestamp)}</span>
             </div>
           </div>
-          <Badge 
-            className="status-badge"
-            bg="white"
-            style={{
-              color: statusStyle.color,
-              border: `1px solid ${statusStyle.borderColor}`,
-              fontWeight: '500',
-              letterSpacing: '0.3px',
-              minWidth: '120px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '8px 16px',
-              fontSize: '0.85rem'
-            }}
-          >
-            {formatStatus(currentStatus, application.statusHistory)}
-          </Badge>
         </div>
 
         <div className="card-body">
@@ -410,10 +417,6 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
               <FaTrashAlt />
             </button>
           </div>
-          <div className="time-since" onClick={(e) => e.stopPropagation()}>
-            <FaHistory className="time-since-icon" />
-            <span>{formatTimeSince(application.statusHistory[application.statusHistory.length - 1].timestamp)}</span>
-          </div>
           <div className="right-actions">
             {onUndo && (
               <button 
@@ -426,17 +429,19 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
                 <FaUndo />
               </button>
             )}
-            <button
-              ref={arrowButtonRef}
-              className="btn btn-link"
-              onClick={e => {
-                console.log('Arrow button clicked');
-                e.stopPropagation();
-                setDropdownOpen(!dropdownOpen);
-              }}
-            >
-              <FaArrowRight />
-            </button>
+            {nextStatuses.length > 0 && (  // Only show progress button if there are next statuses
+              <button
+                ref={arrowButtonRef}
+                className="btn btn-link"
+                onClick={e => {
+                  console.log('Arrow button clicked');
+                  e.stopPropagation();
+                  setDropdownOpen(!dropdownOpen);
+                }}
+              >
+                <FaArrowRight />
+              </button>
+            )}
             <DropdownPortal
               isOpen={dropdownOpen}
               onClose={() => setDropdownOpen(false)}

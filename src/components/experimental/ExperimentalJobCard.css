@@ -148,7 +148,6 @@
   gap: 0.5rem;
   color: #666;
   font-size: 0.9rem;
-  padding: 0.25rem 0;
   line-height: 1;
 }
 
@@ -281,4 +280,19 @@
 .experimental-card .right-actions {
   position: relative;
   overflow: visible !important;
+}
+
+.experimental-card .status-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.experimental-card .info-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }

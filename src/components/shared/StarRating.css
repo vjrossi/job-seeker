@@ -1,6 +1,8 @@
 .star-rating {
   display: inline-flex;
   gap: 2px;
+  padding-top: 0.5rem;
+  padding-bottom: 0.25rem;
 }
 
 .star-rating .star {
@@ -23,13 +25,13 @@
 
 /* Size variants */
 .star-rating.small .star {
-  font-size: 0.8rem;
-}
-
-.star-rating.medium .star {
   font-size: 1rem;
 }
 
-.star-rating.large .star {
+.star-rating.medium .star {
   font-size: 1.2rem;
+}
+
+.star-rating.large .star {
+  font-size: 1.4rem;
 } 

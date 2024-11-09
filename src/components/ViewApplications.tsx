@@ -61,7 +61,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     type: 'success'
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Add ref for filter button
   const filterButtonRef = useRef<HTMLButtonElement>(null);
