@@ -145,27 +145,35 @@ const DropdownPortal: React.FC<{
             border: 'none',
             background: 'none',
             cursor: 'pointer',
+            position: 'relative',
+            zIndex: 10000,
           }}
-          onClick={(e) => {
+          type="button"
+          onMouseDown={(e) => {
+            console.log('Button MouseDown event fired');
             e.stopPropagation();
+            e.preventDefault();
+            console.log('Dropdown item clicked, status:', nextStatus);
             onStatusChange(nextStatus);
             onClose();
           }}
           onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
           onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
-          {nextStatus === ApplicationStatus.InterviewScheduled ? 
-            (application.statusHistory.some(h => h.status === ApplicationStatus.InterviewScheduled) 
-              ? "I got another interview!" 
-              : "I got an interview!") :
-            nextStatus === ApplicationStatus.OfferReceived ? "I received a job offer!" :
-            nextStatus === ApplicationStatus.OfferAccepted ? "I accepted the job offer!" :
-            nextStatus === ApplicationStatus.OfferDeclined ? "I declined the job offer" :
-            nextStatus === ApplicationStatus.NoResponse ? "No Response" :
-            nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted" :
-            nextStatus === ApplicationStatus.Withdrawn ? "I have decided to withdraw my application" :
-            nextStatus === ApplicationStatus.Archived ? "I want to archive this application" :
-            nextStatus}
+          <div style={{ pointerEvents: 'none' }}>
+            {nextStatus === ApplicationStatus.InterviewScheduled ? 
+              (application.statusHistory.some(h => h.status === ApplicationStatus.InterviewScheduled) 
+                ? "I got another interview!" 
+                : "I got an interview!") :
+              nextStatus === ApplicationStatus.OfferReceived ? "I received a job offer!" :
+              nextStatus === ApplicationStatus.OfferAccepted ? "I accepted the job offer!" :
+              nextStatus === ApplicationStatus.OfferDeclined ? "I declined the job offer" :
+              nextStatus === ApplicationStatus.NoResponse ? "No Response" :
+              nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted" :
+              nextStatus === ApplicationStatus.Withdrawn ? "I have decided to withdraw my application" :
+              nextStatus === ApplicationStatus.Archived ? "I want to archive this application" :
+              nextStatus}
+          </div>
         </button>
       ))}
     </div>,
@@ -343,7 +351,13 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
             onClose={() => setDropdownOpen(false)}
             buttonRef={arrowButtonRef}
             nextStatuses={nextStatuses}
-            onStatusChange={(status) => onStatusChange(application.id, status)}
+            onStatusChange={(status) => {
+              console.log('Main component received status change:', status);
+              console.log('Application ID:', application.id);
+              console.log('About to call parent onStatusChange');
+              onStatusChange(application.id, status);
+              console.log('Called parent onStatusChange');
+            }}
             application={application}
           />
         </div>
