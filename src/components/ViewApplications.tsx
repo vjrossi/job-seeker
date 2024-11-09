@@ -155,6 +155,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     message: '',
     type: 'success'
   });
+  const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
 
   const filteredAndSortedApplications = useMemo(() => {
     return applications
@@ -594,6 +595,10 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           onDelete={onDelete}
           onStatusChange={onStatusChange}
           onUndo={onUndo}
+          expandedId={expandedCardId}
+          onExpand={(id) => {
+            setExpandedCardId(currentId => currentId === id ? null : id);
+          }}
         />
       );
     }

@@ -15,6 +15,7 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { Modal } from 'react-bootstrap';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
+import { InterviewLocationType } from './InterviewDetailsModal';
 
 export interface JobApplication {
     id: number;
@@ -28,6 +29,7 @@ export interface JobApplication {
         timestamp: string;
         interviewDateTime?: string;
         interviewLocation?: string;
+        interviewType?: InterviewLocationType;
     }[];
     interviewDateTime?: string;
     interviewLocation?: string;
@@ -187,20 +189,24 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         setIsFormDirty(true);
     };
 
-    const handleStatusChange = (id: number, newStatus: ApplicationStatus) => {
+    const handleStatusChange = (id: number, newStatus: ApplicationStatus, details?: {
+        interviewDateTime?: string;
+        interviewLocation?: string;
+        interviewType?: InterviewLocationType;
+    }) => {
         const application = applications.find(app => app.id === id);
         if (application) {
             const currentStatus = application.statusHistory[application.statusHistory.length - 1].status;
             const validNextStatuses = getNextStatuses(currentStatus);
 
             if (validNextStatuses.includes(newStatus)) {
-                if (newStatus === ApplicationStatus.InterviewScheduled) {
+                if (newStatus === ApplicationStatus.InterviewScheduled && !details) {
                     setCurrentApplicationId(id);
                     setCurrentInterviewStatus(currentStatus);
                     setCurrentApplication(application);
                     setShowInterviewModal(true);
                 } else {
-                    updateApplicationStatus(id, newStatus);
+                    updateApplicationStatus(id, newStatus, details?.interviewDateTime, details?.interviewLocation);
                 }
             } else {
                 showToast('Invalid status progression.', 'error');

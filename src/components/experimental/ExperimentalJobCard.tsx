@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { JobApplication } from '../JobApplicationTracker';
-import { Badge, DropdownButton, Dropdown } from 'react-bootstrap';
+import { Badge } from 'react-bootstrap';
 import { 
   FaPencilAlt,
   FaTrashAlt,
@@ -15,13 +15,16 @@ import {
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
 import { getNextStatuses } from '../../constants/applicationStatusMachine';
 import './ExperimentalJobCard.css';
+import InterviewDetailsModal, { InterviewLocationType } from '../InterviewDetailsModal';
 
 interface ExperimentalJobCardProps {
   application: JobApplication;
   onEdit: (application: JobApplication) => void;
   onDelete: (id: number) => void;
-  onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
+  onStatusChange: (id: number, newStatus: ApplicationStatus, details?: { interviewDateTime?: string; interviewLocation?: string; interviewType?: InterviewLocationType }) => void;
   onUndo?: (id: number) => void;
+  expandedId: number | null;
+  onExpand: (id: number) => void;
 }
 
 const getStatusStyle = (status: ApplicationStatus) => {
@@ -92,26 +95,46 @@ const formatTimeSince = (timestamp: string): string => {
   return `${diffInMonths}mo ago`;
 };
 
-const DropdownPortal: React.FC<{
+interface DropdownPortalProps {
   isOpen: boolean;
   onClose: () => void;
   buttonRef: React.RefObject<HTMLButtonElement>;
   nextStatuses: ApplicationStatus[];
   onStatusChange: (status: ApplicationStatus) => void;
+  onInterviewSchedule: (status: ApplicationStatus) => void;
   application: JobApplication;
-}> = ({ isOpen, onClose, buttonRef, nextStatuses, onStatusChange, application }) => {
+}
+
+const DropdownPortal: React.FC<DropdownPortalProps> = ({
+  isOpen,
+  onClose,
+  buttonRef,
+  nextStatuses,
+  onStatusChange,
+  onInterviewSchedule,
+  application
+}) => {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && buttonRef.current && dropdownRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      const dropdownHeight = dropdownRef.current.offsetHeight;
+      const viewportHeight = window.innerHeight;
+      
+      // Check if there's enough space below the button
+      const spaceBelow = viewportHeight - buttonRect.bottom;
+      const shouldShowAbove = spaceBelow < dropdownHeight + 10; // 10px buffer
+      
       setPosition({
-        top: rect.bottom + window.scrollY + 5,
-        left: rect.left + window.scrollX - dropdownRef.current.offsetWidth + rect.width,
+        top: shouldShowAbove 
+          ? buttonRect.top + window.scrollY - dropdownHeight - 5 // Show above
+          : buttonRect.bottom + window.scrollY + 5,             // Show below
+        left: buttonRect.left + window.scrollX - dropdownRef.current.offsetWidth + buttonRect.width,
       });
     }
-  }, [isOpen]);
+  }, [isOpen, buttonRef]);
 
   if (!isOpen) return null;
 
@@ -119,7 +142,7 @@ const DropdownPortal: React.FC<{
     <div
       ref={dropdownRef}
       style={{
-        position: 'absolute',
+        position: 'fixed',
         top: `${position.top}px`,
         left: `${position.left}px`,
         backgroundColor: 'white',
@@ -129,6 +152,8 @@ const DropdownPortal: React.FC<{
         minWidth: '250px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
         zIndex: 9999,
+        maxHeight: '80vh',
+        overflowY: 'auto',
       }}
     >
       <div style={{ padding: '8px 16px', borderBottom: '1px solid #eee', color: '#666' }}>
@@ -154,7 +179,12 @@ const DropdownPortal: React.FC<{
             e.stopPropagation();
             e.preventDefault();
             console.log('Dropdown item clicked, status:', nextStatus);
-            onStatusChange(nextStatus);
+            
+            if (nextStatus === ApplicationStatus.InterviewScheduled) {
+              onInterviewSchedule(nextStatus);
+            } else {
+              onStatusChange(nextStatus);
+            }
             onClose();
           }}
           onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f8f9fa')}
@@ -186,15 +216,14 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
   onEdit,
   onDelete,
   onStatusChange,
-  onUndo
+  onUndo,
+  expandedId,
+  onExpand
 }) => {
   const currentStatus = application.statusHistory[application.statusHistory.length - 1].status;
   const nextStatuses = getNextStatuses(currentStatus);
   const statusStyle = getStatusStyle(currentStatus);
   
-  // Add state for visibility
-  const [actionsVisible, setActionsVisible] = useState(false);
-
   // Add a new state for dropdown visibility
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const arrowButtonRef = useRef<HTMLButtonElement>(null);
@@ -213,7 +242,6 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
 
   // Add click handler
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't toggle if clicking on a button or within the actions area when it's visible
     if (
       e.target instanceof HTMLElement && 
       (e.target.closest('button') || 
@@ -222,147 +250,174 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
     ) {
       return;
     }
-    setActionsVisible(!actionsVisible);
+    onExpand(application.id);
   };
 
-  return (
-    <div 
-      className={`experimental-card ${actionsVisible ? 'actions-visible' : ''}`}
-      onClick={handleCardClick}
-    >
-      <div className="card-header">
-        <div className="header-content">
-          <h2 className="company-name">{application.companyName}</h2>
-          <h3 className="job-title">{application.jobTitle}</h3>
-        </div>
-        <Badge 
-          className="status-badge"
-          bg="white"
-          style={{
-            color: statusStyle.color,
-            border: `1px solid ${statusStyle.borderColor}`,
-            fontWeight: '500',
-            letterSpacing: '0.3px',
-            minWidth: '120px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '8px 16px',
-            fontSize: '0.85rem'
-          }}
-        >
-          {formatStatus(currentStatus, application.statusHistory)}
-        </Badge>
-      </div>
+  // Use expandedId to determine if this card is expanded
+  const isExpanded = expandedId === application.id;
 
-      <div className="card-body">
-        {application.statusHistory[application.statusHistory.length - 1].interviewDateTime && (
-          <div className="interview-details">
-            <h4>UPCOMING INTERVIEW</h4>
-            <div className="datetime-container">
-              <div className="datetime-row">
-                <FaCalendarAlt className="datetime-icon" />
-                <div className="date">
-                  {new Date(application.statusHistory[application.statusHistory.length - 1].interviewDateTime!)
-                    .toLocaleDateString('en-US', { 
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                </div>
-              </div>
-              <div className="datetime-row">
-                <FaClock className="datetime-icon" />
-                <div className="time">
-                  {new Date(application.statusHistory[application.statusHistory.length - 1].interviewDateTime!).toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit'
-                  })}
-                </div>
-              </div>
-              {application.statusHistory[application.statusHistory.length - 1].interviewLocation && (
+  // Add to state in ExperimentalJobCard component
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<ApplicationStatus | null>(null);
+
+  return (
+    <>
+      <div 
+        className={`experimental-card ${isExpanded ? 'actions-visible' : ''}`}
+        onClick={handleCardClick}
+      >
+        <div className="card-header">
+          <div className="header-content">
+            <h2 className="company-name">{application.companyName}</h2>
+            <h3 className="job-title">{application.jobTitle}</h3>
+          </div>
+          <Badge 
+            className="status-badge"
+            bg="white"
+            style={{
+              color: statusStyle.color,
+              border: `1px solid ${statusStyle.borderColor}`,
+              fontWeight: '500',
+              letterSpacing: '0.3px',
+              minWidth: '120px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '8px 16px',
+              fontSize: '0.85rem'
+            }}
+          >
+            {formatStatus(currentStatus, application.statusHistory)}
+          </Badge>
+        </div>
+
+        <div className="card-body">
+          {application.statusHistory[application.statusHistory.length - 1].interviewDateTime && (
+            <div className="interview-details">
+              <h4>UPCOMING INTERVIEW</h4>
+              <div className="datetime-container">
                 <div className="datetime-row">
-                  <FaMapMarkerAlt className="datetime-icon" />
-                  <div className="location">
-                    {application.statusHistory[application.statusHistory.length - 1].interviewLocation}
+                  <FaCalendarAlt className="datetime-icon" />
+                  <div className="date">
+                    {new Date(application.statusHistory[application.statusHistory.length - 1].interviewDateTime!)
+                      .toLocaleDateString('en-US', { 
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
                   </div>
                 </div>
-              )}
+                <div className="datetime-row">
+                  <FaClock className="datetime-icon" />
+                  <div className="time">
+                    {new Date(application.statusHistory[application.statusHistory.length - 1].interviewDateTime!).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </div>
+                {application.statusHistory[application.statusHistory.length - 1].interviewLocation && (
+                  <div className="datetime-row">
+                    <FaMapMarkerAlt className="datetime-icon" />
+                    <div className="location">
+                      {application.statusHistory[application.statusHistory.length - 1].interviewLocation}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      <div className="action-indicator">
-        <div className="indicator-line"></div>
-      </div>
-
-      <div className="card-actions">
-        <div className="left-actions">
-          <button 
-            className="btn btn-link"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(application);
-            }}
-          >
-            <FaPencilAlt />
-          </button>
-          <button 
-            className="btn btn-link text-danger"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(application.id);
-            }}
-          >
-            <FaTrashAlt />
-          </button>
+          )}
         </div>
-        <div className="time-since" onClick={(e) => e.stopPropagation()}>
-          <FaHistory className="time-since-icon" />
-          <span>{formatTimeSince(application.statusHistory[application.statusHistory.length - 1].timestamp)}</span>
+
+        <div className="action-indicator">
+          <div className="indicator-line"></div>
         </div>
-        <div className="right-actions">
-          {onUndo && (
+
+        <div className="card-actions">
+          <div className="left-actions">
             <button 
               className="btn btn-link"
               onClick={(e) => {
                 e.stopPropagation();
-                onUndo(application.id);
+                onEdit(application);
               }}
             >
-              <FaUndo />
+              <FaPencilAlt />
             </button>
-          )}
-          <button
-            ref={arrowButtonRef}
-            className="btn btn-link"
-            onClick={e => {
-              console.log('Arrow button clicked');
-              e.stopPropagation();
-              setDropdownOpen(!dropdownOpen);
-            }}
-          >
-            <FaArrowRight />
-          </button>
-          <DropdownPortal
-            isOpen={dropdownOpen}
-            onClose={() => setDropdownOpen(false)}
-            buttonRef={arrowButtonRef}
-            nextStatuses={nextStatuses}
-            onStatusChange={(status) => {
-              console.log('Main component received status change:', status);
-              console.log('Application ID:', application.id);
-              console.log('About to call parent onStatusChange');
-              onStatusChange(application.id, status);
-              console.log('Called parent onStatusChange');
-            }}
-            application={application}
-          />
+            <button 
+              className="btn btn-link text-danger"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(application.id);
+              }}
+            >
+              <FaTrashAlt />
+            </button>
+          </div>
+          <div className="time-since" onClick={(e) => e.stopPropagation()}>
+            <FaHistory className="time-since-icon" />
+            <span>{formatTimeSince(application.statusHistory[application.statusHistory.length - 1].timestamp)}</span>
+          </div>
+          <div className="right-actions">
+            {onUndo && (
+              <button 
+                className="btn btn-link"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUndo(application.id);
+                }}
+              >
+                <FaUndo />
+              </button>
+            )}
+            <button
+              ref={arrowButtonRef}
+              className="btn btn-link"
+              onClick={e => {
+                console.log('Arrow button clicked');
+                e.stopPropagation();
+                setDropdownOpen(!dropdownOpen);
+              }}
+            >
+              <FaArrowRight />
+            </button>
+            <DropdownPortal
+              isOpen={dropdownOpen}
+              onClose={() => setDropdownOpen(false)}
+              buttonRef={arrowButtonRef}
+              nextStatuses={nextStatuses}
+              onStatusChange={(status) => {
+                onStatusChange(application.id, status);
+              }}
+              onInterviewSchedule={(status) => {
+                setPendingStatus(status);
+                setShowInterviewModal(true);
+              }}
+              application={application}
+            />
+          </div>
         </div>
       </div>
-    </div>
+      <InterviewDetailsModal
+        show={showInterviewModal}
+        onHide={() => {
+          setShowInterviewModal(false);
+          setPendingStatus(null);
+        }}
+        onConfirm={(details) => {
+          if (pendingStatus === ApplicationStatus.InterviewScheduled) {
+            onStatusChange(application.id, pendingStatus, {
+              interviewDateTime: details.dateTime,
+              interviewLocation: details.location,
+              interviewType: details.locationType,
+            });
+          }
+          setShowInterviewModal(false);
+          setPendingStatus(null);
+        }}
+      />
+    </>
   );
 };
 
