@@ -84,17 +84,18 @@ const getStatusDescription = (app: JobApplication): string => {
   }
   
   switch (currentStatus.status) {
-    case ApplicationStatus.Applied:
-      return `${timeAgoText}: applied for position`;
-    
-    case ApplicationStatus.InterviewScheduled:
-      if (app.interviewDateTime) {
-        const interviewDate = new Date(app.interviewDateTime);
+    case ApplicationStatus.InterviewScheduled: {
+      // Count how many interviews have been scheduled
+      const interviewCount = app.statusHistory.filter(h => h.status === ApplicationStatus.InterviewScheduled).length;
+      const interviewNumber = ['first', 'second', 'third', 'fourth', 'fifth'][interviewCount - 1] || `${interviewCount}th`;
+      
+      if (currentStatus.interviewDateTime) {
+        const interviewDate = new Date(currentStatus.interviewDateTime);
         const daysUntil = Math.floor((interviewDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-        return `${timeAgoText}: interview scheduled for ${interviewDate.toLocaleDateString()} (${daysUntil} days)`;
+        return `${timeAgoText}: ${interviewNumber} interview scheduled for ${interviewDate.toLocaleDateString()} (${daysUntil} days)`;
       }
-      return `${timeAgoText}: interview scheduled`;
-    
+      return `${timeAgoText}: ${interviewNumber} interview scheduled`;
+    }
     case ApplicationStatus.NoResponse:
       return `${timeAgoText}: no response received`;
     

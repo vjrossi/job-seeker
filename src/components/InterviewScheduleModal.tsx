@@ -7,7 +7,7 @@ import { getNextStatuses } from '../constants/applicationStatusMachine';
 interface InterviewScheduleModalProps {
     show: boolean;
     onHide: () => void;
-    onSchedule: (dateTime: string, status: ApplicationStatus) => void;
+    onSchedule: (dateTime: string, status: ApplicationStatus, location: string) => void;
     currentStatus: ApplicationStatus;
     interviewHistory: { status: ApplicationStatus; timestamp: string }[];
 }
@@ -19,15 +19,17 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
     currentStatus, 
     interviewHistory 
 }) => {
-    const [interviewDateTime, setInterviewDateTime] = useState('');
+    const [interviewDate, setInterviewDate] = useState('');
+    const [interviewTime, setInterviewTime] = useState('');
+    const [interviewLocation, setInterviewLocation] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    const validateInterviewDate = (dateTime: string): string | null => {
-        const newDate = new Date(dateTime);
+    const validateInterviewDate = (date: string, time: string): string | null => {
+        const dateTime = new Date(`${date}T${time}`);
         const now = new Date();
 
-        if (newDate <= now) {
-            return "Interview date must be in the future.";
+        if (dateTime <= now) {
+            return "Interview date and time must be in the future.";
         }
 
         const previousInterviews = interviewHistory.filter(interview => 
@@ -36,7 +38,7 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
 
         for (const interview of previousInterviews) {
             const interviewDate = new Date(interview.timestamp);
-            if (newDate.toDateString() === interviewDate.toDateString()) {
+            if (dateTime.toDateString() === interviewDate.toDateString()) {
                 return `Cannot schedule another interview on the same day.`;
             }
         }
@@ -53,11 +55,12 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
         const newStatus = nextStatuses.find(status => interviewStatuses.includes(status));
 
         if (newStatus) {
-            const validationError = validateInterviewDate(interviewDateTime);
+            const validationError = validateInterviewDate(interviewDate, interviewTime);
             if (validationError) {
                 setError(validationError);
             } else {
-                onSchedule(interviewDateTime, newStatus);
+                const dateTime = `${interviewDate}T${interviewTime}`;
+                onSchedule(dateTime, newStatus, interviewLocation);
                 onHide();
             }
         } else {
@@ -73,12 +76,33 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                 <h2>Schedule Interview</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="interview-form-group">
-                        <label htmlFor="interviewDateTime">Interview Date and Time:</label>
+                        <label htmlFor="interviewDate">Interview Date:</label>
                         <input
-                            type="datetime-local"
-                            id="interviewDateTime"
-                            value={interviewDateTime}
-                            onChange={(e) => setInterviewDateTime(e.target.value)}
+                            type="date"
+                            id="interviewDate"
+                            value={interviewDate}
+                            onChange={(e) => setInterviewDate(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="interview-form-group">
+                        <label htmlFor="interviewTime">Interview Time:</label>
+                        <input
+                            type="time"
+                            id="interviewTime"
+                            value={interviewTime}
+                            onChange={(e) => setInterviewTime(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="interview-form-group">
+                        <label htmlFor="interviewLocation">Location:</label>
+                        <input
+                            type="text"
+                            id="interviewLocation"
+                            value={interviewLocation}
+                            onChange={(e) => setInterviewLocation(e.target.value)}
+                            placeholder="e.g., Zoom link, Office address"
                             required
                         />
                     </div>

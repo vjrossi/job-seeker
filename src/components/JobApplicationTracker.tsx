@@ -14,6 +14,7 @@ import InterviewScheduleModal from './InterviewScheduleModal';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { Modal } from 'react-bootstrap';
+import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 
 export interface JobApplication {
     id: number;
@@ -21,12 +22,15 @@ export interface JobApplication {
     jobTitle: string;
     jobDescription: string;
     applicationMethod: string;
-    rating: number; // Add this line
+    rating: number;
     statusHistory: {
         status: ApplicationStatus;
         timestamp: string;
+        interviewDateTime?: string;
+        interviewLocation?: string;
     }[];
     interviewDateTime?: string;
+    interviewLocation?: string;
 }
 
 interface JobApplicationTrackerProps {
@@ -41,13 +45,14 @@ const initialFormData: Omit<JobApplication, 'id'> = {
     companyName: '',
     jobTitle: '',
     jobDescription: '',
-    applicationMethod: '',
-    rating: 0, // Add this line
+    applicationMethod: STANDARD_APPLICATION_METHODS[0],
+    rating: 0,
     statusHistory: [{
         status: ApplicationStatus.Applied,
         timestamp: new Date().toISOString()
     }],
-    interviewDateTime: undefined
+    interviewDateTime: undefined,
+    interviewLocation: undefined
 };
 
 const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentView, setIsFormDirty, isDev, noResponseDays, stalePeriod }) => {
@@ -73,6 +78,8 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         type: 'success'
     });
     const [layoutType, setLayoutType] = useState<'standard' | 'experimental'>('standard');
+    const [showUndoConfirmation, setShowUndoConfirmation] = useState(false);
+    const [pendingUndoId, setPendingUndoId] = useState<number | null>(null);
 
     const showToast = useCallback((message: string, type: 'success' | 'error') => {
         setToast({ show: true, message, type });
@@ -149,6 +156,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         try {
             const newApplication: JobApplication = {
                 ...application,
+                applicationMethod: application.applicationMethod || STANDARD_APPLICATION_METHODS[0],
                 id: Date.now(),
                 statusHistory: [{
                     status: ApplicationStatus.Applied,
@@ -200,13 +208,12 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     };
 
-    const updateApplicationStatus = async (id: number, newStatus: ApplicationStatus, interviewDateTime?: string) => {
+    const updateApplicationStatus = async (id: number, newStatus: ApplicationStatus, interviewDateTime?: string, interviewLocation?: string) => {
         try {
             const updatedApplication = applications.find(app => app.id === id);
             if (updatedApplication) {
                 const currentStatus = updatedApplication.statusHistory[updatedApplication.statusHistory.length - 1].status;
 
-                // Check if the new status is a valid progression using the state machine
                 const validNextStatuses = getNextStatuses(currentStatus);
                 if (!validNextStatuses.includes(newStatus)) {
                     showToast('Invalid status progression.', 'error');
@@ -215,11 +222,16 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
                 updatedApplication.statusHistory.push({
                     status: newStatus,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    interviewDateTime: newStatus === ApplicationStatus.InterviewScheduled ? interviewDateTime : undefined,
+                    interviewLocation: newStatus === ApplicationStatus.InterviewScheduled ? interviewLocation : undefined
                 });
-                if (interviewDateTime) {
+
+                if (newStatus === ApplicationStatus.InterviewScheduled) {
                     updatedApplication.interviewDateTime = interviewDateTime;
+                    updatedApplication.interviewLocation = interviewLocation;
                 }
+
                 await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
                 showToast('Application status updated.', 'success');
@@ -230,9 +242,9 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     };
 
-    const handleInterviewSchedule = async (dateTime: string, newStatus: ApplicationStatus) => {
+    const handleInterviewSchedule = async (dateTime: string, newStatus: ApplicationStatus, location: string) => {
         if (currentApplicationId) {
-            await updateApplicationStatus(currentApplicationId, newStatus, dateTime);
+            await updateApplicationStatus(currentApplicationId, newStatus, dateTime, location);
             setShowInterviewModal(false);
             setCurrentApplicationId(null);
         }
@@ -332,31 +344,36 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     }, [showInterviewModal]);
 
     const handleUndo = async (id: number) => {
-        if (window.confirm('Are you sure you want to undo the last status change?')) {
+        setPendingUndoId(id);
+        setShowUndoConfirmation(true);
+    };
+
+    const handleUndoConfirm = async () => {
+        if (pendingUndoId !== null) {
             try {
-                const application = applications.find(app => app.id === id);
+                const application = applications.find(app => app.id === pendingUndoId);
                 if (application && application.statusHistory.length > 1) {
                     const updatedStatusHistory = application.statusHistory.slice(0, -1);
                     const updatedApplication = { ...application, statusHistory: updatedStatusHistory };
 
-                    // Clear interview date if undoing from an interview state
                     const lastStatus = updatedStatusHistory[updatedStatusHistory.length - 1].status;
                     if (lastStatus !== ApplicationStatus.InterviewScheduled) {
                         updatedApplication.interviewDateTime = undefined;
                     }
 
                     await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
-                    setApplications(prevApps => prevApps.map(app => app.id === id ? updatedApplication : app));
-                    setFeedbackMessage('Status change undone successfully');
+                    setApplications(prevApps => prevApps.map(app => app.id === pendingUndoId ? updatedApplication : app));
+                    showToast('Status change undone successfully', 'success');
                 }
             } catch (error) {
                 console.error('Error undoing status change:', error);
-                setFeedbackMessage('Failed to undo status change');
+                showToast('Failed to undo status change', 'error');
             }
         }
+        setShowUndoConfirmation(false);
+        setPendingUndoId(null);
     };
 
-    // Clear feedback message after 3 seconds
     useEffect(() => {
         if (feedbackMessage) {
             const timer = setTimeout(() => {
@@ -366,7 +383,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     }, [feedbackMessage]);
 
-    // Add the handler function
     const handleRatingChange = (applicationId: number, newRating: number) => {
         setApplications(applications.map(app => 
             app.id === applicationId 
@@ -476,6 +492,12 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     {feedbackMessage}
                 </div>
             )}
+            <ConfirmationModal
+                show={showUndoConfirmation}
+                onClose={() => setShowUndoConfirmation(false)}
+                onConfirm={handleUndoConfirm}
+                message="Are you sure you want to undo the last status change?"
+            />
         </div>
     );
 };

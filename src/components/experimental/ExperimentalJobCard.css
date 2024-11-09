@@ -4,6 +4,13 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 1rem;
   margin-bottom: 1rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+  overflow: visible !important;
+}
+
+.experimental-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .experimental-card .card-header {
@@ -57,15 +64,29 @@
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  margin-top: 0;
+  padding-top: 0;
+  height: 0;
+  overflow: visible !important;
+}
+
+.experimental-card.actions-visible .card-actions {
+  opacity: 1;
+  visibility: visible;
+  height: auto;
   margin-top: 1rem;
   padding-top: 0.5rem;
-  border-top: 1px solid #eee;
 }
 
 .left-actions, .right-actions {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .experimental-card .status-badge {
@@ -89,4 +110,175 @@
 /* Add this to hide the dropdown arrow */
 .dropdown-toggle::after {
   display: none !important;
+}
+
+.experimental-card .datetime-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.experimental-card .datetime-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.experimental-card .datetime-icon {
+  color: #666;
+  font-size: 1rem;
+  min-width: 1rem;
+}
+
+.experimental-card .date,
+.experimental-card .time,
+.experimental-card .location {
+  color: #333;
+}
+
+.experimental-card .location {
+  word-break: break-word;
+}
+
+.experimental-card .time-since {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+  padding: 0.25rem 0;
+  line-height: 1;
+}
+
+.experimental-card .time-since-icon {
+  font-size: 0.9rem;
+}
+
+/* Add this to ensure all buttons have consistent height */
+.experimental-card .card-actions button {
+  padding: 0.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.action-indicator {
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem 0;
+  margin-top: 0.5rem;
+}
+
+.indicator-line {
+  width: 2rem;
+  height: 4px;
+  background-color: #e0e0e0;
+  border-radius: 2px;
+}
+
+/* Add these styles to your CSS file */
+
+/* Ensure the dropdown container is positioned relatively */
+.experimental-card .right-actions .dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Style the dropdown menu */
+.experimental-card .dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 5px);
+  z-index: 9999;
+  min-width: 250px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: none;
+}
+
+.experimental-card .dropdown-menu.show {
+  display: block !important;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 5px;
+  z-index: 99999;
+}
+
+/* Style dropdown items */
+.experimental-card .dropdown-menu button.dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.experimental-card .dropdown-menu button.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.experimental-card .dropdown-menu .dropdown-header {
+  padding: 8px 16px;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 4px;
+}
+
+/* Ensure the dropdown container stays above other elements */
+.experimental-card .right-actions {
+  position: relative;
+  overflow: visible !important;
+  z-index: 1000;
+}
+
+/* Ensure the dropdown toggle button looks clickable */
+.experimental-card .dropdown-toggle {
+  cursor: pointer;
+}
+
+/* Add these specific styles for the DropdownButton */
+.experimental-card .dropdown-toggle.btn-link {
+  padding: 0.25rem;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.experimental-card .dropdown-toggle.btn-link:hover,
+.experimental-card .dropdown-toggle.btn-link:focus {
+  color: #333;
+  text-decoration: none;
+}
+
+/* Ensure dropdown menu appears above other elements */
+.dropdown-menu.show {
+  z-index: 9999;
+}
+
+/* Remove any conflicting dropdown styles and add these */
+.experimental-card .dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Ensure the card doesn't hide overflow */
+.experimental-card {
+  overflow: visible !important;
+}
+
+/* Ensure right-actions container doesn't clip */
+.experimental-card .right-actions {
+  position: relative;
+  overflow: visible !important;
 }
