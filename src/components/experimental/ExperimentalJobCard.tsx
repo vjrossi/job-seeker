@@ -195,10 +195,11 @@ const DropdownPortal: React.FC<DropdownPortalProps> = ({
           onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           <div style={{ pointerEvents: 'none' }}>
-            {nextStatus === ApplicationStatus.InterviewScheduled ? 
-              (application.statusHistory.some(h => h.status === ApplicationStatus.InterviewScheduled) 
-                ? "I got another interview!" 
-                : "I got an interview!") :
+            {nextStatus === ApplicationStatus.ApplicationReceived ? "My application has been received" :
+              nextStatus === ApplicationStatus.InterviewScheduled ? 
+                (application.statusHistory.some(h => h.status === ApplicationStatus.InterviewScheduled) 
+                  ? "I got another interview!" 
+                  : "I got an interview!") :
               nextStatus === ApplicationStatus.OfferReceived ? "I received a job offer!" :
               nextStatus === ApplicationStatus.OfferAccepted ? "I accepted the job offer!" :
               nextStatus === ApplicationStatus.OfferDeclined ? "I declined the job offer" :

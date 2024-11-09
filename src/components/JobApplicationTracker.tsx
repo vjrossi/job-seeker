@@ -397,6 +397,13 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
     const layoutType = 'experimental' as const;
 
+    useEffect(() => {
+        setIsFormDirty(false);
+        setFormData(initialFormData);
+        setShowAddForm(false);
+        setEditingApplication(null);
+    }, [currentView, setIsFormDirty]);
+
     return (
         <div className="mt-4">
             <Toast

@@ -1,5 +1,6 @@
 export enum ApplicationStatus {
     Applied = 'Applied',
+    ApplicationReceived = 'Application Received',
     InterviewScheduled = 'Interview Scheduled',
     NoResponse = 'No Response',
     NotAccepted = 'Not Accepted',

@@ -6,6 +6,13 @@ type StatusTransitions = {
 
 export const statusTransitions: StatusTransitions = {
   [ApplicationStatus.Applied]: [
+    ApplicationStatus.ApplicationReceived,
+    ApplicationStatus.InterviewScheduled,
+    ApplicationStatus.NoResponse,
+    ApplicationStatus.NotAccepted,
+    ApplicationStatus.Withdrawn
+  ],
+  [ApplicationStatus.ApplicationReceived]: [
     ApplicationStatus.InterviewScheduled,
     ApplicationStatus.NoResponse,
     ApplicationStatus.NotAccepted,
@@ -42,29 +49,32 @@ export const getStatusSequence = (currentStatus: ApplicationStatus): Application
   const commonPath = [ApplicationStatus.Applied];
   
   switch (currentStatus) {
+    case ApplicationStatus.ApplicationReceived:
+      return [...commonPath, ApplicationStatus.ApplicationReceived];
+    
     case ApplicationStatus.InterviewScheduled:
-      return [...commonPath, ApplicationStatus.InterviewScheduled];
+      return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.InterviewScheduled];
     
     case ApplicationStatus.OfferReceived:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived];
+      return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived];
     
     case ApplicationStatus.OfferAccepted:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferAccepted];
+      return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferAccepted];
     
     case ApplicationStatus.OfferDeclined:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferDeclined];
+      return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferDeclined];
     
     case ApplicationStatus.NoResponse:
-      return [...commonPath, ApplicationStatus.NoResponse];
+      return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.NoResponse];
     
     case ApplicationStatus.NotAccepted:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.NotAccepted];
+      return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.InterviewScheduled, ApplicationStatus.NotAccepted];
     
     case ApplicationStatus.Withdrawn:
-      return [...commonPath, ApplicationStatus.Withdrawn];
+      return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.Withdrawn];
     
     case ApplicationStatus.Archived:
-      return [...commonPath, ApplicationStatus.Archived];
+      return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.Archived];
     
     default:
       return commonPath;
