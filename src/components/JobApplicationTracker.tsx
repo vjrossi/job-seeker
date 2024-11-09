@@ -79,7 +79,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         message: '',
         type: 'success'
     });
-    const [layoutType, setLayoutType] = useState<'standard' | 'experimental'>('standard');
     const [showUndoConfirmation, setShowUndoConfirmation] = useState(false);
     const [pendingUndoId, setPendingUndoId] = useState<number | null>(null);
 
@@ -345,10 +344,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     };
 
-    useEffect(() => {
-        console.log('showInterviewModal changed:', showInterviewModal);
-    }, [showInterviewModal]);
-
     const handleUndo = async (id: number) => {
         setPendingUndoId(id);
         setShowUndoConfirmation(true);
@@ -389,13 +384,29 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     }, [feedbackMessage]);
 
-    const handleRatingChange = (applicationId: number, newRating: number) => {
-        setApplications(applications.map(app => 
-            app.id === applicationId 
-                ? { ...app, rating: newRating }
-                : app
-        ));
+    const handleRatingChange = async (applicationId: number, newRating: number) => {
+        try {
+            const updatedApplication = applications.find(app => app.id === applicationId);
+            if (updatedApplication) {
+                const applicationWithNewRating = { ...updatedApplication, rating: newRating };
+                
+                await (isDev ? devIndexedDBService : indexedDBService).updateApplication(applicationWithNewRating);
+                
+                setApplications(applications.map(app => 
+                    app.id === applicationId 
+                        ? applicationWithNewRating
+                        : app
+                ));
+
+                showToast('Rating updated', 'success');
+            }
+        } catch (error) {
+            console.error('Error updating rating:', error);
+            showToast('Failed to update rating', 'error');
+        }
     };
+
+    const layoutType = 'experimental' as const;
 
     return (
         <div className="mt-4">
@@ -431,7 +442,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                         stalePeriod={stalePeriod}
                         onRatingChange={handleRatingChange}
                         layoutType={layoutType}
-                        onLayoutChange={setLayoutType}
                     />
                     <Modal
                         show={showAddForm}

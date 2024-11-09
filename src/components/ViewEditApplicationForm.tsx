@@ -6,7 +6,7 @@ import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMe
 
 interface ViewEditApplicationFormProps {
   application: JobApplication;
-  onSave: (updatedApplication: JobApplication) => void;
+  onSave: (application: JobApplication) => void;
   onCancel: () => void;
   onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
 }
@@ -17,7 +17,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
   onCancel, 
   onStatusChange 
 }) => {
-  const [formData, setFormData] = useState<JobApplication>(application);
+  const [formData, setFormData] = useState<JobApplication>({ ...application });
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
