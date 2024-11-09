@@ -37,3 +37,36 @@ export const statusTransitions: StatusTransitions = {
 export const getNextStatuses = (currentStatus: ApplicationStatus): ApplicationStatus[] => {
   return statusTransitions[currentStatus] || [];
 };
+
+export const getStatusSequence = (currentStatus: ApplicationStatus): ApplicationStatus[] => {
+  const commonPath = [ApplicationStatus.Applied];
+  
+  switch (currentStatus) {
+    case ApplicationStatus.InterviewScheduled:
+      return [...commonPath, ApplicationStatus.InterviewScheduled];
+    
+    case ApplicationStatus.OfferReceived:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived];
+    
+    case ApplicationStatus.OfferAccepted:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferAccepted];
+    
+    case ApplicationStatus.OfferDeclined:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferDeclined];
+    
+    case ApplicationStatus.NoResponse:
+      return [...commonPath, ApplicationStatus.NoResponse];
+    
+    case ApplicationStatus.NotAccepted:
+      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.NotAccepted];
+    
+    case ApplicationStatus.Withdrawn:
+      return [...commonPath, ApplicationStatus.Withdrawn];
+    
+    case ApplicationStatus.Archived:
+      return [...commonPath, ApplicationStatus.Archived];
+    
+    default:
+      return commonPath;
+  }
+};

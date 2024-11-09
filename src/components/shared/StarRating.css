@@ -1,0 +1,35 @@
+.star-rating {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.star-rating .star {
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  user-select: none;
+}
+
+.star-rating .star:hover {
+  transform: scale(1.2);
+}
+
+.star-rating .star.filled {
+  color: gold;
+}
+
+.star-rating .star.empty {
+  color: #ccc;
+}
+
+/* Size variants */
+.star-rating.small .star {
+  font-size: 0.8rem;
+}
+
+.star-rating.medium .star {
+  font-size: 1rem;
+}
+
+.star-rating.large .star {
+  font-size: 1.2rem;
+} 

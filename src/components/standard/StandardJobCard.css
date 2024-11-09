@@ -1,0 +1,70 @@
+/* Move relevant styles from ViewApplications.css */
+.company-name-link {
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-bottom: 0;
+}
+
+.company-name-link:hover {
+  opacity: 0.8;
+}
+
+.status-timeline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.status-step {
+  display: inline-flex;
+  align-items: center;
+  color: #6c757d;
+  white-space: nowrap;
+  position: relative;
+}
+
+.status-step.completed {
+  color: #28a745;
+}
+
+.status-step.active {
+  color: #007bff;
+  font-weight: 500;
+}
+
+.status-step:not(:last-child)::after {
+  content: '—';
+  margin: 0 0.5rem;
+  color: #dee2e6;
+}
+
+.status-step.completed:not(:last-child)::after {
+  color: #28a745;
+}
+
+.archive-icon {
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 4px;
+  transition: opacity 0.2s ease;
+  margin-left: 8px;
+}
+
+.archive-icon.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.method-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+} 

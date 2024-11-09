@@ -10,12 +10,14 @@ import {
   FaCalendarAlt,
   FaClock,
   FaMapMarkerAlt,
-  FaHistory 
+  FaHistory,
+  FaChevronDown 
 } from 'react-icons/fa';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
 import { getNextStatuses } from '../../constants/applicationStatusMachine';
 import './ExperimentalJobCard.css';
 import InterviewDetailsModal, { InterviewLocationType } from '../InterviewDetailsModal';
+import StarRating from '../shared/StarRating';
 
 interface ExperimentalJobCardProps {
   application: JobApplication;
@@ -25,6 +27,7 @@ interface ExperimentalJobCardProps {
   onUndo?: (id: number) => void;
   expandedId: number | null;
   onExpand: (id: number) => void;
+  onRatingChange: (applicationId: number, newRating: number) => void;
 }
 
 const getStatusStyle = (status: ApplicationStatus) => {
@@ -218,7 +221,8 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
   onStatusChange,
   onUndo,
   expandedId,
-  onExpand
+  onExpand,
+  onRatingChange
 }) => {
   const currentStatus = application.statusHistory[application.statusHistory.length - 1].status;
   const nextStatuses = getNextStatuses(currentStatus);
@@ -240,13 +244,22 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [dropdownOpen]);
 
-  // Add click handler
+  // Update the handleCardClick function with proper type checking
   const handleCardClick = (e: React.MouseEvent) => {
+    // Type check the target as HTMLElement
+    if (!(e.target instanceof HTMLElement)) {
+      return;
+    }
+
+    // Only expand if clicking the indicator line
+    if (!e.target.closest('.action-indicator')) {
+      return;
+    }
+
     if (
-      e.target instanceof HTMLElement && 
-      (e.target.closest('button') || 
-       e.target.closest('a') || 
-       e.target.closest('.dropdown'))
+      e.target.closest('button') || 
+      e.target.closest('a') || 
+      e.target.closest('.dropdown')
     ) {
       return;
     }
@@ -260,6 +273,9 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
   const [showInterviewModal, setShowInterviewModal] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<ApplicationStatus | null>(null);
 
+  // Add new state for interview details expansion
+  const [interviewDetailsExpanded, setInterviewDetailsExpanded] = useState(false);
+
   return (
     <>
       <div 
@@ -270,6 +286,13 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
           <div className="header-content">
             <h2 className="company-name">{application.companyName}</h2>
             <h3 className="job-title">{application.jobTitle}</h3>
+            <div style={{ marginTop: '0.5rem' }}>
+              <StarRating 
+                rating={application.rating}
+                onRatingChange={(newRating) => onRatingChange(application.id, newRating)}
+                size="small"
+              />
+            </div>
           </div>
           <Badge 
             className="status-badge"
@@ -294,8 +317,37 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
         <div className="card-body">
           {application.statusHistory[application.statusHistory.length - 1].interviewDateTime && (
             <div className="interview-details">
-              <h4>UPCOMING INTERVIEW</h4>
-              <div className="datetime-container">
+              <h4 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setInterviewDetailsExpanded(!interviewDetailsExpanded);
+                }}
+                style={{ 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  marginBottom: '0.25rem'
+                }}
+              >
+                <span>UPCOMING INTERVIEW</span>
+                <FaChevronDown 
+                  size={12} 
+                  style={{ 
+                    marginLeft: '4px',
+                    transform: interviewDetailsExpanded ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 0.2s ease'
+                  }} 
+                />
+              </h4>
+              <div 
+                className="datetime-container" 
+                style={{ 
+                  maxHeight: interviewDetailsExpanded ? '500px' : '0',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.3s ease',
+                  opacity: interviewDetailsExpanded ? 1 : 0
+                }}
+              >
                 <div className="datetime-row">
                   <FaCalendarAlt className="datetime-icon" />
                   <div className="date">
@@ -331,7 +383,10 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
         </div>
 
         <div className="action-indicator">
-          <div className="indicator-line"></div>
+          <div 
+            className="indicator-line" 
+            style={{ cursor: 'pointer' }} 
+          />
         </div>
 
         <div className="card-actions">

@@ -3,14 +3,16 @@ import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus, APPLICATION_STATUSES } from '../constants/ApplicationStatus';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import ProgressModal from './ProgressModal';
-import { OverlayTrigger, Tooltip, Offcanvas, Button, Form, Badge, Dropdown, Card, Modal } from 'react-bootstrap';
-import { FaFilter, FaUndo, FaTrashAlt } from 'react-icons/fa';
+import { OverlayTrigger, Tooltip, Offcanvas, Button, Form, Badge, Modal } from 'react-bootstrap';
+import { FaFilter } from 'react-icons/fa';
 import './ViewApplications.css';
 import { devIndexedDBService } from '../services/devIndexedDBService';
 import { indexedDBService } from '../services/indexedDBService';
 import Toast from './Toast';
 import { METHOD_ICONS } from '../constants/standardApplicationMethods';
 import ExperimentalJobCard from './experimental/ExperimentalJobCard';
+import StarRating from './shared/StarRating';
+import StandardJobCard from './standard/StandardJobCard';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -30,97 +32,6 @@ interface ViewApplicationsProps {
   layoutType: 'standard' | 'experimental';
   onLayoutChange?: (newLayout: 'standard' | 'experimental') => void;
 }
-
-const getStatusSequence = (currentStatus: ApplicationStatus): ApplicationStatus[] => {
-  // Base path always starts with Applied
-  const commonPath = [ApplicationStatus.Applied];
-  
-  switch (currentStatus) {
-    case ApplicationStatus.InterviewScheduled:
-      return [...commonPath, ApplicationStatus.InterviewScheduled];
-    
-    case ApplicationStatus.OfferReceived:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived];
-    
-    case ApplicationStatus.OfferAccepted:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferAccepted];
-    
-    case ApplicationStatus.OfferDeclined:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived, ApplicationStatus.OfferDeclined];
-    
-    case ApplicationStatus.NoResponse:
-      return [...commonPath, ApplicationStatus.NoResponse];
-    
-    case ApplicationStatus.NotAccepted:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.NotAccepted];
-    
-    case ApplicationStatus.Withdrawn:
-      return [...commonPath, ApplicationStatus.Withdrawn];
-    
-    case ApplicationStatus.Archived:
-      return [...commonPath, ApplicationStatus.Archived];
-    
-    default:
-      return commonPath;
-  }
-};
-
-const canBeArchived = (status: ApplicationStatus): boolean => {
-  return status !== ApplicationStatus.Archived;
-};
-
-const getStatusDescription = (app: JobApplication): string => {
-  const currentStatus = app.statusHistory[app.statusHistory.length - 1];
-  const timeDiff = new Date().getTime() - new Date(currentStatus.timestamp).getTime();
-  const daysAgo = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-  
-  let timeAgoText;
-  if (daysAgo === 0) {
-    timeAgoText = 'Today';
-  } else if (daysAgo === 1) {
-    timeAgoText = 'Yesterday';
-  } else {
-    timeAgoText = `${daysAgo} days ago`;
-  }
-  
-  switch (currentStatus.status) {
-    case ApplicationStatus.InterviewScheduled: {
-      // Count how many interviews have been scheduled
-      const interviewCount = app.statusHistory.filter(h => h.status === ApplicationStatus.InterviewScheduled).length;
-      const interviewNumber = ['first', 'second', 'third', 'fourth', 'fifth'][interviewCount - 1] || `${interviewCount}th`;
-      
-      if (currentStatus.interviewDateTime) {
-        const interviewDate = new Date(currentStatus.interviewDateTime);
-        const daysUntil = Math.floor((interviewDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-        return `${timeAgoText}: ${interviewNumber} interview scheduled for ${interviewDate.toLocaleDateString()} (${daysUntil} days)`;
-      }
-      return `${timeAgoText}: ${interviewNumber} interview scheduled`;
-    }
-    case ApplicationStatus.NoResponse:
-      return `${timeAgoText}: no response received`;
-    
-    case ApplicationStatus.NotAccepted:
-      return `${timeAgoText}: application rejected`;
-    
-    case ApplicationStatus.OfferReceived:
-      return `${timeAgoText}: received job offer`;
-    
-    case ApplicationStatus.OfferAccepted:
-      return `${timeAgoText}: accepted job offer`;
-    
-    case ApplicationStatus.OfferDeclined:
-      return `${timeAgoText}: declined job offer`;
-    
-    case ApplicationStatus.Withdrawn:
-      return `${timeAgoText}: withdrew application`;
-    
-    case ApplicationStatus.Archived:
-      return `${timeAgoText}: archived`;
-    
-    default:
-      return `${timeAgoText}: ${currentStatus.status}`;
-  }
-};
 
 const ViewApplications: React.FC<ViewApplicationsProps> = ({
   applications,
@@ -301,7 +212,13 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                 <td>{app.companyName}</td>
                 <td>{app.jobTitle}</td>
                 <td>{currentStatus}</td>
-                <td>{renderStars(app)}</td>
+                <td>
+                  <StarRating 
+                    rating={app.rating} 
+                    onRatingChange={(newRating) => onRatingChange(app.id, newRating)}
+                    size="small"
+                  />
+                </td>
                 <td>
                   <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEdit(app)}>View</button>
                   {currentStatus !== ApplicationStatus.Archived && (
@@ -363,28 +280,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     </OverlayTrigger>
   );
 
-  const renderStars = (application: JobApplication) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <span
-          key={i}
-          className={`star ${i <= application.rating ? 'filled' : 'empty'}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleRatingChange(application.id, i);
-          }}
-          role="button"
-          aria-label={`Rate ${i} stars`}
-          style={{ cursor: 'pointer' }}
-        >
-          ★
-        </span>
-      );
-    }
-    return <div className="stars">{stars}</div>;
-  };
-
   const renderMethodIcon = (method: string) => {
     const IconComponent = METHOD_ICONS[method as keyof typeof METHOD_ICONS] || METHOD_ICONS.Other;
     return (
@@ -395,128 +290,26 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   };
 
   const renderMobileView = (applications: JobApplication[]) => (
-    applications.map(app => {
-      const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-      return (
-        <Card key={app.id} className="mb-3">
-          <Card.Header className="d-flex justify-content-between align-items-center">
-            <div className="d-flex align-items-center gap-2">
-              {renderMethodIcon(app.applicationMethod)}
-              <h4 
-                className="company-name-link mb-0"
-                onClick={() => onEdit(app)}
-              >
-                {app.companyName}
-              </h4>
-            </div>
-            <div className="d-flex align-items-center gap-3">
-              {renderStars(app)}
-              {!canBeArchived(currentStatus) ? (
-                <OverlayTrigger
-                  placement="top"
-                  show={tooltipVisibility[app.id]}
-                  overlay={
-                    <Tooltip id={`tooltip-archive-${app.id}`}>
-                      This application is already archived
-                    </Tooltip>
-                  }
-                >
-                  <span>
-                    <FaTrashAlt 
-                      className="archive-icon disabled"
-                      onClick={() => handleDisabledArchiveClick(app.id)}
-                      role="button"
-                      aria-label="Archive application (disabled)"
-                    />
-                  </span>
-                </OverlayTrigger>
-              ) : (
-                <FaTrashAlt 
-                  className="archive-icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleArchiveClick(app.id);
-                  }}
-                  onTouchStart={(e) => handleArchiveIconTouchStart(app.id, e)}
-                  onTouchEnd={handleArchiveIconTouchEnd}
-                  role="button"
-                  aria-label="Archive application"
-                />
-              )}
-            </div>
-          </Card.Header>
-          <Card.Body>
-            <div><strong>{app.jobTitle}</strong></div>
-            <div className="status-timeline">
-              {getStatusSequence(currentStatus).map((status: ApplicationStatus, index: number, sequence: ApplicationStatus[]) => (
-                status === currentStatus && currentStatus !== ApplicationStatus.Archived ? (
-                  <Dropdown key={status}>
-                    <Dropdown.Toggle 
-                      as="div" 
-                      className={`status-step active`}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {status}
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
-                      <Dropdown.Header>What has happened with this application?</Dropdown.Header>
-                      {getNextStatuses(currentStatus).map((nextStatus) => (
-                        <Dropdown.Item 
-                          key={nextStatus}
-                          onClick={() => onStatusChange(app.id, nextStatus)}
-                        >
-                          {nextStatus === ApplicationStatus.InterviewScheduled ? "I got another interview!" :
-                           nextStatus === ApplicationStatus.OfferReceived ? "I received a job offer!" :
-                           nextStatus === ApplicationStatus.OfferAccepted ? "I accepted the job offer!" :
-                           nextStatus === ApplicationStatus.OfferDeclined ? "I declined the job offer" :
-                           nextStatus === ApplicationStatus.NoResponse ? "No Response" :
-                           nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted" :
-                           nextStatus === ApplicationStatus.Withdrawn ? "I have decided to withdraw my application" :
-                           nextStatus === ApplicationStatus.Archived ? "I want to archive this application" :
-                           nextStatus}
-                        </Dropdown.Item>
-                      ))}
-                      {app.statusHistory.length > 1 && (
-                        <>
-                          <Dropdown.Divider />
-                          <Dropdown.Item 
-                            onClick={() => onUndo(app.id)}
-                            className="text-muted"
-                          >
-                            <FaUndo className="me-2" />
-                            Undo last change
-                          </Dropdown.Item>
-                        </>
-                      )}
-                    </Dropdown.Menu>
-                  </Dropdown>
-                ) : (
-                  <div 
-                    key={status} 
-                    className={`status-step ${
-                      index < sequence.indexOf(currentStatus) ? 'completed' : ''
-                    }`}
-                  >
-                    {status}
-                  </div>
-                )
-              ))}
-            </div>
-            <div className="text-muted mt-2" style={{ fontSize: '0.9rem' }}>
-              {getStatusDescription(app)}
-            </div>
-          </Card.Body>
-        </Card>
-      );
-    })
+    applications.map(app => (
+      <StandardJobCard
+        key={app.id}
+        application={app}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onStatusChange={onStatusChange}
+        onUndo={onUndo}
+        tooltipVisibility={tooltipVisibility}
+        onArchiveClick={handleArchiveClick}
+        onDisabledArchiveClick={handleDisabledArchiveClick}
+        onArchiveIconTouchStart={handleArchiveIconTouchStart}
+        onArchiveIconTouchEnd={handleArchiveIconTouchEnd}
+        onRatingChange={onRatingChange}
+      />
+    ))
   );
 
   const handleAddClick = () => {
     onAddApplication();
-  };
-
-  const handleRatingChange = (applicationId: number, newRating: number) => {
-    onRatingChange(applicationId, newRating);
   };
 
   const handleArchiveClick = (appId: number) => {
@@ -599,12 +392,31 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
           onExpand={(id) => {
             setExpandedCardId(currentId => currentId === id ? null : id);
           }}
+          onRatingChange={onRatingChange}
         />
       );
     }
     
-    // Return existing card layout
-    return renderMobileView([application])[0];
+    return (
+      <StandardJobCard
+        key={application.id}
+        application={application}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onStatusChange={onStatusChange}
+        onUndo={onUndo}
+        tooltipVisibility={tooltipVisibility}
+        onArchiveClick={handleArchiveClick}
+        onDisabledArchiveClick={handleDisabledArchiveClick}
+        onArchiveIconTouchStart={handleArchiveIconTouchStart}
+        onArchiveIconTouchEnd={handleArchiveIconTouchEnd}
+        onRatingChange={onRatingChange}
+      />
+    );
+  };
+
+  const canBeArchived = (status: ApplicationStatus): boolean => {
+    return status !== ApplicationStatus.Archived;
   };
 
   return (
@@ -614,12 +426,6 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         <div className="d-flex gap-2">
           <Button variant="primary" onClick={handleAddClick}>
             Add New
-          </Button>
-          <Button 
-            variant="outline-secondary"
-            onClick={() => onLayoutChange?.(layoutType === 'standard' ? 'experimental' : 'standard')}
-          >
-            {layoutType === 'standard' ? 'Try New Layout' : 'Standard Layout'}
           </Button>
           <Button 
             variant="outline-secondary" 
