@@ -54,6 +54,9 @@ const Settings: React.FC<SettingsProps> = ({
         </div>
         <button type="submit" className="btn btn-primary">Save</button>
       </form>
+      <footer className="bg-light text-center p-3 mt-auto d-none d-md-block">
+        <p className="mb-0">&copy; 2025 Zynergy. All rights reserved.</p>
+      </footer>
     </div>
   );
 };

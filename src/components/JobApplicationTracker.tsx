@@ -4,7 +4,6 @@ import ViewApplications from './ViewApplications';
 import Dashboard from './Dashboard';
 
 import Toast from './Toast';
-import ConfirmationModal from './ConfirmationModal';
 import { indexedDBService } from '../services/indexedDBService';
 import { devIndexedDBService } from '../services/devIndexedDBService';
 import { generateDummyApplications } from '../utils/generateDummyApplications';
@@ -62,8 +61,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [filteredApplications, setFilteredApplications] = useState<JobApplication[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilters, setStatusFilters] = useState<ApplicationStatus[]>([]);
-    const [showConfirmation, setShowConfirmation] = useState(false);
-    const [pendingApplication, setPendingApplication] = useState<JobApplication | null>(null);
     const [formData, setFormData] = useState<Partial<JobApplication>>(initialFormData);
     const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
@@ -169,16 +166,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             console.error('Error adding application:', error);
             showToast('Failed to add application. Please try again.', 'error');
         }
-    };
-
-    const handleConfirmSubmit = async () => {
-        if (pendingApplication) {
-            await addApplication(pendingApplication);
-            setPendingApplication(null);
-            setFormData(initialFormData);
-            setIsFormDirty(false);
-        }
-        setShowConfirmation(false);
     };
 
     const handleFormChange = (updatedFormData: Partial<JobApplication>) => {
