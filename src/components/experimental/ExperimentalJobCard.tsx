@@ -18,6 +18,7 @@ import { getNextStatuses } from '../../constants/applicationStatusMachine';
 import './ExperimentalJobCard.css';
 import InterviewDetailsModal, { InterviewLocationType } from '../InterviewDetailsModal';
 import StarRating from '../shared/StarRating';
+import ConfirmationModal from '../ConfirmationModal';
 
 interface ExperimentalJobCardProps {
   application: JobApplication;
@@ -276,6 +277,17 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
   // Add new state for interview details expansion
   const [interviewDetailsExpanded, setInterviewDetailsExpanded] = useState(false);
 
+  // Add these near the top of the component with other state declarations
+  const [showUndoConfirmation, setShowUndoConfirmation] = useState(false);
+
+  // Add this handler function
+  const handleUndoConfirm = () => {
+    if (onUndo) {
+      onUndo(application.id);
+    }
+    setShowUndoConfirmation(false);
+  };
+
   return (
     <>
       <div 
@@ -418,23 +430,22 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
             </button>
           </div>
           <div className="right-actions">
-            {onUndo && (
+            {onUndo && application.statusHistory.length > 1 && (
               <button 
                 className="btn btn-link"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onUndo(application.id);
+                  setShowUndoConfirmation(true);
                 }}
               >
                 <FaUndo />
               </button>
             )}
-            {nextStatuses.length > 0 && (  // Only show progress button if there are next statuses
+            {nextStatuses.length > 0 && (
               <button
                 ref={arrowButtonRef}
                 className="btn btn-link"
                 onClick={e => {
-                  console.log('Arrow button clicked');
                   e.stopPropagation();
                   setDropdownOpen(!dropdownOpen);
                 }}
@@ -476,6 +487,12 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
           setShowInterviewModal(false);
           setPendingStatus(null);
         }}
+      />
+      <ConfirmationModal
+        show={showUndoConfirmation}
+        onClose={() => setShowUndoConfirmation(false)}
+        onConfirm={handleUndoConfirm}
+        message="Are you sure you want to undo the last status change?"
       />
     </>
   );

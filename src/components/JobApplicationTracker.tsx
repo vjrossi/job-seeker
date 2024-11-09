@@ -79,8 +79,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         message: '',
         type: 'success'
     });
-    const [showUndoConfirmation, setShowUndoConfirmation] = useState(false);
-    const [pendingUndoId, setPendingUndoId] = useState<number | null>(null);
 
     const showToast = useCallback((message: string, type: 'success' | 'error') => {
         setToast({ show: true, message, type });
@@ -345,34 +343,25 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     };
 
     const handleUndo = async (id: number) => {
-        setPendingUndoId(id);
-        setShowUndoConfirmation(true);
-    };
+        try {
+            const application = applications.find(app => app.id === id);
+            if (application && application.statusHistory.length > 1) {
+                const updatedStatusHistory = application.statusHistory.slice(0, -1);
+                const updatedApplication = { ...application, statusHistory: updatedStatusHistory };
 
-    const handleUndoConfirm = async () => {
-        if (pendingUndoId !== null) {
-            try {
-                const application = applications.find(app => app.id === pendingUndoId);
-                if (application && application.statusHistory.length > 1) {
-                    const updatedStatusHistory = application.statusHistory.slice(0, -1);
-                    const updatedApplication = { ...application, statusHistory: updatedStatusHistory };
-
-                    const lastStatus = updatedStatusHistory[updatedStatusHistory.length - 1].status;
-                    if (lastStatus !== ApplicationStatus.InterviewScheduled) {
-                        updatedApplication.interviewDateTime = undefined;
-                    }
-
-                    await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
-                    setApplications(prevApps => prevApps.map(app => app.id === pendingUndoId ? updatedApplication : app));
-                    showToast('Status change undone successfully', 'success');
+                const lastStatus = updatedStatusHistory[updatedStatusHistory.length - 1].status;
+                if (lastStatus !== ApplicationStatus.InterviewScheduled) {
+                    updatedApplication.interviewDateTime = undefined;
                 }
-            } catch (error) {
-                console.error('Error undoing status change:', error);
-                showToast('Failed to undo status change', 'error');
+
+                await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
+                setApplications(prevApps => prevApps.map(app => app.id === id ? updatedApplication : app));
+                showToast('Status change undone successfully', 'success');
             }
+        } catch (error) {
+            console.error('Error undoing status change:', error);
+            showToast('Failed to undo status change', 'error');
         }
-        setShowUndoConfirmation(false);
-        setPendingUndoId(null);
     };
 
     useEffect(() => {
@@ -488,12 +477,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     )}
                 </Modal.Body>
             </Modal>
-            <ConfirmationModal
-                show={showConfirmation}
-                onClose={() => setShowConfirmation(false)}
-                onConfirm={handleConfirmSubmit}
-                message="An active application for this company already exists. Do you want to submit another application?"
-            />
             {showInterviewModal && currentApplication && (
                 <InterviewScheduleModal
                     show={showInterviewModal}
@@ -508,12 +491,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     {feedbackMessage}
                 </div>
             )}
-            <ConfirmationModal
-                show={showUndoConfirmation}
-                onClose={() => setShowUndoConfirmation(false)}
-                onConfirm={handleUndoConfirm}
-                message="Are you sure you want to undo the last status change?"
-            />
         </div>
     );
 };
