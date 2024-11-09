@@ -10,6 +10,7 @@ import { devIndexedDBService } from '../services/devIndexedDBService';
 import { indexedDBService } from '../services/indexedDBService';
 import Toast from './Toast';
 import { METHOD_ICONS } from '../constants/standardApplicationMethods';
+import ExperimentalJobCard from './experimental/ExperimentalJobCard';
 
 interface ViewApplicationsProps {
   applications: JobApplication[];
@@ -26,6 +27,8 @@ interface ViewApplicationsProps {
   onUndo: (id: number) => void;
   stalePeriod: number;
   onRatingChange: (applicationId: number, newRating: number) => void;
+  layoutType: 'standard' | 'experimental';
+  onLayoutChange?: (newLayout: 'standard' | 'experimental') => void;
 }
 
 const getStatusSequence = (currentStatus: ApplicationStatus): ApplicationStatus[] => {
@@ -142,7 +145,9 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   onUndo,
   refreshApplications,
   stalePeriod,
-  onRatingChange
+  onRatingChange,
+  layoutType,
+  onLayoutChange
 }) => {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
@@ -590,6 +595,24 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     </div>
   );
 
+  const renderApplication = (application: JobApplication) => {
+    if (layoutType === 'experimental') {
+      return (
+        <ExperimentalJobCard
+          key={application.id}
+          application={application}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onStatusChange={onStatusChange}
+          onUndo={onUndo}
+        />
+      );
+    }
+    
+    // Return existing card layout
+    return renderMobileView([application])[0];
+  };
+
   return (
     <div className="view-applications">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -597,6 +620,12 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         <div className="d-flex gap-2">
           <Button variant="primary" onClick={handleAddClick}>
             Add New
+          </Button>
+          <Button 
+            variant="outline-secondary"
+            onClick={() => onLayoutChange?.(layoutType === 'standard' ? 'experimental' : 'standard')}
+          >
+            {layoutType === 'standard' ? 'Try New Layout' : 'Standard Layout'}
           </Button>
           <Button 
             variant="outline-secondary" 
@@ -687,30 +716,30 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
             </Offcanvas.Body>
           </Offcanvas>
 
-          {/* Desktop Table View */}
-          <div className="d-none d-lg-block">
-            {renderApplicationTable(recentApplications, true)}
-            {olderApplications.length > 0 && renderApplicationTable(olderApplications, false)}
-          </div>
-          
-          {/* Mobile Card View */}
-          <div className="d-block d-lg-none">
-            <h3>
-              Last 30 days
-              {getFilterIndicator()}
-            </h3>
-            {renderMobileView(recentApplications)}
-            {olderApplications.length > 0 && (
-              <>
-                <h3 className="mt-4">
-                  Last 30+ days
-                  {getFilterIndicator()}
-                </h3>
-                {renderMobileView(olderApplications)}
-              </>
-            )}
-          </div>
-          
+          {/* Use layoutType to determine which view to show */}
+          {layoutType === 'experimental' ? (
+            <div className="applications-grid">
+              {filteredAndSortedApplications.map(app => renderApplication(app))}
+            </div>
+          ) : (
+            <>
+              {/* Existing mobile and desktop views */}
+              <div className="d-block d-lg-none">
+                {renderMobileView(recentApplications)}
+                {olderApplications.length > 0 && (
+                  <>
+                    <h3 className="mt-4">Last 30+ days</h3>
+                    {renderMobileView(olderApplications)}
+                  </>
+                )}
+              </div>
+              <div className="d-none d-lg-block">
+                {renderApplicationTable(recentApplications, true)}
+                {olderApplications.length > 0 && renderApplicationTable(olderApplications, false)}
+              </div>
+            </>
+          )}
+
           {showProgressModal && selectedApplication && (
             <ProgressModal
               application={selectedApplication}

@@ -25,6 +25,8 @@ describe('ViewApplications', () => {
     onUndo: jest.fn(),
     stalePeriod: 21,
     onRatingChange: jest.fn(),
+    layoutType: 'standard' as const,
+    onLayoutChange: jest.fn()
   };
 
   beforeEach(() => {
@@ -81,6 +83,8 @@ describe('ViewApplications', () => {
       onUndo: jest.fn(),
       stalePeriod: 21,
       onRatingChange: jest.fn(),
+      layoutType: 'standard' as const,
+      onLayoutChange: jest.fn()
     };
 
     render(<ViewApplications {...mockProps} />);

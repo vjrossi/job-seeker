@@ -72,6 +72,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         message: '',
         type: 'success'
     });
+    const [layoutType, setLayoutType] = useState<'standard' | 'experimental'>('standard');
 
     const showToast = useCallback((message: string, type: 'success' | 'error') => {
         setToast({ show: true, message, type });
@@ -407,6 +408,8 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                         onUndo={handleUndo}
                         stalePeriod={stalePeriod}
                         onRatingChange={handleRatingChange}
+                        layoutType={layoutType}
+                        onLayoutChange={setLayoutType}
                     />
                     <Modal
                         show={showAddForm}
