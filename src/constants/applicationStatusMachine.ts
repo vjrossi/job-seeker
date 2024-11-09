@@ -12,18 +12,7 @@ export const statusTransitions: StatusTransitions = {
     ApplicationStatus.Withdrawn
   ],
   [ApplicationStatus.InterviewScheduled]: [
-    ApplicationStatus.SecondRoundScheduled,
-    ApplicationStatus.OfferReceived,
-    ApplicationStatus.NotAccepted,
-    ApplicationStatus.Withdrawn
-  ],
-  [ApplicationStatus.SecondRoundScheduled]: [
-    ApplicationStatus.ThirdRoundScheduled,
-    ApplicationStatus.OfferReceived,
-    ApplicationStatus.NotAccepted,
-    ApplicationStatus.Withdrawn
-  ],
-  [ApplicationStatus.ThirdRoundScheduled]: [
+    ApplicationStatus.InterviewScheduled,
     ApplicationStatus.OfferReceived,
     ApplicationStatus.NotAccepted,
     ApplicationStatus.Withdrawn

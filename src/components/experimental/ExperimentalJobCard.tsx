@@ -20,10 +20,6 @@ const getStatusStyle = (status: ApplicationStatus) => {
       return { color: '#1565c0', borderColor: '#1565c0' };
     case ApplicationStatus.InterviewScheduled:
       return { color: '#2e7d32', borderColor: '#2e7d32' };
-    case ApplicationStatus.SecondRoundScheduled:
-      return { color: '#e65100', borderColor: '#e65100' };
-    case ApplicationStatus.ThirdRoundScheduled:
-      return { color: '#6a1b9a', borderColor: '#6a1b9a' };
     case ApplicationStatus.OfferReceived:
       return { color: '#1b5e20', borderColor: '#1b5e20' };
     case ApplicationStatus.OfferAccepted:
@@ -43,12 +39,8 @@ const getStatusStyle = (status: ApplicationStatus) => {
 
 const formatStatus = (status: ApplicationStatus): string => {
   switch(status) {
-    case ApplicationStatus.SecondRoundScheduled:
-      return 'Second Round';
-    case ApplicationStatus.ThirdRoundScheduled:
-      return 'Third Round';
     case ApplicationStatus.InterviewScheduled:
-      return 'Interview Set';
+      return 'Interview Scheduled';
     case ApplicationStatus.NotAccepted:
       return 'Not Accepted';
     case ApplicationStatus.NoResponse:
@@ -146,14 +138,12 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
                   key={nextStatus}
                   onClick={() => onStatusChange(application.id, nextStatus)}
                 >
-                  {nextStatus === ApplicationStatus.InterviewScheduled ? "I got an interview!" :
-                   nextStatus === ApplicationStatus.SecondRoundScheduled ? "Got a Second Interview!" :
-                   nextStatus === ApplicationStatus.ThirdRoundScheduled ? "Got a Third Interview!" :
+                  {nextStatus === ApplicationStatus.InterviewScheduled ? "I got another interview!" :
                    nextStatus === ApplicationStatus.OfferReceived ? "I received a job offer!" :
                    nextStatus === ApplicationStatus.OfferAccepted ? "I accepted the job offer!" :
                    nextStatus === ApplicationStatus.OfferDeclined ? "I declined the job offer" :
                    nextStatus === ApplicationStatus.NoResponse ? "No Response" :
-                   nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted for the next stage" :
+                   nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted" :
                    nextStatus === ApplicationStatus.Withdrawn ? "I have decided to withdraw my application" :
                    nextStatus === ApplicationStatus.Archived ? "I want to archive this application" :
                    nextStatus}

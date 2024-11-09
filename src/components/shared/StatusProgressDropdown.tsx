@@ -30,13 +30,11 @@ const StatusProgressDropdown: React.FC<StatusProgressDropdownProps> = ({
             onClick={() => onStatusChange(nextStatus)}
           >
             {nextStatus === ApplicationStatus.InterviewScheduled ? "I got an interview!" :
-             nextStatus === ApplicationStatus.SecondRoundScheduled ? "Got a Second Interview!" :
-             nextStatus === ApplicationStatus.ThirdRoundScheduled ? "Got a Third Interview!" :
              nextStatus === ApplicationStatus.OfferReceived ? "I received a job offer!" :
              nextStatus === ApplicationStatus.OfferAccepted ? "I accepted the job offer!" :
              nextStatus === ApplicationStatus.OfferDeclined ? "I declined the job offer" :
              nextStatus === ApplicationStatus.NoResponse ? "No Response" :
-             nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted for the next stage" :
+             nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted" :
              nextStatus === ApplicationStatus.Withdrawn ? "I have decided to withdraw my application" :
              nextStatus === ApplicationStatus.Archived ? "I want to archive this application" :
              nextStatus}

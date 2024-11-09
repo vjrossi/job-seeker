@@ -85,3 +85,8 @@
   justify-content: flex-start;
   border: 1px solid transparent;
 }
+
+/* Add this to hide the dropdown arrow */
+.dropdown-toggle::after {
+  display: none !important;
+}

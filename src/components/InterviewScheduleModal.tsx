@@ -22,7 +22,7 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
     const [interviewDateTime, setInterviewDateTime] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    const validateInterviewDate = (dateTime: string, newStatus: ApplicationStatus): string | null => {
+    const validateInterviewDate = (dateTime: string): string | null => {
         const newDate = new Date(dateTime);
         const now = new Date();
 
@@ -30,17 +30,14 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
             return "Interview date must be in the future.";
         }
 
-        if (newStatus === ApplicationStatus.SecondRoundScheduled || newStatus === ApplicationStatus.ThirdRoundScheduled) {
-            const previousInterviews = interviewHistory.filter(interview => 
-                interview.status === ApplicationStatus.InterviewScheduled || 
-                interview.status === ApplicationStatus.SecondRoundScheduled
-            );
+        const previousInterviews = interviewHistory.filter(interview => 
+            interview.status === ApplicationStatus.InterviewScheduled
+        );
 
-            for (const interview of previousInterviews) {
-                const interviewDate = new Date(interview.timestamp);
-                if (newDate.toDateString() === interviewDate.toDateString()) {
-                    return `Cannot schedule ${newStatus} on the same day as a previous interview.`;
-                }
+        for (const interview of previousInterviews) {
+            const interviewDate = new Date(interview.timestamp);
+            if (newDate.toDateString() === interviewDate.toDateString()) {
+                return `Cannot schedule another interview on the same day.`;
             }
         }
 
@@ -51,16 +48,12 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
         e.preventDefault();
         
         const nextStatuses = getNextStatuses(currentStatus);
-        const interviewStatuses = [
-            ApplicationStatus.InterviewScheduled,
-            ApplicationStatus.SecondRoundScheduled,
-            ApplicationStatus.ThirdRoundScheduled
-        ];
+        const interviewStatuses = [ApplicationStatus.InterviewScheduled];
         
         const newStatus = nextStatuses.find(status => interviewStatuses.includes(status));
 
         if (newStatus) {
-            const validationError = validateInterviewDate(interviewDateTime, newStatus);
+            const validationError = validateInterviewDate(interviewDateTime);
             if (validationError) {
                 setError(validationError);
             } else {

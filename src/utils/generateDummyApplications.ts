@@ -79,11 +79,10 @@ export const generateDummyApplications = (count: number, stalePeriod: number): J
       currentStatus = nextStatus;
 
       // Set interview date for interview statuses
-      if ([ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled, ApplicationStatus.ThirdRoundScheduled].includes(nextStatus)) {
+      if (ApplicationStatus.InterviewScheduled === nextStatus) {
         const interviewDate = new Date(currentDate.getTime() + (Math.floor(Math.random() * 7) + 1) * 24 * 60 * 60 * 1000);
         if (interviewDate > now) {
           interviewDateTime = interviewDate.toISOString();
-          hasScheduledInterview = true;
         }
       }
 
@@ -174,7 +173,7 @@ function generateSingleApplication(now: Date, threeMonthsAgo: Date, oneMonthAgo:
     currentStatus = nextStatus;
 
     // Set interview date for interview statuses
-    if ([ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled, ApplicationStatus.ThirdRoundScheduled].includes(nextStatus)) {
+    if (ApplicationStatus.InterviewScheduled === nextStatus) {
       const interviewDate = new Date(currentDate.getTime() + (Math.floor(Math.random() * 7) + 1) * 24 * 60 * 60 * 1000);
       if (interviewDate > now) {
         interviewDateTime = interviewDate.toISOString();

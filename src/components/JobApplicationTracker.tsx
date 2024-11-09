@@ -186,7 +186,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             const validNextStatuses = getNextStatuses(currentStatus);
 
             if (validNextStatuses.includes(newStatus)) {
-                if ([ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled, ApplicationStatus.ThirdRoundScheduled].includes(newStatus)) {
+                if (newStatus === ApplicationStatus.InterviewScheduled) {
                     setCurrentApplicationId(id);
                     setCurrentInterviewStatus(currentStatus);
                     setCurrentApplication(application);
@@ -341,7 +341,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
                     // Clear interview date if undoing from an interview state
                     const lastStatus = updatedStatusHistory[updatedStatusHistory.length - 1].status;
-                    if (![ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled, ApplicationStatus.ThirdRoundScheduled].includes(lastStatus)) {
+                    if (lastStatus !== ApplicationStatus.InterviewScheduled) {
                         updatedApplication.interviewDateTime = undefined;
                     }
 

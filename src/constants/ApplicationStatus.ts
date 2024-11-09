@@ -1,8 +1,6 @@
 export enum ApplicationStatus {
     Applied = 'Applied',
     InterviewScheduled = 'Interview Scheduled',
-    SecondRoundScheduled = 'Second Round Scheduled',
-    ThirdRoundScheduled = 'Third Round Scheduled',
     NoResponse = 'No Response',
     NotAccepted = 'Not Accepted',
     OfferReceived = 'Offer Received',
@@ -19,22 +17,12 @@ type StatusTransitions = {
 export const statusTransitions: StatusTransitions = {
     [ApplicationStatus.Applied]: [
         ApplicationStatus.InterviewScheduled,
+        ApplicationStatus.NoResponse,
         ApplicationStatus.NotAccepted,
         ApplicationStatus.Withdrawn
     ],
     [ApplicationStatus.InterviewScheduled]: [
-        ApplicationStatus.SecondRoundScheduled,
-        ApplicationStatus.OfferReceived,
-        ApplicationStatus.NotAccepted,
-        ApplicationStatus.Withdrawn
-    ],
-    [ApplicationStatus.SecondRoundScheduled]: [
-        ApplicationStatus.ThirdRoundScheduled,
-        ApplicationStatus.OfferReceived,
-        ApplicationStatus.NotAccepted,
-        ApplicationStatus.Withdrawn
-    ],
-    [ApplicationStatus.ThirdRoundScheduled]: [
+        ApplicationStatus.InterviewScheduled,
         ApplicationStatus.OfferReceived,
         ApplicationStatus.NotAccepted,
         ApplicationStatus.Withdrawn

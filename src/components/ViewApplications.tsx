@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { JobApplication } from './JobApplicationTracker';
-import { ApplicationStatus, ACTIVE_STATUSES, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
+import { ApplicationStatus, APPLICATION_STATUSES } from '../constants/ApplicationStatus';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import ProgressModal from './ProgressModal';
 import { OverlayTrigger, Tooltip, Offcanvas, Button, Form, Badge, Dropdown, Card, Modal } from 'react-bootstrap';
@@ -38,12 +38,6 @@ const getStatusSequence = (currentStatus: ApplicationStatus): ApplicationStatus[
   switch (currentStatus) {
     case ApplicationStatus.InterviewScheduled:
       return [...commonPath, ApplicationStatus.InterviewScheduled];
-    
-    case ApplicationStatus.SecondRoundScheduled:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled];
-    
-    case ApplicationStatus.ThirdRoundScheduled:
-      return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.SecondRoundScheduled, ApplicationStatus.ThirdRoundScheduled];
     
     case ApplicationStatus.OfferReceived:
       return [...commonPath, ApplicationStatus.InterviewScheduled, ApplicationStatus.OfferReceived];
@@ -94,14 +88,10 @@ const getStatusDescription = (app: JobApplication): string => {
       return `${timeAgoText}: applied for position`;
     
     case ApplicationStatus.InterviewScheduled:
-    case ApplicationStatus.SecondRoundScheduled:
-    case ApplicationStatus.ThirdRoundScheduled:
       if (app.interviewDateTime) {
         const interviewDate = new Date(app.interviewDateTime);
         const daysUntil = Math.floor((interviewDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-        const round = currentStatus.status === ApplicationStatus.InterviewScheduled ? '1st' :
-                     currentStatus.status === ApplicationStatus.SecondRoundScheduled ? '2nd' : '3rd';
-        return `${timeAgoText}: ${round} round interview scheduled for ${interviewDate.toLocaleDateString()} (${daysUntil} days)`;
+        return `${timeAgoText}: interview scheduled for ${interviewDate.toLocaleDateString()} (${daysUntil} days)`;
       }
       return `${timeAgoText}: interview scheduled`;
     
@@ -151,7 +141,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
 }) => {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
-  const [showActive, setShowActive] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [applicationToArchive, setApplicationToArchive] = useState<number | null>(null);
@@ -172,17 +162,17 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
-        const matchesActiveFilter = showActive 
-          ? ACTIVE_STATUSES.includes(currentStatus) 
-          : true;
-        return matchesSearch && matchesStatus && matchesActiveFilter;
+        const matchesArchiveFilter = showArchived 
+          ? true 
+          : currentStatus !== ApplicationStatus.Archived;
+        return matchesSearch && matchesStatus && matchesArchiveFilter;
       })
       .sort((a: JobApplication, b: JobApplication) => {
         const aDate = new Date(a.statusHistory[0].timestamp);
         const bDate = new Date(b.statusHistory[0].timestamp);
         return bDate.getTime() - aDate.getTime();
       });
-  }, [applications, searchTerm, statusFilters, showActive]);
+  }, [applications, searchTerm, statusFilters, showArchived]);
 
   const oneMonthAgo = useMemo(() => {
     const date = new Date();
@@ -312,7 +302,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                 <td>{renderStars(app)}</td>
                 <td>
                   <button className="btn btn-sm btn-outline-primary me-2" onClick={() => onEdit(app)}>View</button>
-                  {!INACTIVE_STATUSES.includes(currentStatus) && (
+                  {currentStatus !== ApplicationStatus.Archived && (
                     <>
                       <button
                         className="btn btn-sm btn-outline-primary me-2"
@@ -457,7 +447,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
             <div><strong>{app.jobTitle}</strong></div>
             <div className="status-timeline">
               {getStatusSequence(currentStatus).map((status: ApplicationStatus, index: number, sequence: ApplicationStatus[]) => (
-                status === currentStatus && !INACTIVE_STATUSES.includes(currentStatus) ? (
+                status === currentStatus && currentStatus !== ApplicationStatus.Archived ? (
                   <Dropdown key={status}>
                     <Dropdown.Toggle 
                       as="div" 
@@ -473,14 +463,12 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                           key={nextStatus}
                           onClick={() => onStatusChange(app.id, nextStatus)}
                         >
-                          {nextStatus === ApplicationStatus.InterviewScheduled ? "I got an interview!" :
-                           nextStatus === ApplicationStatus.SecondRoundScheduled ? "Got a Second Interview!" :
-                           nextStatus === ApplicationStatus.ThirdRoundScheduled ? "Got a Third Interview!" :
+                          {nextStatus === ApplicationStatus.InterviewScheduled ? "I got another interview!" :
                            nextStatus === ApplicationStatus.OfferReceived ? "I received a job offer!" :
                            nextStatus === ApplicationStatus.OfferAccepted ? "I accepted the job offer!" :
                            nextStatus === ApplicationStatus.OfferDeclined ? "I declined the job offer" :
                            nextStatus === ApplicationStatus.NoResponse ? "No Response" :
-                           nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted for the next stage" :
+                           nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted" :
                            nextStatus === ApplicationStatus.Withdrawn ? "I have decided to withdraw my application" :
                            nextStatus === ApplicationStatus.Archived ? "I want to archive this application" :
                            nextStatus}
@@ -658,23 +646,25 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
               <Form.Check
                 type="switch"
                 id="desktopActiveSwitch"
-                label={showActive ? 'Show Active Only' : 'Show All Applications'}
-                checked={showActive}
-                onChange={() => setShowActive(!showActive)}
+                label={showArchived ? 'Showing All Applications' : 'Hiding Archived Applications'}
+                checked={showArchived}
+                onChange={() => setShowArchived(!showArchived)}
               />
             </div>
             <div className="mb-3">
               <h5>Filter by Status:</h5>
               <div className="btn-group flex-wrap" role="group">
-                {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
-                  <button
-                    key={status}
-                    className={`btn btn-sm me-2 ${statusFilters.includes(status) ? 'btn-primary' : 'btn-outline-primary'}`}
-                    onClick={() => onStatusFilterChange(status)}
-                  >
-                    {status}
-                  </button>
-                ))}
+                {APPLICATION_STATUSES
+                  .filter((status: ApplicationStatus) => showArchived || status !== ApplicationStatus.Archived)
+                  .map((status: ApplicationStatus) => (
+                    <button
+                      key={status}
+                      className={`btn btn-sm me-2 ${statusFilters.includes(status) ? 'btn-primary' : 'btn-outline-primary'}`}
+                      onClick={() => onStatusFilterChange(status)}
+                    >
+                      {status}
+                    </button>
+                  ))}
               </div>
             </div>
           </div>
@@ -694,24 +684,25 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
                 <Form.Check
                   type="switch"
                   id="activeSwitch"
-                  label={showActive ? 'Show Active Only' : 'Show All Applications'}
-                  checked={showActive}
-                  onChange={() => setShowActive(!showActive)}
+                  label={showArchived ? 'Showing All Applications' : 'Hiding Archived Applications'}
+                  checked={showArchived}
+                  onChange={() => setShowArchived(!showArchived)}
                 />
               </Form.Group>
 
               <div className="filter-chips">
-                {(showActive ? ACTIVE_STATUSES : INACTIVE_STATUSES).map(status => (
-                  <Badge
-                    key={status}
-                    bg={statusFilters.includes(status) ? "primary" : "light"}
-                    text={statusFilters.includes(status) ? "white" : "dark"}
-                    className="filter-chip"
-                    onClick={() => onStatusFilterChange(status)}
-                  >
-                    {status}
-                  </Badge>
-                ))}
+                {(showArchived ? APPLICATION_STATUSES : APPLICATION_STATUSES.filter(s => s !== ApplicationStatus.Archived))
+                  .map((status: ApplicationStatus) => (
+                    <Badge
+                      key={status}
+                      bg={statusFilters.includes(status) ? "primary" : "light"}
+                      text={statusFilters.includes(status) ? "white" : "dark"}
+                      className="filter-chip"
+                      onClick={() => onStatusFilterChange(status)}
+                    >
+                      {status}
+                    </Badge>
+                  ))}
               </div>
             </Offcanvas.Body>
           </Offcanvas>
