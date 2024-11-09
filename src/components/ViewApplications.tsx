@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { JobApplication } from './JobApplicationTracker';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
-import { Button, Offcanvas } from 'react-bootstrap';
+import { Button, Modal } from 'react-bootstrap';
 import './ViewApplications.css';
 import { devIndexedDBService } from '../services/devIndexedDBService';
 import Toast from './Toast';
@@ -62,6 +62,9 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   });
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Add ref for filter button
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
 
   const filteredAndSortedApplications = useMemo(() => {
     return applications
@@ -177,6 +180,14 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     );
   };
 
+  // Add this effect to update the position
+  useEffect(() => {
+    if (showFilters && filterButtonRef.current) {
+      const rect = filterButtonRef.current.getBoundingClientRect();
+      document.documentElement.style.setProperty('--filter-button-top', `${rect.top}px`);
+    }
+  }, [showFilters]);
+
   return (
     <div className="view-applications">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -186,6 +197,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
             Add New
           </Button>
           <Button 
+            ref={filterButtonRef}
             variant="outline-secondary" 
             onClick={() => setShowFilters(true)}
             className="d-lg-none"
@@ -224,16 +236,23 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         )}
       </div>
 
-      <Offcanvas 
+      <Modal 
         show={showFilters} 
-        onHide={() => setShowFilters(false)} 
-        placement="bottom" 
-        className="filter-drawer"
+        onHide={() => setShowFilters(false)}
+        size="sm"
+        aria-labelledby="filter-modal"
+        dialogClassName="filter-modal"
+        style={{
+          position: 'absolute',
+          top: '60px',
+          right: '20px',
+          margin: 0
+        }}
       >
-        <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Filters</Offcanvas.Title>
-        </Offcanvas.Header>
-        <Offcanvas.Body>
+        <Modal.Header closeButton>
+          <Modal.Title id="filter-modal">Filters</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
           <FilterSection
             showArchived={showArchived}
             setShowArchived={setShowArchived}
@@ -241,8 +260,8 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
             onStatusFilterChange={onStatusFilterChange}
             isMobile={true}
           />
-        </Offcanvas.Body>
-      </Offcanvas>
+        </Modal.Body>
+      </Modal>
 
       <ApplicationModals
         showArchiveModal={showArchiveModal}

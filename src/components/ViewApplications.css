@@ -72,14 +72,47 @@
 
 /* Mobile Filter Styles */
 .filter-drawer {
-  height: 80vh !important;
-  border-radius: 1rem 1rem 0 0;
+  position: fixed !important;
+  top: calc(var(--filter-button-top) + 40px) !important;
+  right: 1rem !important;
+  width: 300px !important;
+  height: auto !important;
+  max-height: calc(100vh - var(--filter-button-top) - 60px) !important;
+  background: white;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  z-index: 1050 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.filter-drawer .offcanvas-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.filter-drawer .offcanvas-body {
+  padding: 1rem;
+}
+
+/* Add a small arrow at the top */
+.filter-drawer::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 20px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid white;
 }
 
 .filter-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 .filter-chip {
@@ -344,4 +377,30 @@
   width: 40px;
   text-align: center;
   vertical-align: middle;
+}
+
+/* Add styles for the filter modal */
+.filter-modal {
+  position: fixed !important;
+  right: 1rem !important;
+  width: 300px !important;
+  margin: 0 !important;
+  top: 120px !important;
+}
+
+.modal-backdrop {
+  position: fixed !important;
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Ensure the modal doesn't affect page layout */
+.modal {
+  position: fixed !important;
+  background: none !important;
+}
+
+/* Keep the page content in place */
+.view-applications {
+  position: relative !important;
+  z-index: 1;
 }
