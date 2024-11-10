@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaPencilAlt, FaTrashAlt, FaUndo, FaArrowRight, FaCalendarAlt } from 'react-icons/fa';
+import './CardActions.css';
 
 interface CardActionsProps {
   onEdit: () => void;

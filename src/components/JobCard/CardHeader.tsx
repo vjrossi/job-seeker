@@ -4,6 +4,7 @@ import { FaHistory } from 'react-icons/fa';
 import StarRating from '../shared/StarRating';
 import { formatStatus, formatTimeSince, getStatusStyle } from '../../utils/jobCardUtils';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
+import './CardHeader.css';
 
 interface CardHeaderProps {
   companyName: string;

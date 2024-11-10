@@ -1,0 +1,87 @@
+/* Card Actions Container */
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 0;
+  height: 0;
+  transform: translateY(-20px);
+  overflow: hidden !important;
+}
+
+/* Action Groups */
+.left-actions, .right-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.right-actions {
+  position: relative;
+  z-index: 2;
+}
+
+/* Action Buttons */
+.card-actions button {
+  padding: 0.5rem;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  color: #4b5563;
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.card-actions button:hover {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1e40af;
+  transform: scale(1.1);
+}
+
+/* Visibility States */
+.job-card.actions-visible {
+  padding-bottom: 1rem;
+}
+
+.job-card.actions-visible .card-actions {
+  opacity: 1;
+  visibility: visible;
+  height: auto;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  transform: translateY(0);
+}
+
+/* Action Indicator */
+.action-indicator {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.5rem;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.indicator-line {
+  width: 2.5rem;
+  height: 4px;
+  background-color: rgba(37, 99, 235, 0.3);
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.indicator-line::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  bottom: -12px;
+  left: -8px;
+  right: -8px;
+}
+
+.job-card:hover .indicator-line {
+  background-color: rgba(37, 99, 235, 0.5);
+} 
