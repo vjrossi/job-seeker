@@ -1,13 +1,16 @@
 import React from 'react';
-import { FaPencilAlt, FaTrashAlt, FaUndo, FaArrowRight } from 'react-icons/fa';
+import { FaPencilAlt, FaTrashAlt, FaUndo, FaArrowRight, FaCalendarAlt } from 'react-icons/fa';
 
 interface CardActionsProps {
   onEdit: () => void;
   onDelete: () => void;
   onUndo?: () => void;
   onStatusClick: () => void;
+  onEditInterview?: () => void;
   hasNextStatuses: boolean;
+  hasInterviewDetails: boolean;
   arrowButtonRef: React.RefObject<HTMLButtonElement>;
+  undoButtonRef: React.RefObject<HTMLButtonElement>;
 }
 
 const CardActions: React.FC<CardActionsProps> = ({
@@ -15,8 +18,11 @@ const CardActions: React.FC<CardActionsProps> = ({
   onDelete,
   onUndo,
   onStatusClick,
+  onEditInterview,
   hasNextStatuses,
-  arrowButtonRef
+  hasInterviewDetails,
+  arrowButtonRef,
+  undoButtonRef
 }) => {
   return (
     <div className="card-actions">
@@ -30,6 +36,17 @@ const CardActions: React.FC<CardActionsProps> = ({
         >
           <FaPencilAlt />
         </button>
+        {hasInterviewDetails && onEditInterview && (
+          <button 
+            className="btn btn-link"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditInterview();
+            }}
+          >
+            <FaCalendarAlt />
+          </button>
+        )}
         <button 
           className="btn btn-link text-danger"
           onClick={(e) => {
@@ -43,6 +60,7 @@ const CardActions: React.FC<CardActionsProps> = ({
       <div className="right-actions">
         {onUndo && (
           <button 
+            ref={undoButtonRef}
             className="btn btn-link"
             onClick={(e) => {
               e.stopPropagation();

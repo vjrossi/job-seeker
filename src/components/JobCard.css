@@ -12,6 +12,7 @@
   margin-bottom: 1rem;
   cursor: pointer;
   overflow: hidden !important;
+  z-index: 1;
 }
 
 .job-card:hover {
@@ -264,7 +265,7 @@
   right: 0;
   top: 100%;
   margin-top: 5px;
-  z-index: 99999;
+  z-index: 1040 !important;
 }
 
 .job-card .dropdown-menu button.dropdown-item {
@@ -294,7 +295,7 @@
 .job-card .right-actions {
   position: relative;
   overflow: visible !important;
-  z-index: 1000;
+  z-index: 2;
 }
 
 .job-card .dropdown-toggle {
@@ -316,7 +317,7 @@
 }
 
 .dropdown-menu.show {
-  z-index: 9999;
+  z-index: 1040 !important;
 }
 
 .job-card .dropdown-container {
@@ -346,4 +347,104 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 0.5rem;
+}
+
+.modal {
+  z-index: 1055 !important;
+}
+
+.modal-backdrop {
+  z-index: 1050 !important;
+}
+
+/* Add this new section for the status dropdown portal */
+.status-dropdown-portal {
+  position: fixed;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 250px;
+  z-index: 1040 !important; /* Below modal backdrop but above cards */
+}
+
+.status-dropdown-portal .dropdown-header {
+  padding: 8px 16px;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 4px;
+}
+
+.status-dropdown-portal .dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.status-dropdown-portal .dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Update existing z-index values to ensure proper stacking */
+.job-card {
+  z-index: 1;
+}
+
+.job-card .right-actions {
+  z-index: 2;
+}
+
+.modal-backdrop {
+  z-index: 1050 !important;
+}
+
+.modal {
+  z-index: 1055 !important;
+}
+
+.job-card {
+  position: relative;
+  z-index: 1;
+}
+
+.job-card .right-actions {
+  position: relative;
+  z-index: 2;
+}
+
+/* Dropdown and portal stacking */
+.status-dropdown-portal {
+  position: fixed;
+  z-index: 1040;
+  /* other styles... */
+}
+
+.dropdown-menu.show {
+  z-index: 1040;
+}
+
+/* Bootstrap modal stacking - these might need to keep !important due to Bootstrap's own usage */
+.modal-backdrop {
+  z-index: 1050;
+}
+
+.modal {
+  z-index: 1055;
+}
+
+/* Add these styles */
+.confirmation-modal {
+  position: fixed;
+  margin: 0;
+}
+
+.confirmation-modal .modal-content {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }

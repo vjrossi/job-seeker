@@ -42,9 +42,18 @@ const JobCard: React.FC<JobCardProps> = ({
   const [showInterviewModal, setShowInterviewModal] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<ApplicationStatus | null>(null);
   const [showUndoConfirmation, setShowUndoConfirmation] = useState(false);
+  const [showEditInterviewModal, setShowEditInterviewModal] = useState(false);
   
   const arrowButtonRef = useRef<HTMLButtonElement>(null);
+  const undoButtonRef = useRef<HTMLButtonElement>(null);
   const isExpanded = expandedId === application.id;
+
+  const currentStatusEntry = application.statusHistory[application.statusHistory.length - 1];
+  const hasInterviewDetails = !!currentStatusEntry.interviewDateTime;
+
+  const handleEditInterview = () => {
+    setShowEditInterviewModal(true);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -86,10 +95,10 @@ const JobCard: React.FC<JobCardProps> = ({
           statusHistory={application.statusHistory}
         />
 
-        {application.statusHistory[application.statusHistory.length - 1].interviewDateTime && (
+        {hasInterviewDetails && (
           <InterviewDetails
-            interviewDateTime={application.statusHistory[application.statusHistory.length - 1].interviewDateTime!}
-            interviewLocation={application.statusHistory[application.statusHistory.length - 1].interviewLocation}
+            interviewDateTime={currentStatusEntry.interviewDateTime!}
+            interviewLocation={currentStatusEntry.interviewLocation}
           />
         )}
 
@@ -100,10 +109,15 @@ const JobCard: React.FC<JobCardProps> = ({
         <CardActions
           onEdit={() => onEdit(application)}
           onDelete={() => onDelete(application.id)}
-          onUndo={onUndo ? () => setShowUndoConfirmation(true) : undefined}
+          onUndo={onUndo ? () => {
+            setShowUndoConfirmation(true);
+          } : undefined}
           onStatusClick={() => setDropdownOpen(!dropdownOpen)}
+          onEditInterview={hasInterviewDetails ? handleEditInterview : undefined}
           hasNextStatuses={nextStatuses.length > 0}
+          hasInterviewDetails={hasInterviewDetails}
           arrowButtonRef={arrowButtonRef}
+          undoButtonRef={undoButtonRef}
         />
       </div>
       
@@ -121,13 +135,20 @@ const JobCard: React.FC<JobCardProps> = ({
       />
 
       <InterviewDetailsModal
-        show={showInterviewModal}
+        show={showInterviewModal || showEditInterviewModal}
         onHide={() => {
           setShowInterviewModal(false);
+          setShowEditInterviewModal(false);
           setPendingStatus(null);
         }}
         onConfirm={(details) => {
-          if (pendingStatus === ApplicationStatus.InterviewScheduled) {
+          if (showEditInterviewModal) {
+            onStatusChange(application.id, currentStatus, {
+              interviewDateTime: details.dateTime,
+              interviewLocation: details.location,
+              interviewType: details.locationType,
+            });
+          } else if (pendingStatus === ApplicationStatus.InterviewScheduled) {
             onStatusChange(application.id, pendingStatus, {
               interviewDateTime: details.dateTime,
               interviewLocation: details.location,
@@ -135,8 +156,13 @@ const JobCard: React.FC<JobCardProps> = ({
             });
           }
           setShowInterviewModal(false);
+          setShowEditInterviewModal(false);
           setPendingStatus(null);
         }}
+        initialDateTime={currentStatusEntry.interviewDateTime}
+        initialLocation={currentStatusEntry.interviewLocation}
+        initialLocationType={currentStatusEntry.interviewType}
+        isEditing={showEditInterviewModal}
       />
 
       <ConfirmationModal
@@ -144,6 +170,7 @@ const JobCard: React.FC<JobCardProps> = ({
         onClose={() => setShowUndoConfirmation(false)}
         onConfirm={handleUndoConfirm}
         message="Are you sure you want to undo the last status change?"
+        triggerElement={undoButtonRef.current}
       />
     </>
   );
