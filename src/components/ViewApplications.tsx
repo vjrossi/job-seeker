@@ -5,7 +5,7 @@ import { Button, Modal } from 'react-bootstrap';
 import './ViewApplications.css';
 import { devIndexedDBService } from '../services/devIndexedDBService';
 import Toast from './Toast';
-import ExperimentalJobCard from './experimental/ExperimentalJobCard';
+import ExperimentalJobCard from './JobCard';
 import StandardJobCard from './standard/StandardJobCard';
 import SearchBar from './search/SearchBar';
 import FilterSection from './filters/FilterSection';

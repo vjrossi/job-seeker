@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { JobApplication } from '../JobApplicationTracker';
+import { JobApplication } from './JobApplicationTracker';
 import { Badge } from 'react-bootstrap';
 import { 
   FaPencilAlt,
@@ -13,14 +13,14 @@ import {
   FaHistory,
   FaChevronDown 
 } from 'react-icons/fa';
-import { ApplicationStatus } from '../../constants/ApplicationStatus';
-import { getNextStatuses } from '../../constants/applicationStatusMachine';
-import './ExperimentalJobCard.css';
-import InterviewDetailsModal, { InterviewLocationType } from '../InterviewDetailsModal';
-import StarRating from '../shared/StarRating';
-import ConfirmationModal from '../ConfirmationModal';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { getNextStatuses } from '../constants/applicationStatusMachine';
+import './JobCard.css';
+import InterviewDetailsModal, { InterviewLocationType } from './InterviewDetailsModal';
+import StarRating from './shared/StarRating';
+import ConfirmationModal from './ConfirmationModal';
 
-interface ExperimentalJobCardProps {
+interface JobCardProps {
   application: JobApplication;
   onEdit: (application: JobApplication) => void;
   onDelete: (id: number) => void;
@@ -216,7 +216,7 @@ const DropdownPortal: React.FC<DropdownPortalProps> = ({
   );
 };
 
-const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
+const ExperimentalJobCard: React.FC<JobCardProps> = ({
   application,
   onEdit,
   onDelete,
@@ -292,7 +292,7 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
   return (
     <>
       <div 
-        className={`experimental-card ${isExpanded ? 'actions-visible' : ''}`}
+        className={`job-card ${isExpanded ? 'actions-visible' : ''}`}
         onClick={handleCardClick}
       >
         <div className="card-header">

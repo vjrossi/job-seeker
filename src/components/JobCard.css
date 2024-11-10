@@ -1,4 +1,4 @@
-.experimental-card {
+.job-card {
   background: linear-gradient(145deg, #ffffff, #f0f7ff);
   border-radius: 16px;
   box-shadow: 
@@ -13,7 +13,7 @@
   overflow: visible !important;
 }
 
-.experimental-card:hover {
+.job-card:hover {
   transform: translateY(-2px);
   background: linear-gradient(145deg, #ffffff, #e8f2ff);
   box-shadow: 
@@ -22,14 +22,14 @@
     0 16px 32px rgba(37, 99, 235, 0.08);
 }
 
-.experimental-card .card-header {
+.job-card .card-header {
   display: flex;
   justify-content: space-between;
   align-items: stretch;
   margin-bottom: 0.5rem;
 }
 
-.experimental-card .card-header .header-content {
+.job-card .card-header .header-content {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -37,7 +37,7 @@
   margin-right: 1rem;
 }
 
-.experimental-card .company-name {
+.job-card .company-name {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -46,7 +46,7 @@
   line-height: 1.2;
 }
 
-.experimental-card .job-title {
+.job-card .job-title {
   font-size: 1.1rem;
   color: #4a5568;
   margin: 0 0 0.75rem 0;
@@ -55,7 +55,7 @@
   opacity: 0.9;
 }
 
-.experimental-card .interview-details {
+.job-card .interview-details {
   background: linear-gradient(to right, #f8fafc, #f1f5f9);
   padding: 1.5rem;
   border-radius: 16px;
@@ -64,20 +64,20 @@
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
-.experimental-card .interview-details h4 {
+.job-card .interview-details h4 {
   font-size: 0.9rem;
   color: #666;
-  margin-bottom: -0.25rem;
+  margin-bottom: 1rem;
 }
 
-.experimental-card .datetime {
+.job-card .datetime {
   display: flex;
   gap: 1rem;
   font-size: 1.1rem;
   font-weight: 500;
 }
 
-.experimental-card .card-actions {
+.job-card .card-actions {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
@@ -90,7 +90,7 @@
   overflow: visible !important;
 }
 
-.experimental-card.actions-visible .card-actions {
+.job-card.actions-visible .card-actions {
   opacity: 1;
   visibility: visible;
   height: auto;
@@ -104,7 +104,7 @@
   flex-shrink: 0;
 }
 
-.experimental-card .status-badge {
+.job-card .status-badge {
   padding: 0.75rem 1.25rem;
   border-radius: 12px;
   font-weight: 600;
@@ -128,7 +128,7 @@
   background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.95));
 }
 
-.experimental-card .status-badge:hover {
+.job-card .status-badge:hover {
   transform: translateY(-1px);
 }
 
@@ -136,13 +136,13 @@
   display: none !important;
 }
 
-.experimental-card .datetime-container {
+.job-card .datetime-container {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.experimental-card .datetime-row {
+.job-card .datetime-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -150,23 +150,23 @@
   font-weight: 500;
 }
 
-.experimental-card .datetime-icon {
+.job-card .datetime-icon {
   color: #666;
   font-size: 1rem;
   min-width: 1rem;
 }
 
-.experimental-card .date,
-.experimental-card .time,
-.experimental-card .location {
+.job-card .date,
+.job-card .time,
+.job-card .location {
   color: #333;
 }
 
-.experimental-card .location {
+.job-card .location {
   word-break: break-word;
 }
 
-.experimental-card .time-since {
+.job-card .time-since {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -175,15 +175,15 @@
   transition: color 0.2s ease;
 }
 
-.experimental-card .time-since:hover {
+.job-card .time-since:hover {
   color: #333;
 }
 
-.experimental-card .time-since-icon {
+.job-card .time-since-icon {
   font-size: 0.9rem;
 }
 
-.experimental-card .card-actions button {
+.job-card .card-actions button {
   padding: 0.5rem;
   border-radius: 10px;
   transition: all 0.2s ease;
@@ -191,7 +191,7 @@
   background: rgba(37, 99, 235, 0.05);
 }
 
-.experimental-card .card-actions button:hover {
+.job-card .card-actions button:hover {
   background: rgba(37, 99, 235, 0.1);
   color: #1e40af;
   transform: scale(1.1);
@@ -222,16 +222,16 @@
   right: -8px;
 }
 
-.experimental-card:hover .indicator-line {
+.job-card:hover .indicator-line {
   background-color: rgba(37, 99, 235, 0.5);
 }
 
-.experimental-card .right-actions .dropdown {
+.job-card .right-actions .dropdown {
   position: relative;
   display: inline-block;
 }
 
-.experimental-card .dropdown-menu {
+.job-card .dropdown-menu {
   position: absolute;
   right: 0;
   top: calc(100% + 5px);
@@ -244,7 +244,7 @@
   display: none;
 }
 
-.experimental-card .dropdown-menu.show {
+.job-card .dropdown-menu.show {
   display: block !important;
   position: absolute;
   right: 0;
@@ -253,7 +253,7 @@
   z-index: 99999;
 }
 
-.experimental-card .dropdown-menu button.dropdown-item {
+.job-card .dropdown-menu button.dropdown-item {
   width: 100%;
   text-align: left;
   padding: 8px 16px;
@@ -264,11 +264,11 @@
   line-height: 1.4;
 }
 
-.experimental-card .dropdown-menu button.dropdown-item:hover {
+.job-card .dropdown-menu button.dropdown-item:hover {
   background-color: #f8f9fa;
 }
 
-.experimental-card .dropdown-menu .dropdown-header {
+.job-card .dropdown-menu .dropdown-header {
   padding: 8px 16px;
   color: #666;
   font-size: 0.9rem;
@@ -277,17 +277,17 @@
   margin-bottom: 4px;
 }
 
-.experimental-card .right-actions {
+.job-card .right-actions {
   position: relative;
   overflow: visible !important;
   z-index: 1000;
 }
 
-.experimental-card .dropdown-toggle {
+.job-card .dropdown-toggle {
   cursor: pointer;
 }
 
-.experimental-card .dropdown-toggle.btn-link {
+.job-card .dropdown-toggle.btn-link {
   padding: 0.25rem;
   color: #666;
   display: flex;
@@ -295,8 +295,8 @@
   justify-content: center;
 }
 
-.experimental-card .dropdown-toggle.btn-link:hover,
-.experimental-card .dropdown-toggle.btn-link:focus {
+.job-card .dropdown-toggle.btn-link:hover,
+.job-card .dropdown-toggle.btn-link:focus {
   color: #333;
   text-decoration: none;
 }
@@ -305,28 +305,28 @@
   z-index: 9999;
 }
 
-.experimental-card .dropdown-container {
+.job-card .dropdown-container {
   position: relative;
   display: inline-block;
 }
 
-.experimental-card {
+.job-card {
   overflow: visible !important;
 }
 
-.experimental-card .right-actions {
+.job-card .right-actions {
   position: relative;
   overflow: visible !important;
 }
 
-.experimental-card .status-section {
+.job-card .status-section {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.5rem;
 }
 
-.experimental-card .info-row {
+.job-card .info-row {
   display: flex;
   align-items: center;
   justify-content: flex-end;
