@@ -320,9 +320,8 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '8px 16px',
                 fontSize: '0.85rem',
-                lineHeight: '1.6'
+                lineHeight: '1.2'
               }}
             >
               {formatStatus(currentStatus, application.statusHistory)}
@@ -346,14 +345,13 @@ const ExperimentalJobCard: React.FC<ExperimentalJobCardProps> = ({
                   cursor: 'pointer', 
                   display: 'flex', 
                   alignItems: 'center',
-                  marginBottom: '0.25rem'
                 }}
               >
                 <span>UPCOMING INTERVIEW</span>
                 <FaChevronDown 
                   size={12} 
                   style={{ 
-                    marginLeft: '4px',
+                    marginLeft: '1rem',
                     transform: interviewDetailsExpanded ? 'rotate(180deg)' : 'none',
                     transition: 'transform 0.2s ease'
                   }} 

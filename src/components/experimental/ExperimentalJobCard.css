@@ -67,7 +67,7 @@
 .experimental-card .interview-details h4 {
   font-size: 0.9rem;
   color: #666;
-  margin-bottom: 0.5rem;
+  margin-bottom: -0.25rem;
 }
 
 .experimental-card .datetime {
@@ -132,7 +132,6 @@
   transform: translateY(-1px);
 }
 
-/* Add this to hide the dropdown arrow */
 .dropdown-toggle::after {
   display: none !important;
 }
@@ -184,7 +183,6 @@
   font-size: 0.9rem;
 }
 
-/* Add this to ensure all buttons have consistent height */
 .experimental-card .card-actions button {
   padding: 0.5rem;
   border-radius: 10px;
@@ -228,13 +226,11 @@
   background-color: rgba(37, 99, 235, 0.5);
 }
 
-/* Ensure the dropdown container is positioned relatively */
 .experimental-card .right-actions .dropdown {
   position: relative;
   display: inline-block;
 }
 
-/* Style the dropdown menu */
 .experimental-card .dropdown-menu {
   position: absolute;
   right: 0;
@@ -257,7 +253,6 @@
   z-index: 99999;
 }
 
-/* Style dropdown items */
 .experimental-card .dropdown-menu button.dropdown-item {
   width: 100%;
   text-align: left;
@@ -282,19 +277,16 @@
   margin-bottom: 4px;
 }
 
-/* Ensure the dropdown container stays above other elements */
 .experimental-card .right-actions {
   position: relative;
   overflow: visible !important;
   z-index: 1000;
 }
 
-/* Ensure the dropdown toggle button looks clickable */
 .experimental-card .dropdown-toggle {
   cursor: pointer;
 }
 
-/* Add these specific styles for the DropdownButton */
 .experimental-card .dropdown-toggle.btn-link {
   padding: 0.25rem;
   color: #666;
@@ -309,23 +301,19 @@
   text-decoration: none;
 }
 
-/* Ensure dropdown menu appears above other elements */
 .dropdown-menu.show {
   z-index: 9999;
 }
 
-/* Remove any conflicting dropdown styles and add these */
 .experimental-card .dropdown-container {
   position: relative;
   display: inline-block;
 }
 
-/* Ensure the card doesn't hide overflow */
 .experimental-card {
   overflow: visible !important;
 }
 
-/* Ensure right-actions container doesn't clip */
 .experimental-card .right-actions {
   position: relative;
   overflow: visible !important;
