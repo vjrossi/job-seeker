@@ -5,7 +5,7 @@ import { Button, Modal } from 'react-bootstrap';
 import './ViewApplications.css';
 import { devIndexedDBService } from '../services/devIndexedDBService';
 import Toast from './Toast';
-import ExperimentalJobCard from './JobCard';
+import JobCard from './JobCard';
 import StandardJobCard from './standard/StandardJobCard';
 import SearchBar from './search/SearchBar';
 import FilterSection from './filters/FilterSection';
@@ -165,7 +165,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     };
 
     return layoutType === 'experimental' ? (
-      <ExperimentalJobCard
+      <JobCard
         key={application.id}
         {...props}
         expandedId={expandedCardId}

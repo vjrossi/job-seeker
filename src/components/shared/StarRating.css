@@ -1,8 +1,6 @@
 .star-rating {
   display: inline-flex;
   gap: 2px;
-  padding-top: 0.5rem;
-  padding-bottom: 0.25rem;
 }
 
 .star-rating .star {
