@@ -1,5 +1,5 @@
 import React from 'react';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 interface StaleCardProps {

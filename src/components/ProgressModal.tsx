@@ -1,5 +1,5 @@
 import React from 'react';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 

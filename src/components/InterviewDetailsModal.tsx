@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 
-export type InterviewLocationType = 'Zoom' | 'Teams' | 'Phone' | 'In Person' | 'Other';
+export enum InterviewLocationType {
+    Remote = 'remote',
+    InPerson = 'in-person',
+    Phone = 'phone',
+    Video = 'video'
+}
 
 export const InterviewLocationTypes = {
   Zoom: 'Zoom' as InterviewLocationType,

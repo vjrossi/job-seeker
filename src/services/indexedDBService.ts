@@ -1,4 +1,4 @@
-import { JobApplication } from '../components/JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 
 const DB_NAME = 'ZynergyDB';
 const STORE_NAME = 'applications';

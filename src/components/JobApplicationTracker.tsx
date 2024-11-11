@@ -15,25 +15,7 @@ import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { Modal } from 'react-bootstrap';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { InterviewLocationType } from './InterviewDetailsModal';
-
-export interface JobApplication {
-    id: number;
-    companyName: string;
-    jobTitle: string;
-    jobDescription: string;
-    applicationMethod: string;
-    rating: number;
-    statusHistory: {
-        status: ApplicationStatus;
-        timestamp: string;
-        interviewDateTime?: string;
-        interviewLocation?: string;
-        interviewType?: InterviewLocationType;
-    }[];
-    interviewDateTime?: string;
-    interviewLocation?: string;
-    archived?: boolean;
-}
+import { JobApplication } from '../types/JobApplication';
 
 interface JobApplicationTrackerProps {
     currentView: 'dashboard' | 'view' | 'reports';

@@ -1,8 +1,8 @@
 import React from 'react';
-import { JobApplication } from './JobApplicationTracker';
 import Timeline from './Timeline';
 import { ApplicationStatus, ACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import './Dashboard.css';
+import { JobApplication } from '../types/JobApplication';
 
 interface DashboardProps {
   applications: JobApplication[];

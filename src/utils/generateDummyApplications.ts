@@ -1,6 +1,6 @@
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
-import { JobApplication } from '../components/JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { InterviewLocationType } from '../components/InterviewDetailsModal';
 

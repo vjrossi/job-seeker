@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { Button, Modal } from 'react-bootstrap';
 import './ViewApplications.css';

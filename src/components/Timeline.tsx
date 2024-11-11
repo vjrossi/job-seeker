@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import './Timeline.css';
 import ProgressModal from './ProgressModal';
@@ -84,7 +84,7 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
         {Object.entries(groupedApplications).length === 0 ? (
           <p className="no-applications-message">No job applications yet. Start by adding your first application!</p>
         ) : (
-          Object.entries(groupedApplications).map(([month, apps]) => (
+          Object.entries(groupedApplications).map(([month, apps]: [string, JobApplication[]]) => (
             <div key={month} className="timeline-month-group">
               <div 
                 className={`timeline-month-header ${expandedMonths.includes(month) ? 'expanded' : ''}`} 

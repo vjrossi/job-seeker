@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import JobApplicationForm from './JobApplicationForm';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 describe('JobApplicationForm', () => {

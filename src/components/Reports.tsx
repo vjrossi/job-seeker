@@ -1,5 +1,5 @@
 import React from 'react';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
@@ -45,7 +45,10 @@ const Reports: React.FC<ReportsProps> = ({ applications }) => {
   // Calculate response rate
   const responseRate = () => {
     const responded = applications.filter(app => 
-      app.statusHistory.some(status => status.status !== ApplicationStatus.Applied && status.status !== ApplicationStatus.NoResponse)
+      app.statusHistory.some((status: { status: ApplicationStatus }) => 
+        status.status !== ApplicationStatus.Applied && 
+        status.status !== ApplicationStatus.NoResponse
+      )
     ).length;
     return (responded / applications.length) * 100;
   };

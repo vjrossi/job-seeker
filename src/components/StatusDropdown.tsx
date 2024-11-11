@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 
 interface StatusDropdownProps {
   isOpen: boolean;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { FaStar } from 'react-icons/fa';
@@ -37,11 +37,11 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setLocalFormData(prev => ({ ...prev, [name]: value }));
+        setLocalFormData((prev: Partial<JobApplication>) => ({ ...prev, [name]: value }));
     };
 
     const handleRatingChange = (rating: number) => {
-        setLocalFormData(prev => ({ ...prev, rating }));
+        setLocalFormData((prev: Partial<JobApplication>) => ({ ...prev, rating }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {

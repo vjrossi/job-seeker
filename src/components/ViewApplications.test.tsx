@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import ViewApplications from './ViewApplications';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 
 describe('ViewApplications', () => {
   const mockApplications: JobApplication[] = [

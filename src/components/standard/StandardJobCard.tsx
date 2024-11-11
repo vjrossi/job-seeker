@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FaTrashAlt } from 'react-icons/fa';
-import { JobApplication } from '../JobApplicationTracker';
+import { JobApplication } from '../../types/JobApplication';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
 import { getStatusSequence } from '../../constants/applicationStatusMachine';
 import { METHOD_ICONS } from '../../constants/standardApplicationMethods';

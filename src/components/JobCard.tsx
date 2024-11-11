@@ -6,7 +6,7 @@ import InterviewDetailsModal, { InterviewLocationType } from './InterviewDetails
 import ConfirmationModal from './ConfirmationModal';
 import StatusDropdown from './StatusDropdown';
 import InterviewDetails from './InterviewDetails';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import CardHeader from './JobCard/CardHeader';
 import CardActions from './JobCard/CardActions';
 

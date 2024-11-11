@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { JobApplication } from './JobApplicationTracker';
+import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { FaStar } from 'react-icons/fa';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
@@ -27,7 +27,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { target: { name: string; value: number } }) => {
     const { name, value } = e.target;
     
-    setFormData(prev => {
+    setFormData((prev: JobApplication) => {
       const updatedData = { ...prev };
       
       if (name === 'currentStatus') {
