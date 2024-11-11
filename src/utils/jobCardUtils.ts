@@ -3,19 +3,23 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 export const getStatusStyle = (status: ApplicationStatus) => {
   switch(status) {
     case ApplicationStatus.Applied:
-      return { color: '#1565c0', borderColor: '#1565c0' };
+      return { color: '#2196f3', borderColor: '#2196f3' };
+    case ApplicationStatus.ApplicationReceived:
+      return { color: '#689f38', borderColor: '#689f38' };
     case ApplicationStatus.InterviewScheduled:
-      return { color: '#2e7d32', borderColor: '#2e7d32' };
+      return { color: '#4caf50', borderColor: '#4caf50' };
     case ApplicationStatus.OfferReceived:
-      return { color: '#1b5e20', borderColor: '#1b5e20' };
+      return { color: '#ff9800', borderColor: '#ff9800' };
     case ApplicationStatus.OfferAccepted:
-      return { color: '#1b5e20', borderColor: '#1b5e20' };
-    case ApplicationStatus.NoResponse:
-      return { color: '#616161', borderColor: '#616161' };
+      return { color: '#00acc1', borderColor: '#00acc1' };
+    case ApplicationStatus.OfferDeclined:
+      return { color: '#9c27b0', borderColor: '#9c27b0' };
     case ApplicationStatus.NotAccepted:
-      return { color: '#c62828', borderColor: '#c62828' };
+      return { color: '#f44336', borderColor: '#f44336' };
     case ApplicationStatus.Withdrawn:
-      return { color: '#424242', borderColor: '#424242' };
+      return { color: '#795548', borderColor: '#795548' };
+    case ApplicationStatus.NoResponse:
+      return { color: '#c2185b', borderColor: '#c2185b' };
     default:
       return { color: '#424242', borderColor: '#424242' };
   }
@@ -23,6 +27,8 @@ export const getStatusStyle = (status: ApplicationStatus) => {
 
 export const formatStatus = (status: ApplicationStatus, history: { status: ApplicationStatus; timestamp: string }[]): string => {
   switch(status) {
+    case ApplicationStatus.ApplicationReceived:
+      return 'Application Received';
     case ApplicationStatus.InterviewScheduled: {
       const interviewCount = history.filter(h => h.status === ApplicationStatus.InterviewScheduled).length;
       const interviewNumber = ['First', 'Second', 'Third', 'Fourth', 'Fifth'][interviewCount - 1] || `${interviewCount}th`;
@@ -32,6 +38,16 @@ export const formatStatus = (status: ApplicationStatus, history: { status: Appli
       return 'Not Accepted';
     case ApplicationStatus.NoResponse:
       return 'No Response';
+    case ApplicationStatus.OfferReceived:
+      return 'Offer Received';
+    case ApplicationStatus.OfferAccepted:
+      return 'Offer Accepted';
+    case ApplicationStatus.OfferDeclined:
+      return 'Offer Declined';
+    case ApplicationStatus.Withdrawn:
+      return 'Withdrawn';
+    case ApplicationStatus.Applied:
+      return 'Applied';
     default:
       return status;
   }

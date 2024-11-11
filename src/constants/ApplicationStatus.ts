@@ -15,6 +15,12 @@ type StatusTransitions = {
 };
 
 export const statusTransitions: StatusTransitions = {
+    [ApplicationStatus.ApplicationReceived]: [
+        ApplicationStatus.Applied,
+        ApplicationStatus.NoResponse,
+        ApplicationStatus.NotAccepted,
+        ApplicationStatus.Withdrawn
+    ],
     [ApplicationStatus.Applied]: [
         ApplicationStatus.InterviewScheduled,
         ApplicationStatus.NoResponse,
