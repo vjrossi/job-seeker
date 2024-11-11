@@ -4,7 +4,7 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { Button, Modal } from 'react-bootstrap';
 import './ViewApplications.css';
 import { devIndexedDBService } from '../services/devIndexedDBService';
-import Toast from './Toast';
+import Toast from './shared/Toast';
 import JobCard from './JobCard/JobCard';
 import StandardJobCard from './standard/StandardJobCard';
 import SearchBar from './search/SearchBar';

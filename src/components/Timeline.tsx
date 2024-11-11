@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { JobApplication } from '../types/JobApplication';
-import { ApplicationStatus, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
+import { ApplicationStatus, INACTIVE_STATUSES, getNextStatuses } from '../constants/ApplicationStatus';
 import './Timeline.css';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import ProgressModal from './modals/ProgressModal';
+import StatusDropdown from './StatusDropdown';
 
 interface TimelineProps {
   applications: JobApplication[];
@@ -13,9 +13,9 @@ interface TimelineProps {
 
 const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, onStatusChange }) => {
   const [isRecentFirst, setIsRecentFirst] = useState(true);
-  const [showProgressModal, setShowProgressModal] = useState(false);
-  const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -41,14 +41,6 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
       month: '2-digit',
       year: 'numeric'
     });
-  };
-
-  const handleProgressConfirm = (newStatus: ApplicationStatus) => {
-    if (selectedApplication) {
-      onStatusChange(selectedApplication.id, newStatus);
-    }
-    setShowProgressModal(false);
-    setSelectedApplication(null);
   };
 
   const toggleMonth = (month: string) => {
@@ -99,6 +91,7 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
                 {apps.map((app) => {
                   const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
                   const inactive = INACTIVE_STATUSES.includes(currentStatus);
+                  const nextStatuses = getNextStatuses(currentStatus);
 
                   return (
                     <div key={app.id} className={`timeline-item ${inactive ? 'inactive' : ''}`}>
@@ -128,6 +121,23 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
                           </button>
                         </div>
                       </div>
+                      <div className="status-step">
+                        <StatusDropdown
+                          isOpen={dropdownOpen === app.id}
+                          onClose={() => setDropdownOpen(null)}
+                          buttonRef={buttonRef}
+                          nextStatuses={nextStatuses}
+                          onStatusChange={(status) => {
+                            onStatusChange(app.id, status);
+                            setDropdownOpen(null);
+                          }}
+                          onInterviewSchedule={(status) => {
+                            onStatusChange(app.id, status);
+                            setDropdownOpen(null);
+                          }}
+                          application={app}
+                        />
+                      </div>
                     </div>
                   );
                 })}
@@ -136,13 +146,6 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
           ))
         )}
       </div>
-      {showProgressModal && selectedApplication && (
-        <ProgressModal
-          application={selectedApplication}
-          onClose={() => setShowProgressModal(false)}
-          onConfirm={(newStatus: string) => handleProgressConfirm(newStatus as ApplicationStatus)}
-        />
-      )}
     </div>
   );
 };

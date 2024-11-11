@@ -3,7 +3,7 @@ import JobApplicationForm from './JobApplicationForm';
 import ViewApplications from './ViewApplications';
 import Dashboard from './Dashboard';
 
-import Toast from './Toast';
+import Toast from './shared/Toast';
 import { indexedDBService } from '../services/indexedDBService';
 import { devIndexedDBService } from '../services/devIndexedDBService';
 import { generateDummyApplications } from '../utils/generateDummyApplications';
