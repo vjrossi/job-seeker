@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './InterviewScheduleModal.css';
-import { ApplicationStatus } from '../constants/ApplicationStatus';
-import { getNextStatuses } from '../constants/applicationStatusMachine';
+import { ApplicationStatus, getNextStatuses } from '../../constants/ApplicationStatus';
 
 interface InterviewScheduleModalProps {
     show: boolean;

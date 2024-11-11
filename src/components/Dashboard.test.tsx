@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/extend-expect';
 import Dashboard from './Dashboard';
 import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
-import { InterviewLocationType } from '../components/InterviewDetailsModal';
+import { InterviewLocationType } from './modals/InterviewDetailsModal';
 
 describe('Dashboard', () => {
     const mockOnViewApplication = jest.fn();

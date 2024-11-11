@@ -3,7 +3,7 @@ import { Container, Navbar, Nav, Button, OverlayTrigger, Tooltip } from 'react-b
 import './App.css';
 import MainContent from './components/MainContent';
 import Footer from './components/Footer';
-import ConfirmationModal from './components/ConfirmationModal';
+import ConfirmationModal from './components/modals/ConfirmationModal';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useLocalStorage } from './hooks/useLocalStorage';
 

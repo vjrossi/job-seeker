@@ -1,5 +1,5 @@
 import { ApplicationStatus } from '../constants/ApplicationStatus';
-import { InterviewLocationType } from '../components/InterviewDetailsModal';
+import { InterviewLocationType } from '../components/modals/InterviewDetailsModal';
 
 export interface JobApplication {
     id: number;

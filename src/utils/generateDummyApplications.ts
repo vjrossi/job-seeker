@@ -2,7 +2,7 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { JobApplication } from '../types/JobApplication';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
-import { InterviewLocationType } from '../components/InterviewDetailsModal';
+import { InterviewLocationType } from '../components/modals/InterviewDetailsModal';
 
 const generateRandomDate = (start: Date, end: Date): Date => {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
 import './Timeline.css';
-import ProgressModal from './ProgressModal';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import ProgressModal from './modals/ProgressModal';
 
 interface TimelineProps {
   applications: JobApplication[];

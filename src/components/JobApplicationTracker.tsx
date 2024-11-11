@@ -9,12 +9,11 @@ import { devIndexedDBService } from '../services/devIndexedDBService';
 import { generateDummyApplications } from '../utils/generateDummyApplications';
 import Reports from './Reports';
 import ViewEditApplicationForm from './ViewEditApplicationForm';
-import InterviewScheduleModal from './InterviewScheduleModal';
-import { ApplicationStatus } from '../constants/ApplicationStatus';
-import { getNextStatuses } from '../constants/applicationStatusMachine';
+import InterviewScheduleModal from './modals/InterviewScheduleModal';
+import { ApplicationStatus, getNextStatuses } from '../constants/ApplicationStatus';
 import { Modal } from 'react-bootstrap';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
-import { InterviewLocationType } from './InterviewDetailsModal';
+import { InterviewLocationType } from './modals/InterviewDetailsModal';
 import { JobApplication } from '../types/JobApplication';
 
 interface JobApplicationTrackerProps {

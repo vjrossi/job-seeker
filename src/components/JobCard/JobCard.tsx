@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ApplicationStatus } from '../constants/ApplicationStatus';
-import { getNextStatuses } from '../constants/applicationStatusMachine';
+import { ApplicationStatus } from '../../constants/ApplicationStatus';
+import { getNextStatuses } from '../../constants/applicationStatusMachine';
 import './JobCard.css';
-import InterviewDetailsModal, { InterviewLocationType } from './InterviewDetailsModal';
-import ConfirmationModal from './ConfirmationModal';
-import StatusDropdown from './StatusDropdown';
-import InterviewDetails from './InterviewDetails';
-import { JobApplication } from '../types/JobApplication';
-import CardHeader from './JobCard/CardHeader';
-import CardActions from './JobCard/CardActions';
+import InterviewDetailsModal, { InterviewLocationType } from '../modals/InterviewDetailsModal';
+import ConfirmationModal from '../modals/ConfirmationModal';
+import StatusDropdown from '../StatusDropdown';
+import InterviewDetails from '../InterviewDetails';
+import { JobApplication } from '../../types/JobApplication';
+import CardHeader from './CardHeader';
+import CardActions from './CardActions';
 
 interface JobCardProps {
   application: JobApplication;

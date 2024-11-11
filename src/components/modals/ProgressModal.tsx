@@ -1,7 +1,6 @@
 import React from 'react';
-import { JobApplication } from '../types/JobApplication';
-import { getNextStatuses } from '../constants/applicationStatusMachine';
-import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { ApplicationStatus, getNextStatuses } from '../../constants/ApplicationStatus';
+import { JobApplication } from '../../types/JobApplication';
 
 interface ProgressModalProps {
   application: JobApplication;
