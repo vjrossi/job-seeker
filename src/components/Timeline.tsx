@@ -43,11 +43,6 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
     });
   };
 
-  const handleProgressClick = (app: JobApplication) => {
-    setSelectedApplication(app);
-    setShowProgressModal(true);
-  };
-
   const handleProgressConfirm = (newStatus: ApplicationStatus) => {
     if (selectedApplication) {
       onStatusChange(selectedApplication.id, newStatus);
