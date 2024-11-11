@@ -6,9 +6,14 @@ const DEV_DB_VERSION = 1;
 
 class DevIndexedDBService {
   private db: IDBDatabase | null = null;
+  private initPromise: Promise<void> | null = null;
 
   async initDB(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    this.initPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DEV_DB_NAME, DEV_DB_VERSION);
 
       request.onerror = () => reject(request.error);
@@ -19,17 +24,23 @@ class DevIndexedDBService {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        db.createObjectStore(DEV_STORE_NAME, { keyPath: 'id' });
+        if (!db.objectStoreNames.contains(DEV_STORE_NAME)) {
+          db.createObjectStore(DEV_STORE_NAME, { keyPath: 'id' });
+        }
       };
     });
+
+    return this.initPromise;
   }
 
-  // Implement the same methods as in the original indexedDBService
-  // (addApplication, getAllApplications, updateApplication, etc.)
-  // but use DEV_STORE_NAME instead of STORE_NAME
+  private async ensureDB(): Promise<void> {
+    if (!this.db) {
+      await this.initDB();
+    }
+  }
 
   async clearAllApplications(): Promise<void> {
-    if (!this.db) await this.initDB();
+    await this.ensureDB();
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([DEV_STORE_NAME], 'readwrite');
@@ -42,7 +53,7 @@ class DevIndexedDBService {
   }
 
   async getAllApplications(): Promise<JobApplication[]> {
-    if (!this.db) await this.initDB();
+    await this.ensureDB();
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([DEV_STORE_NAME], 'readonly');
@@ -55,7 +66,7 @@ class DevIndexedDBService {
   }
 
   async addApplication(application: JobApplication): Promise<void> {
-    if (!this.db) await this.initDB();
+    await this.ensureDB();
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([DEV_STORE_NAME], 'readwrite');
@@ -68,7 +79,7 @@ class DevIndexedDBService {
   }
 
   async updateApplication(application: JobApplication): Promise<void> {
-    if (!this.db) await this.initDB();
+    await this.ensureDB();
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([DEV_STORE_NAME], 'readwrite');
@@ -81,7 +92,7 @@ class DevIndexedDBService {
   }
 
   async deleteApplication(id: number): Promise<void> {
-    if (!this.db) await this.initDB();
+    await this.ensureDB();
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([DEV_STORE_NAME], 'readwrite');

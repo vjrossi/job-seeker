@@ -32,6 +32,7 @@ export interface JobApplication {
     }[];
     interviewDateTime?: string;
     interviewLocation?: string;
+    archived?: boolean;
 }
 
 interface JobApplicationTrackerProps {
@@ -87,11 +88,28 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
     const loadApplications = useCallback(async () => {
         try {
-            let apps = await (isDev ? devIndexedDBService : indexedDBService).getAllApplications();
-            if (apps.length === 0 && isDev) {
-                apps = generateDummyApplications(10, noResponseDays);
-                await Promise.all(apps.map(app => devIndexedDBService.addApplication(app)));
+            let apps: JobApplication[] = [];
+            
+            if (isDev) {
+                apps = await devIndexedDBService.getAllApplications();
+                
+                if (apps.length === 0) {
+                    const dummyApps = generateDummyApplications(10, noResponseDays);
+                    try {
+                        await devIndexedDBService.clearAllApplications();
+                        for (const app of dummyApps) {
+                            await devIndexedDBService.addApplication(app);
+                        }
+                        apps = await devIndexedDBService.getAllApplications();
+                    } catch (error) {
+                        console.error('Error adding dummy applications:', error);
+                        showToast('Failed to add dummy applications. Please try again.', 'error');
+                    }
+                }
+            } else {
+                apps = await indexedDBService.getAllApplications();
             }
+            
             setApplications(apps);
         } catch (error) {
             console.error('Error loading applications:', error);
@@ -101,7 +119,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
     useEffect(() => {
         loadApplications();
-    }, [loadApplications]);
+    }, [loadApplications, isDev]);
 
     const filterApplications = useCallback(() => {
         let filtered = applications;
@@ -315,10 +333,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         try {
             const updatedApplication = applications.find(app => app.id === id);
             if (updatedApplication) {
-                updatedApplication.statusHistory.push({
-                    status: ApplicationStatus.Archived,
-                    timestamp: new Date().toISOString()
-                });
+                updatedApplication.archived = true;
                 await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
                 showToast('Application archived.', 'success');
@@ -390,6 +405,21 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         setShowAddForm(false);
         setEditingApplication(null);
     }, [currentView, setIsFormDirty]);
+
+    const handleUnarchive = async (id: number) => {
+        try {
+            const updatedApplication = applications.find(app => app.id === id);
+            if (updatedApplication) {
+                updatedApplication.archived = false;
+                await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
+                setApplications(applications.map(app => app.id === id ? updatedApplication : app));
+                showToast('Application unarchived.', 'success');
+            }
+        } catch (error) {
+            console.error('Error unarchiving application:', error);
+            showToast('Failed to unarchive application. Please try again.', 'error');
+        }
+    };
 
     return (
         <div className="mt-4">

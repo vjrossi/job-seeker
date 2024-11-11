@@ -11,12 +11,11 @@ interface ProgressModalProps {
 
 const statusToQuestionMap: { [key in ApplicationStatus]?: string } = {
   [ApplicationStatus.InterviewScheduled]: 'I got an interview!',
-  [ApplicationStatus.NotAccepted]: 'I wasn\'t accepted for the next stage',
+  [ApplicationStatus.NotAccepted]: 'I wasn\'t accepted',
   [ApplicationStatus.OfferReceived]: 'I received a job offer!',
   [ApplicationStatus.OfferAccepted]: 'I accepted the job offer!',
   [ApplicationStatus.OfferDeclined]: 'I declined the job offer',
-  [ApplicationStatus.Withdrawn]: 'I have decided to withdraw my application',
-  [ApplicationStatus.Archived]: 'I want to archive this application'
+  [ApplicationStatus.Withdrawn]: 'I have decided to withdraw my application'
 };
 
 const ProgressModal: React.FC<ProgressModalProps> = ({ application, onClose, onConfirm }) => {

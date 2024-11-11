@@ -27,7 +27,6 @@ const Timeline: React.FC<TimelineProps> = ({ applications, onViewApplication, on
       case ApplicationStatus.OfferAccepted: return '#808080';
       case ApplicationStatus.OfferDeclined: return '#808080';
       case ApplicationStatus.Withdrawn: return '#808080';
-      case ApplicationStatus.Archived: return '#808080';
       default: return '#8884D8';
     }
   };

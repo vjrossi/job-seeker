@@ -5,10 +5,10 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 interface StaleCardProps {
   applications: JobApplication[];
   onViewApplication: (id: number) => void;
-  onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
+  onArchive: (id: number) => void;
 }
 
-const StaleCard: React.FC<StaleCardProps> = ({ applications, onViewApplication, onStatusChange }) => {
+const StaleCard: React.FC<StaleCardProps> = ({ applications, onViewApplication, onArchive }) => {
   if (applications.length === 0) return null;
 
   return (
@@ -29,7 +29,7 @@ const StaleCard: React.FC<StaleCardProps> = ({ applications, onViewApplication, 
               </button>
               <button 
                 className="btn btn-sm btn-outline-success" 
-                onClick={() => onStatusChange(app.id, ApplicationStatus.Archived)}
+                onClick={() => onArchive(app.id)}
               >
                 Archive
               </button>

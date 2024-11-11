@@ -64,7 +64,7 @@ const StandardJobCard: React.FC<StandardJobCardProps> = ({
             onRatingChange={(newRating) => onRatingChange(application.id, newRating)}
             size="medium"
           />
-          {currentStatus === ApplicationStatus.Archived ? (
+          {application.archived ? (
             <OverlayTrigger
               placement="top"
               show={tooltipVisibility[application.id]}

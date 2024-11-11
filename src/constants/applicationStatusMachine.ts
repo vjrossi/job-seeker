@@ -29,16 +29,15 @@ export const statusTransitions: StatusTransitions = {
     ApplicationStatus.NotAccepted,
     ApplicationStatus.Withdrawn
   ],
-  [ApplicationStatus.NotAccepted]: [ApplicationStatus.Archived],
+  [ApplicationStatus.NotAccepted]: [],
   [ApplicationStatus.OfferReceived]: [
     ApplicationStatus.OfferAccepted,
     ApplicationStatus.OfferDeclined,
     ApplicationStatus.Withdrawn
   ],
-  [ApplicationStatus.OfferAccepted]: [ApplicationStatus.Archived],
-  [ApplicationStatus.OfferDeclined]: [ApplicationStatus.Archived],
-  [ApplicationStatus.Withdrawn]: [ApplicationStatus.Archived],
-  [ApplicationStatus.Archived]: [],
+  [ApplicationStatus.OfferAccepted]: [],
+  [ApplicationStatus.OfferDeclined]: [],
+  [ApplicationStatus.Withdrawn]: []
 };
 
 export const getNextStatuses = (currentStatus: ApplicationStatus): ApplicationStatus[] => {
@@ -72,9 +71,6 @@ export const getStatusSequence = (currentStatus: ApplicationStatus): Application
     
     case ApplicationStatus.Withdrawn:
       return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.Withdrawn];
-    
-    case ApplicationStatus.Archived:
-      return [...commonPath, ApplicationStatus.ApplicationReceived, ApplicationStatus.Archived];
     
     default:
       return commonPath;

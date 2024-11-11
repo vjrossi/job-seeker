@@ -36,7 +36,6 @@ const StatusProgressDropdown: React.FC<StatusProgressDropdownProps> = ({
              nextStatus === ApplicationStatus.NoResponse ? "No Response" :
              nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted" :
              nextStatus === ApplicationStatus.Withdrawn ? "I have decided to withdraw my application" :
-             nextStatus === ApplicationStatus.Archived ? "I want to archive this application" :
              nextStatus}
           </Dropdown.Item>
         ))}

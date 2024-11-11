@@ -84,6 +84,7 @@ const JobCard: React.FC<JobCardProps> = ({
     <>
       <div 
         className={`job-card ${isExpanded ? 'actions-visible' : ''}`}
+        data-status={application.statusHistory[application.statusHistory.length - 1].status}
         onClick={handleCardClick}
       >
         <CardHeader

@@ -74,7 +74,7 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
         const matchesArchiveFilter = showArchived 
           ? true 
-          : currentStatus !== ApplicationStatus.Archived;
+          : !app.archived;
         
         return matchesSearch && matchesStatus && matchesArchiveFilter;
       })

@@ -7,8 +7,7 @@ export enum ApplicationStatus {
     OfferReceived = 'Offer Received',
     OfferAccepted = 'Offer Accepted',
     OfferDeclined = 'Offer Declined',
-    Withdrawn = 'Withdrawn',
-    Archived = 'Archived'
+    Withdrawn = 'Withdrawn'
 }
 
 type StatusTransitions = {
@@ -33,16 +32,15 @@ export const statusTransitions: StatusTransitions = {
         ApplicationStatus.NotAccepted,
         ApplicationStatus.Withdrawn
     ],
-    [ApplicationStatus.NotAccepted]: [ApplicationStatus.Archived],
+    [ApplicationStatus.NotAccepted]: [],
     [ApplicationStatus.OfferReceived]: [
         ApplicationStatus.OfferAccepted,
         ApplicationStatus.OfferDeclined,
         ApplicationStatus.Withdrawn
     ],
-    [ApplicationStatus.OfferAccepted]: [ApplicationStatus.Archived],
-    [ApplicationStatus.OfferDeclined]: [ApplicationStatus.Archived],
-    [ApplicationStatus.Withdrawn]: [ApplicationStatus.Archived],
-    [ApplicationStatus.Archived]: [],
+    [ApplicationStatus.OfferAccepted]: [],
+    [ApplicationStatus.OfferDeclined]: [],
+    [ApplicationStatus.Withdrawn]: [],
 };
 
 export const APPLICATION_STATUSES = Object.values(ApplicationStatus);
@@ -50,8 +48,7 @@ export const APPLICATION_STATUSES = Object.values(ApplicationStatus);
 export const INACTIVE_STATUSES = [
     ApplicationStatus.NotAccepted,
     ApplicationStatus.OfferDeclined,
-    ApplicationStatus.Withdrawn,
-    ApplicationStatus.Archived
+    ApplicationStatus.Withdrawn
 ];
 
 export const ACTIVE_STATUSES = APPLICATION_STATUSES.filter(

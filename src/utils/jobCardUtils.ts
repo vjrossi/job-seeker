@@ -16,8 +16,6 @@ export const getStatusStyle = (status: ApplicationStatus) => {
       return { color: '#c62828', borderColor: '#c62828' };
     case ApplicationStatus.Withdrawn:
       return { color: '#424242', borderColor: '#424242' };
-    case ApplicationStatus.Archived:
-      return { color: '#424242', borderColor: '#424242' };
     default:
       return { color: '#424242', borderColor: '#424242' };
   }

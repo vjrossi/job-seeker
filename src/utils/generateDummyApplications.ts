@@ -1,6 +1,8 @@
-import { ApplicationStatus, getNextStatuses } from '../constants/ApplicationStatus';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { JobApplication } from '../components/JobApplicationTracker';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
+import { InterviewLocationType } from '../components/InterviewDetailsModal';
 
 const generateRandomDate = (start: Date, end: Date): Date => {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
@@ -32,176 +34,225 @@ function getRandomItem<T>(array: readonly T[]): T {
   return array[Math.floor(Math.random() * array.length)] as T;
 }
 
+let uniqueIdCounter = Date.now();
+
+const getUniqueId = () => {
+    return uniqueIdCounter++;
+};
+
+// Add this constant to track interview counts
+const MAX_INTERVIEWS = 3;
+
 export const generateDummyApplications = (count: number, stalePeriod: number): JobApplication[] => {
-  const applications: JobApplication[] = [];
-  const now = new Date();
-  const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-  const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    uniqueIdCounter = Date.now();
+    
+    const applications: JobApplication[] = [];
+    const now = new Date();
+    const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  let hasScheduledInterview = false;
-  let becomingStaleCount = 0;
-  let staleCount = 0;
+    // Modify the target distribution to be more realistic
+    const targetDistribution = {
+        [ApplicationStatus.Applied]: 0.2,           // 20%
+        [ApplicationStatus.ApplicationReceived]: 0.2, // 20%
+        [ApplicationStatus.InterviewScheduled]: 0.2, // 20% (spread across 1-3 interviews)
+        [ApplicationStatus.NoResponse]: 0.15,       // 15%
+        [ApplicationStatus.NotAccepted]: 0.1,       // 10%
+        [ApplicationStatus.OfferReceived]: 0.1,     // 10%
+        [ApplicationStatus.OfferAccepted]: 0.03,    // 3%
+        [ApplicationStatus.OfferDeclined]: 0.02,    // 2%
+        [ApplicationStatus.Withdrawn]: 0.02        // 2%
+    };
 
-  for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
+        let appliedDate: Date;
+        // Adjust recent application probability to get more active applications
+        if (Math.random() < 0.8) { // 80% chance of recent applications
+            appliedDate = generateRandomDate(oneMonthAgo, now);
+        } else {
+            appliedDate = generateRandomDate(threeMonthsAgo, oneMonthAgo);
+        }
+
+        const statusHistory = [
+            { status: ApplicationStatus.Applied, timestamp: appliedDate.toISOString() }
+        ];
+
+        let currentDate = new Date(appliedDate);
+        let currentStatus = ApplicationStatus.Applied;
+        let interviewDateTime: string | undefined;
+
+        let interviewCount = 0;
+
+        // Determine target status based on distribution
+        const rand = Math.random();
+        let cumulative = 0;
+        let targetStatus: ApplicationStatus | null = null;
+        
+        for (const [status, probability] of Object.entries(targetDistribution)) {
+            cumulative += probability;
+            if (rand <= cumulative && !targetStatus) {
+                targetStatus = status as ApplicationStatus;
+            }
+        }
+
+        // Progress through statuses until we reach target or a terminal status
+        while (currentDate < now && currentStatus !== targetStatus) {
+            const nextStatuses = getNextStatuses(currentStatus);
+            if (nextStatuses.length === 0) break;
+
+            let nextStatus: ApplicationStatus;
+            
+            // If we're already at MAX_INTERVIEWS, don't allow more interview scheduling
+            if (interviewCount >= MAX_INTERVIEWS && 
+                currentStatus === ApplicationStatus.InterviewScheduled) {
+                // Force progression to either offer or rejection
+                nextStatus = Math.random() < 0.3 ? 
+                    ApplicationStatus.OfferReceived : 
+                    ApplicationStatus.NotAccepted;
+            } else if (targetStatus && nextStatuses.includes(targetStatus)) {
+                nextStatus = targetStatus;
+            } else {
+                nextStatus = getRandomItem(nextStatuses);
+            }
+
+            currentDate = new Date(currentDate.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000);
+            if (currentDate > now) currentDate = now;
+
+            // Track interview count
+            if (nextStatus === ApplicationStatus.InterviewScheduled) {
+                interviewCount++;
+            }
+
+            statusHistory.push({ status: nextStatus, timestamp: currentDate.toISOString() });
+            currentStatus = nextStatus;
+
+            // Handle interview scheduling
+            if (nextStatus === ApplicationStatus.InterviewScheduled) {
+                const interviewDate = new Date(currentDate.getTime() + (Math.floor(Math.random() * 7) + 1) * 24 * 60 * 60 * 1000);
+                if (interviewDate > now) {
+                    interviewDateTime = interviewDate.toISOString();
+                }
+            }
+        }
+
+        const companyName = getRandomItem(companies);
+        const jobTitle = getRandomItem(jobTitles);
+
+        const archived = appliedDate < threeMonthsAgo;
+
+        const application: JobApplication = {
+            id: getUniqueId(),
+            companyName: companyName,
+            rating: Math.floor(Math.random() * 5) + 1,
+            jobTitle: jobTitle,
+            jobDescription: `This is a job description for ${jobTitle} at ${companyName}.`,
+            applicationMethod: getRandomItem(STANDARD_APPLICATION_METHODS),
+            statusHistory: statusHistory.map(sh => ({
+                status: sh.status,
+                timestamp: sh.timestamp,
+                ...(sh.status === ApplicationStatus.InterviewScheduled && interviewDateTime ? {
+                    interviewDateTime: interviewDateTime,
+                    interviewLocation: 'Remote',
+                    interviewType: 'remote' as InterviewLocationType
+                } : {})
+            })),
+            ...(interviewDateTime ? {
+                interviewDateTime: interviewDateTime,
+                interviewLocation: 'Remote'
+            } : {}),
+            archived: archived
+        };
+
+        applications.push(application);
+    }
+
+    return applications;
+};
+
+// Helper function to generate a single application
+function generateSingleApplication(now: Date, threeMonthsAgo: Date, oneMonthAgo: Date, stalePeriod: number): JobApplication {
     let appliedDate: Date;
     if (Math.random() < RECENT_APPLICATION_PROBABILITY) {
-      appliedDate = generateRandomDate(oneMonthAgo, now);
+        appliedDate = generateRandomDate(oneMonthAgo, now);
     } else {
-      appliedDate = generateRandomDate(threeMonthsAgo, oneMonthAgo);
+        appliedDate = generateRandomDate(threeMonthsAgo, oneMonthAgo);
     }
 
     const statusHistory = [
-      { status: ApplicationStatus.Applied, timestamp: appliedDate.toISOString() }
+        { status: ApplicationStatus.Applied, timestamp: appliedDate.toISOString() }
     ];
 
     let currentDate = new Date(appliedDate);
     let currentStatus = ApplicationStatus.Applied;
     let interviewDateTime: string | undefined;
 
+    let interviewCount = 0;
+
     while (currentDate < now) {
-      const nextStatuses = getNextStatuses(currentStatus);
-      if (nextStatuses.length === 0) break;
+        const nextStatuses = getNextStatuses(currentStatus);
+        if (nextStatuses.length === 0) break;
 
-      // Increase probability of interview if we don't have one yet
-      const interviewProbability = !hasScheduledInterview ? 0.4 : 0.2;
-      let nextStatus: ApplicationStatus;
-      
-      if (Math.random() < interviewProbability && nextStatuses.includes(ApplicationStatus.InterviewScheduled)) {
-        nextStatus = ApplicationStatus.InterviewScheduled;
-      } else {
-        nextStatus = getRandomItem(nextStatuses) as ApplicationStatus;
-      }
+        let nextStatus: ApplicationStatus;
 
-      currentDate = new Date(currentDate.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000); // 0-7 days later
-      if (currentDate > now) currentDate = now;
-
-      statusHistory.push({ status: nextStatus, timestamp: currentDate.toISOString() });
-      currentStatus = nextStatus;
-
-      // Set interview date for interview statuses
-      if (ApplicationStatus.InterviewScheduled === nextStatus) {
-        const interviewDate = new Date(currentDate.getTime() + (Math.floor(Math.random() * 7) + 1) * 24 * 60 * 60 * 1000);
-        if (interviewDate > now) {
-          interviewDateTime = interviewDate.toISOString();
+        // Limit interviews to MAX_INTERVIEWS
+        if (interviewCount >= MAX_INTERVIEWS && 
+            currentStatus === ApplicationStatus.InterviewScheduled) {
+            nextStatus = Math.random() < 0.3 ? 
+                ApplicationStatus.OfferReceived : 
+                ApplicationStatus.NotAccepted;
+        } else {
+            nextStatus = getRandomItem(nextStatuses);
         }
-      }
 
-      // Add a chance to stop progressing
-      if (Math.random() < 0.3) break;
-    }
+        if (nextStatus === ApplicationStatus.InterviewScheduled) {
+            interviewCount++;
+        }
 
-    // Check if the application is becoming stale or stale
-    const lastUpdateDate = new Date(statusHistory[statusHistory.length - 1].timestamp);
-    const daysSinceLastUpdate = Math.floor((now.getTime() - lastUpdateDate.getTime()) / (1000 * 3600 * 24));
+        currentDate = new Date(currentDate.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000); // 0-7 days later
+        if (currentDate > now) currentDate = now;
 
-    if (daysSinceLastUpdate > 30) {
-      staleCount++;
-    } else if (daysSinceLastUpdate > stalePeriod) {
-      becomingStaleCount++;
-    }
+        statusHistory.push({ status: nextStatus, timestamp: currentDate.toISOString() });
+        currentStatus = nextStatus;
 
-    // Archive applications older than 3 months
-    if (appliedDate < threeMonthsAgo && !statusHistory.some(status => status.status === ApplicationStatus.Archived)) {
-      statusHistory.push({ status: ApplicationStatus.Archived, timestamp: now.toISOString() });
+        // Set interview date for interview statuses
+        if (ApplicationStatus.InterviewScheduled === nextStatus) {
+            const interviewDate = new Date(currentDate.getTime() + (Math.floor(Math.random() * 7) + 1) * 24 * 60 * 60 * 1000);
+            if (interviewDate > now) {
+                interviewDateTime = interviewDate.toISOString();
+            }
+        }
+
+        // Add a chance to stop progressing
+        if (Math.random() < 0.3) break;
     }
 
     const companyName = getRandomItem(companies);
     const jobTitle = getRandomItem(jobTitles);
 
+    const archived = appliedDate < threeMonthsAgo;
+
     const application: JobApplication = {
-      id: i + 1,
-      companyName: companyName,
-      rating: Math.floor(Math.random() * 5) + 1,
-      jobTitle: jobTitle,
-      jobDescription: `This is a job description for ${jobTitle} at ${companyName}.`,
-      applicationMethod: getRandomItem(STANDARD_APPLICATION_METHODS),
-      statusHistory: statusHistory,
-      interviewDateTime: interviewDateTime
+        id: getUniqueId(),
+        companyName: companyName,
+        rating: Math.floor(Math.random() * 5) + 1,
+        jobTitle: jobTitle,
+        jobDescription: `This is a job description for ${jobTitle} at ${companyName}.`,
+        applicationMethod: getRandomItem(STANDARD_APPLICATION_METHODS),
+        statusHistory: statusHistory.map(sh => ({
+            status: sh.status,
+            timestamp: sh.timestamp,
+            ...(sh.status === ApplicationStatus.InterviewScheduled && interviewDateTime ? {
+                interviewDateTime: interviewDateTime,
+                interviewLocation: 'Remote',
+                interviewType: 'remote' as InterviewLocationType
+            } : {})
+        })),
+        ...(interviewDateTime ? {
+            interviewDateTime: interviewDateTime,
+            interviewLocation: 'Remote'
+        } : {}),
+        archived: archived
     };
 
-    applications.push(application);
-  }
-
-  // If we don't have the desired distribution, regenerate some applications
-  while (!hasScheduledInterview || becomingStaleCount < 2 || staleCount < 2) {
-    const index = Math.floor(Math.random() * count);
-    applications[index] = generateSingleApplication(now, threeMonthsAgo, oneMonthAgo, stalePeriod);
-    
-    if (!hasScheduledInterview && applications[index].interviewDateTime) {
-      hasScheduledInterview = true;
-    }
-    
-    const lastUpdateDate = new Date(applications[index].statusHistory[applications[index].statusHistory.length - 1].timestamp);
-    const daysSinceLastUpdate = Math.floor((now.getTime() - lastUpdateDate.getTime()) / (1000 * 3600 * 24));
-    
-    if (daysSinceLastUpdate > 30) {
-      staleCount++;
-    } else if (daysSinceLastUpdate > stalePeriod) {
-      becomingStaleCount++;
-    }
-  }
-
-  return applications;
-};
-
-// Helper function to generate a single application
-function generateSingleApplication(now: Date, threeMonthsAgo: Date, oneMonthAgo: Date, stalePeriod: number): JobApplication {
-  let appliedDate: Date;
-  if (Math.random() < RECENT_APPLICATION_PROBABILITY) {
-    appliedDate = generateRandomDate(oneMonthAgo, now);
-  } else {
-    appliedDate = generateRandomDate(threeMonthsAgo, oneMonthAgo);
-  }
-
-  const statusHistory = [
-    { status: ApplicationStatus.Applied, timestamp: appliedDate.toISOString() }
-  ];
-
-  let currentDate = new Date(appliedDate);
-  let currentStatus = ApplicationStatus.Applied;
-  let interviewDateTime: string | undefined;
-
-  while (currentDate < now) {
-    const nextStatuses = getNextStatuses(currentStatus);
-    if (nextStatuses.length === 0) break;
-
-    const nextStatus = getRandomItem(nextStatuses) as ApplicationStatus;
-    currentDate = new Date(currentDate.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000); // 0-7 days later
-    if (currentDate > now) currentDate = now;
-
-    statusHistory.push({ status: nextStatus, timestamp: currentDate.toISOString() });
-    currentStatus = nextStatus;
-
-    // Set interview date for interview statuses
-    if (ApplicationStatus.InterviewScheduled === nextStatus) {
-      const interviewDate = new Date(currentDate.getTime() + (Math.floor(Math.random() * 7) + 1) * 24 * 60 * 60 * 1000);
-      if (interviewDate > now) {
-        interviewDateTime = interviewDate.toISOString();
-      }
-    }
-
-    // Add a chance to stop progressing
-    if (Math.random() < 0.3) break;
-  }
-
-  // Archive applications older than 3 months
-  if (appliedDate < threeMonthsAgo && !statusHistory.some(status => status.status === ApplicationStatus.Archived)) {
-    statusHistory.push({ status: ApplicationStatus.Archived, timestamp: now.toISOString() });
-  }
-
-  const companyName = getRandomItem(companies);
-  const jobTitle = getRandomItem(jobTitles);
-
-  const application: JobApplication = {
-    id: 1,
-    companyName: companyName,
-    rating: Math.floor(Math.random() * 5) + 1,
-    jobTitle: jobTitle,
-    jobDescription: `This is a job description for ${jobTitle} at ${companyName}.`,
-    applicationMethod: getRandomItem(STANDARD_APPLICATION_METHODS),
-    statusHistory: statusHistory,
-    interviewDateTime: interviewDateTime
-  };
-
-  return application;
+    return application;
 }
