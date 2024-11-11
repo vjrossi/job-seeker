@@ -80,10 +80,38 @@
   border-left: 4px solid #689f38 !important;
 }
 
-/* Remove the Archived status-specific style and add this instead */
+/* Update the archived watermark style */
+.applications-grid .job-card.archived,
 .applications-grid .job-card[data-archived="true"] {
-    opacity: 0.7;
-    filter: grayscale(30%);
+    position: relative;
+    opacity: 0.9;
+}
+
+.applications-grid .job-card.archived::after,
+.applications-grid .job-card[data-archived="true"]::after {
+    content: 'ARCHIVED';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.15);
+    transform: rotate(-25deg);
+    pointer-events: none;
+    z-index: 1000;
+    letter-spacing: 0.3rem;
+    text-transform: uppercase;
+    user-select: none;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Remove the background overlay for a cleaner look */
+.applications-grid .job-card.archived > *,
+.applications-grid .job-card[data-archived="true"] > * {
+    z-index: 999;
+    position: relative;
 }
 
 /* Hover effects */

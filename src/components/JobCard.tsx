@@ -14,6 +14,7 @@ interface JobCardProps {
   application: JobApplication;
   onEdit: (application: JobApplication) => void;
   onDelete: (id: number) => void;
+  onUnarchive?: (id: number) => void;
   onStatusChange: (id: number, newStatus: ApplicationStatus, details?: { 
     interviewDateTime?: string; 
     interviewLocation?: string; 
@@ -29,6 +30,7 @@ const JobCard: React.FC<JobCardProps> = ({
   application,
   onEdit,
   onDelete,
+  onUnarchive,
   onStatusChange,
   onUndo,
   expandedId,
@@ -85,6 +87,7 @@ const JobCard: React.FC<JobCardProps> = ({
       <div 
         className={`job-card ${isExpanded ? 'actions-visible' : ''}`}
         data-status={application.statusHistory[application.statusHistory.length - 1].status}
+        data-archived={application.archived || false}
         onClick={handleCardClick}
       >
         <CardHeader
@@ -119,6 +122,7 @@ const JobCard: React.FC<JobCardProps> = ({
           hasInterviewDetails={hasInterviewDetails}
           arrowButtonRef={arrowButtonRef}
           undoButtonRef={undoButtonRef}
+          isArchived={application.archived}
         />
       </div>
       

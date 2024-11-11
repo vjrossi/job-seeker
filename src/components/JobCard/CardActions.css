@@ -41,6 +41,18 @@
   transform: scale(1.1);
 }
 
+/* Add styles for disabled buttons */
+.card-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.card-actions button:disabled:hover {
+  background: rgba(37, 99, 235, 0.05);
+  transform: none;
+}
+
 /* Visibility States */
 .job-card.actions-visible {
   padding-bottom: 1rem;

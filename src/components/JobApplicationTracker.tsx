@@ -333,14 +333,17 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         try {
             const updatedApplication = applications.find(app => app.id === id);
             if (updatedApplication) {
-                updatedApplication.archived = true;
+                updatedApplication.archived = !updatedApplication.archived;
                 await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
                 setApplications(applications.map(app => app.id === id ? updatedApplication : app));
-                showToast('Application archived.', 'success');
+                showToast(
+                    updatedApplication.archived ? 'Application archived.' : 'Application unarchived.',
+                    'success'
+                );
             }
         } catch (error) {
-            console.error('Error archiving application:', error);
-            showToast('Failed to archive application. Please try again.', 'error');
+            console.error('Error toggling archive status:', error);
+            showToast('Failed to update application. Please try again.', 'error');
         }
     };
 
@@ -405,21 +408,6 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         setShowAddForm(false);
         setEditingApplication(null);
     }, [currentView, setIsFormDirty]);
-
-    const handleUnarchive = async (id: number) => {
-        try {
-            const updatedApplication = applications.find(app => app.id === id);
-            if (updatedApplication) {
-                updatedApplication.archived = false;
-                await (isDev ? devIndexedDBService : indexedDBService).updateApplication(updatedApplication);
-                setApplications(applications.map(app => app.id === id ? updatedApplication : app));
-                showToast('Application unarchived.', 'success');
-            }
-        } catch (error) {
-            console.error('Error unarchiving application:', error);
-            showToast('Failed to unarchive application. Please try again.', 'error');
-        }
-    };
 
     return (
         <div className="mt-4">

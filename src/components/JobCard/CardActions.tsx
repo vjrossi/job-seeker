@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaPencilAlt, FaTrashAlt, FaUndo, FaArrowRight, FaCalendarAlt } from 'react-icons/fa';
+import { FaPencilAlt, FaTrashAlt, FaUndo, FaArrowRight, FaCalendarAlt, FaBoxOpen } from 'react-icons/fa';
 import './CardActions.css';
 
 interface CardActionsProps {
@@ -12,6 +12,7 @@ interface CardActionsProps {
   hasInterviewDetails: boolean;
   arrowButtonRef: React.RefObject<HTMLButtonElement>;
   undoButtonRef: React.RefObject<HTMLButtonElement>;
+  isArchived?: boolean;
 }
 
 const CardActions: React.FC<CardActionsProps> = ({
@@ -23,7 +24,8 @@ const CardActions: React.FC<CardActionsProps> = ({
   hasNextStatuses,
   hasInterviewDetails,
   arrowButtonRef,
-  undoButtonRef
+  undoButtonRef,
+  isArchived
 }) => {
   return (
     <div className="card-actions">
@@ -34,6 +36,7 @@ const CardActions: React.FC<CardActionsProps> = ({
             e.stopPropagation();
             onEdit();
           }}
+          disabled={isArchived}
         >
           <FaPencilAlt />
         </button>
@@ -44,18 +47,20 @@ const CardActions: React.FC<CardActionsProps> = ({
               e.stopPropagation();
               onEditInterview();
             }}
+            disabled={isArchived}
           >
             <FaCalendarAlt />
           </button>
         )}
         <button 
-          className="btn btn-link text-danger"
+          className={`btn btn-link ${isArchived ? 'text-success' : 'text-danger'}`}
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
+          title={isArchived ? 'Unarchive' : 'Archive'}
         >
-          <FaTrashAlt />
+          {isArchived ? <FaBoxOpen /> : <FaTrashAlt />}
         </button>
       </div>
       <div className="right-actions">
@@ -67,6 +72,7 @@ const CardActions: React.FC<CardActionsProps> = ({
               e.stopPropagation();
               onUndo();
             }}
+            disabled={isArchived}
           >
             <FaUndo />
           </button>
@@ -79,6 +85,7 @@ const CardActions: React.FC<CardActionsProps> = ({
               e.stopPropagation();
               onStatusClick();
             }}
+            disabled={isArchived}
           >
             <FaArrowRight />
           </button>
