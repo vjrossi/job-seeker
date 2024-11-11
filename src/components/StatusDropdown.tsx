@@ -58,7 +58,9 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
       <div className="dropdown-header">
         What has happened with this application?
       </div>
-      {nextStatuses.map((nextStatus) => (
+      {nextStatuses
+        .filter(status => status !== ApplicationStatus.NoResponse)
+        .map((nextStatus) => (
         <button
           key={nextStatus}
           className="dropdown-item"
@@ -83,7 +85,6 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
               nextStatus === ApplicationStatus.OfferReceived ? "I received a job offer!" :
               nextStatus === ApplicationStatus.OfferAccepted ? "I accepted the job offer!" :
               nextStatus === ApplicationStatus.OfferDeclined ? "I declined the job offer" :
-              nextStatus === ApplicationStatus.NoResponse ? "No Response" :
               nextStatus === ApplicationStatus.NotAccepted ? "I wasn't accepted" :
               nextStatus === ApplicationStatus.Withdrawn ? "I have decided to withdraw my application" :
               nextStatus}

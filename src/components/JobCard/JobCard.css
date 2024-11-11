@@ -276,3 +276,32 @@
 .confirmation-modal .modal-content {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
+
+.job-card.needs-attention {
+  position: relative;
+  animation: pulse 2s infinite;
+}
+
+.attention-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #dc3545;
+  color: white;
+  padding: 8px;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}

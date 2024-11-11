@@ -9,6 +9,8 @@ import InterviewDetails from '../InterviewDetails';
 import { JobApplication } from '../../types/JobApplication';
 import CardHeader from './CardHeader';
 import CardActions from './CardActions';
+import { needsAttention } from '../../utils/applicationUtils';
+import { FaExclamationTriangle } from 'react-icons/fa';
 
 interface JobCardProps {
   application: JobApplication;
@@ -53,6 +55,8 @@ const JobCard: React.FC<JobCardProps> = ({
   const currentStatusEntry = application.statusHistory[application.statusHistory.length - 1];
   const hasInterviewDetails = !!currentStatusEntry.interviewDateTime;
 
+  const attention = needsAttention(application);
+
   const handleEditInterview = () => {
     setShowEditInterviewModal(true);
   };
@@ -85,11 +89,16 @@ const JobCard: React.FC<JobCardProps> = ({
   return (
     <>
       <div 
-        className={`job-card ${isExpanded ? 'actions-visible' : ''}`}
+        className={`job-card ${isExpanded ? 'actions-visible' : ''} ${attention.needs ? 'needs-attention' : ''}`}
         data-status={application.statusHistory[application.statusHistory.length - 1].status}
         data-archived={application.archived || false}
         onClick={handleCardClick}
       >
+        {attention.needs && (
+          <div className="attention-indicator" title={attention.reason}>
+            <FaExclamationTriangle />
+          </div>
+        )}
         <CardHeader
           companyName={application.companyName}
           jobTitle={application.jobTitle}

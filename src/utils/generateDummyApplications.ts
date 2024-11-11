@@ -41,6 +41,29 @@ const getUniqueId = () => {
 // Add this constant to track interview counts
 const MAX_INTERVIEWS = 3;
 
+const getRandomInterviewDetails = (date: Date) => {
+    const interviewTypes = [
+        InterviewLocationType.Remote,
+        InterviewLocationType.Video,
+        InterviewLocationType.Phone,
+        InterviewLocationType.InPerson
+    ];
+    
+    const interviewType = getRandomItem(interviewTypes);
+    let location: string = interviewType;
+    
+    // Generate address for in-person interviews
+    if (interviewType === InterviewLocationType.InPerson) {
+        location = `${Math.floor(Math.random() * 1000)} Main Street, Suite ${Math.floor(Math.random() * 100)}, City, State`;
+    }
+    
+    return {
+        interviewDateTime: date.toISOString(),
+        interviewLocation: location,
+        interviewType: interviewType
+    };
+};
+
 export const generateDummyApplications = (count: number = 10): JobApplication[] => {
     uniqueIdCounter = Date.now();
     
@@ -82,9 +105,8 @@ export const generateDummyApplications = (count: number = 10): JobApplication[] 
 
         let currentDate = new Date(appliedDate);
         let currentStatus = ApplicationStatus.Applied;
-        let interviewDateTime: string | undefined;
-
         let interviewCount = 0;
+        let latestInterviewDetails = undefined;
 
         // Determine target status based on distribution
         const rand = Math.random();
@@ -121,26 +143,38 @@ export const generateDummyApplications = (count: number = 10): JobApplication[] 
             currentDate = new Date(currentDate.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000);
             if (currentDate > now) currentDate = now;
 
-            // Track interview count
+            // Generate interview details when scheduling interviews
             if (nextStatus === ApplicationStatus.InterviewScheduled) {
                 interviewCount++;
-            }
-
-            statusHistory.push({ status: nextStatus, timestamp: currentDate.toISOString() });
-            currentStatus = nextStatus;
-
-            // Handle interview scheduling
-            if (nextStatus === ApplicationStatus.InterviewScheduled) {
                 const interviewDate = new Date(currentDate.getTime() + (Math.floor(Math.random() * 7) + 1) * 24 * 60 * 60 * 1000);
                 if (interviewDate > now) {
-                    interviewDateTime = interviewDate.toISOString();
+                    const details = getRandomInterviewDetails(interviewDate);
+                    latestInterviewDetails = details;
+                    statusHistory.push({
+                        status: nextStatus,
+                        timestamp: currentDate.toISOString(),
+                        ...details
+                    });
+                } else {
+                    const details = getRandomInterviewDetails(interviewDate);
+                    statusHistory.push({
+                        status: nextStatus,
+                        timestamp: currentDate.toISOString(),
+                        ...details
+                    });
                 }
+            } else {
+                statusHistory.push({ 
+                    status: nextStatus, 
+                    timestamp: currentDate.toISOString() 
+                });
             }
+            
+            currentStatus = nextStatus;
         }
 
         const companyName = getRandomItem(companies);
         const jobTitle = getRandomItem(jobTitles);
-
         const archived = i < numArchived;
 
         const application: JobApplication = {
@@ -150,18 +184,9 @@ export const generateDummyApplications = (count: number = 10): JobApplication[] 
             jobTitle: jobTitle,
             jobDescription: `This is a job description for ${jobTitle} at ${companyName}.`,
             applicationMethod: getRandomItem(STANDARD_APPLICATION_METHODS),
-            statusHistory: statusHistory.map(sh => ({
-                status: sh.status,
-                timestamp: sh.timestamp,
-                ...(sh.status === ApplicationStatus.InterviewScheduled && interviewDateTime ? {
-                    interviewDateTime: interviewDateTime,
-                    interviewLocation: 'Remote',
-                    interviewType: 'remote' as InterviewLocationType
-                } : {})
-            })),
-            ...(interviewDateTime ? {
-                interviewDateTime: interviewDateTime,
-                interviewLocation: 'Remote'
+            statusHistory: statusHistory,
+            ...(latestInterviewDetails && currentStatus === ApplicationStatus.InterviewScheduled ? {
+                ...latestInterviewDetails
             } : {}),
             archived: archived
         };

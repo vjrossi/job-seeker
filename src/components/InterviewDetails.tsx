@@ -6,11 +6,30 @@ interface InterviewDetailsProps {
   interviewLocation?: string;
 }
 
+const formatTimeUntilInterview = (interviewDateTime: string): string => {
+  const now = new Date();
+  const interviewDate = new Date(interviewDateTime);
+  const diffHours = Math.ceil((interviewDate.getTime() - now.getTime()) / (1000 * 60 * 60));
+  const diffDays = Math.floor(Math.abs(diffHours) / 24);
+
+  if (diffHours < 0) {
+    if (diffDays === 0) return 'today';
+    if (diffDays === 1) return 'yesterday';
+    return `${diffDays} days ago`;
+  }
+  
+  if (diffHours < 24) return 'today';
+  if (diffDays === 1) return 'tomorrow';
+  return `in ${diffDays} days`;
+};
+
 const InterviewDetails: React.FC<InterviewDetailsProps> = ({
   interviewDateTime,
   interviewLocation
 }) => {
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const timeUntil = formatTimeUntilInterview(interviewDateTime);
+  const isPast = new Date(interviewDateTime) < new Date();
 
   return (
     <div className="interview-details">
@@ -21,7 +40,8 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({
         }}
         className="interview-header"
       >
-        <span>UPCOMING INTERVIEW</span>
+        <span>INTERVIEW </span>
+        <span style={{ color: isPast ? '#dc3545' : 'inherit' }}>{timeUntil}</span>
         <FaChevronDown 
           size={12} 
           style={{ 
