@@ -75,7 +75,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                 apps = await devIndexedDBService.getAllApplications();
                 
                 if (apps.length === 0) {
-                    const dummyApps = generateDummyApplications(10, noResponseDays);
+                    const dummyApps = generateDummyApplications(10);
                     try {
                         await devIndexedDBService.clearAllApplications();
                         for (const app of dummyApps) {

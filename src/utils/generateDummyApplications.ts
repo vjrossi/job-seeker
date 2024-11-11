@@ -41,7 +41,7 @@ const getUniqueId = () => {
 // Add this constant to track interview counts
 const MAX_INTERVIEWS = 3;
 
-export const generateDummyApplications = (count: number, stalePeriod: number): JobApplication[] => {
+export const generateDummyApplications = (count: number = 10): JobApplication[] => {
     uniqueIdCounter = Date.now();
     
     const applications: JobApplication[] = [];
@@ -61,6 +61,11 @@ export const generateDummyApplications = (count: number, stalePeriod: number): J
         [ApplicationStatus.OfferDeclined]: 0.02,    // 2%
         [ApplicationStatus.Withdrawn]: 0.02        // 2%
     };
+
+    // Ensure at least 2 archived applications
+    const minArchived = 2;
+    const maxArchived = Math.max(Math.floor(count * 0.3), minArchived); // Up to 30% archived
+    const numArchived = Math.floor(Math.random() * (maxArchived - minArchived + 1)) + minArchived;
 
     for (let i = 0; i < count; i++) {
         let appliedDate: Date;
@@ -136,7 +141,7 @@ export const generateDummyApplications = (count: number, stalePeriod: number): J
         const companyName = getRandomItem(companies);
         const jobTitle = getRandomItem(jobTitles);
 
-        const archived = appliedDate < threeMonthsAgo;
+        const archived = i < numArchived;
 
         const application: JobApplication = {
             id: getUniqueId(),
@@ -164,5 +169,6 @@ export const generateDummyApplications = (count: number, stalePeriod: number): J
         applications.push(application);
     }
 
-    return applications;
+    // Shuffle the array to randomize the order of archived/unarchived applications
+    return applications.sort(() => Math.random() - 0.5);
 };

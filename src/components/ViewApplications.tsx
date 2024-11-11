@@ -72,13 +72,16 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
-        const matchesArchiveFilter = showArchived 
-          ? true 
-          : !app.archived;
+        const matchesArchiveFilter = showArchived || !app.archived;
         
         return matchesSearch && matchesStatus && matchesArchiveFilter;
       })
       .sort((a: JobApplication, b: JobApplication) => {
+        // First sort by archived status
+        if (a.archived !== b.archived) {
+          return a.archived ? 1 : -1; // Archived items go to the end
+        }
+        // Then sort by date within each group (archived/unarchived)
         const aDate = new Date(a.statusHistory[0].timestamp);
         const bDate = new Date(b.statusHistory[0].timestamp);
         return bDate.getTime() - aDate.getTime();
