@@ -58,7 +58,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
             name={name}
             value={value}
             onChange={handleChange}
-            rows={4}
+            rows={13}
           />
         ) : name === 'currentStatus' ? (
           <p className="bg-light p-2 rounded small">

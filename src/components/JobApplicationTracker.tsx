@@ -108,10 +108,26 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
 
         if (searchTerm) {
             const lowercasedTerm = searchTerm.toLowerCase();
-            filtered = filtered.filter(app =>
-                app.companyName.toLowerCase().includes(lowercasedTerm) ||
-                app.jobTitle.toLowerCase().includes(lowercasedTerm)
-            );
+            filtered = filtered.filter(app => {
+                const searchableFields = [
+                    app.companyName,
+                    app.jobTitle,
+                    app.jobDescription,
+                    app.applicationMethod,
+                    ...app.statusHistory.map(sh => sh.status),
+                    app.interviewDateTime,
+                    app.interviewLocation,
+                    app.rating?.toString(),
+                    ...app.statusHistory
+                        .filter(sh => sh.interviewLocation)
+                        .map(sh => sh.interviewLocation as string)
+                ].filter(Boolean);
+
+                return searchableFields
+                    .join(' ')
+                    .toLowerCase()
+                    .includes(lowercasedTerm);
+            });
         }
 
         if (statusFilters.length > 0) {

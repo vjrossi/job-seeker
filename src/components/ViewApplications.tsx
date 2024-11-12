@@ -68,9 +68,21 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
   const filteredAndSortedApplications = useMemo(() => {
     return applications
       .filter((app: JobApplication) => {
+        const searchFields = [
+          app.companyName,
+          app.jobTitle,
+          app.jobDescription,
+          app.applicationMethod,
+          app.statusHistory[app.statusHistory.length - 1].status,
+          app.interviewLocation,
+          // Convert rating to string for search
+          app.rating?.toString()
+        ].filter(Boolean); // Remove any undefined/null values
+
+        const searchableText = searchFields.join(' ').toLowerCase();
+        const matchesSearch = !searchTerm || searchableText.includes(searchTerm.toLowerCase());
+        
         const currentStatus = app.statusHistory[app.statusHistory.length - 1].status;
-        const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilters.length === 0 || statusFilters.includes(currentStatus);
         const matchesArchiveFilter = showArchived || !app.archived;
         
