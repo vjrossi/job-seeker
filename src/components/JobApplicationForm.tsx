@@ -66,6 +66,10 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         if (!localFormData.statusHistory?.[0]?.timestamp) {
             newErrors.statusHistory = 'Date applied is required';
         }
+        
+        if (localFormData.jobUrl && !localFormData.jobUrl.match(/^https?:\/\/.+/)) {
+            newErrors.jobUrl = 'URL must start with http:// or https://';
+        }
 
         setErrors(newErrors);
 
@@ -116,6 +120,23 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     required
                 />
                 {errors.jobTitle && <div className="invalid-feedback">{errors.jobTitle}</div>}
+            </div>
+            <div className="mb-3">
+                <label htmlFor="jobUrl" className="form-label">
+                    Job URL
+                    <span className="ms-2 text-muted small">(optional)</span>
+                </label>
+                <input
+                    type="url"
+                    className={`form-control ${errors.jobUrl ? 'is-invalid' : ''}`}
+                    id="jobUrl"
+                    name="jobUrl"
+                    value={localFormData.jobUrl || ''}
+                    onChange={handleChange}
+                    placeholder="https://"
+                    pattern="https?://.+"
+                />
+                {errors.jobUrl && <div className="invalid-feedback">{errors.jobUrl}</div>}
             </div>
             <div className="mb-3">
                 <label htmlFor="jobDescription" className="form-label">

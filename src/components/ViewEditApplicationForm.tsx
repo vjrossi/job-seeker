@@ -36,6 +36,12 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.jobUrl && !formData.jobUrl.match(/^https?:\/\/.+/)) {
+      alert('Job URL must start with http:// or https://');
+      return;
+    }
+    
     onSave(formData);
     setIsEditing(false);
   };
@@ -98,6 +104,17 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
             value={new Date(application.statusHistory[0].timestamp).toLocaleDateString()}
             readOnly
           />
+        ) : name === 'jobUrl' ? (
+          <input
+            type="url"
+            className="form-control form-control-sm small"
+            id={name}
+            name={name}
+            value={value}
+            onChange={handleChange}
+            placeholder="https://"
+            pattern="https?://.+"
+          />
         ) : (
           <input
             type="text"
@@ -133,6 +150,12 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
           <p className="bg-light p-2 rounded small">
             {value || 'N/A'}
           </p>
+        ) : name === 'jobUrl' && value ? (
+          <p className="bg-light p-2 rounded small">
+            <a href={value as string} target="_blank" rel="noopener noreferrer">
+              {value}
+            </a>
+          </p>
         ) : (
           <p className="bg-light p-2 rounded small">
             {value}
@@ -147,6 +170,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
       <div className="p-3">
         <form onSubmit={handleSubmit}>
           {renderField('Job Title', formData.jobTitle, 'jobTitle')}
+          {renderField('Job URL', formData.jobUrl || '', 'jobUrl')}
           {renderField('Job Description', formData.jobDescription, 'jobDescription')}
           {renderField('Application Method', formData.applicationMethod || '', 'applicationMethod')}
           {renderField('Current Status', currentStatus, 'currentStatus')}

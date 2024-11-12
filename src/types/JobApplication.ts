@@ -5,6 +5,7 @@ export interface JobApplication {
     id: number;
     companyName: string;
     jobTitle: string;
+    jobUrl?: string;
     jobDescription: string;
     applicationMethod: string;
     rating: number;

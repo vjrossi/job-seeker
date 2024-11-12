@@ -28,6 +28,7 @@ interface JobApplicationTrackerProps {
 const initialFormData: Omit<JobApplication, 'id'> = {
     companyName: '',
     jobTitle: '',
+    jobUrl: '',
     jobDescription: '',
     applicationMethod: STANDARD_APPLICATION_METHODS[0],
     rating: 0,
