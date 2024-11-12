@@ -27,26 +27,11 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { target: { name: string; value: number } }) => {
     const { name, value } = e.target;
     
-    setFormData((prev: JobApplication) => {
-      const updatedData = { ...prev };
-      
-      if (name === 'currentStatus') {
-        const currentStatus = prev.statusHistory[prev.statusHistory.length - 1].status;
-        if (value !== currentStatus) {
-          onStatusChange(application.id, value as ApplicationStatus);
-          updatedData.statusHistory = [
-            ...prev.statusHistory,
-            { status: value as ApplicationStatus, timestamp: new Date().toISOString() }
-          ];
-        }
-      } else if (name === 'rating') {
-        updatedData.rating = value as number;
-      } else if (name in updatedData) {
-        (updatedData as any)[name] = value;
-      }
-      
-      return updatedData;
-    });
+    if (name === 'rating') {
+      setFormData(prev => ({ ...prev, rating: value as number }));
+    } else if (name in formData) {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,34 +45,28 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     setIsEditing(true);
   };
 
+  const currentStatus = formData.statusHistory[formData.statusHistory.length - 1].status;
+
   const renderField = (label: string, value: string | number, name: keyof JobApplication | 'currentStatus' | 'dateApplied') => (
-    <div className="mb-4">
-      <h6 className="text-muted mb-2">{label}</h6>
+    <div className="mb-3">
+      <h6 className="text-muted mb-1">{label}</h6>
       {isEditing ? (
         name === 'jobDescription' ? (
           <textarea
-            className="form-control"
+            className="form-control form-control-sm small"
             id={name}
             name={name}
             value={value}
             onChange={handleChange}
-            rows={5}
+            rows={4}
           />
         ) : name === 'currentStatus' ? (
-          <select
-            className="form-select"
-            id={name}
-            name={name}
-            value={value}
-            onChange={handleChange}
-          >
-            {Object.values(ApplicationStatus).map(status => (
-              <option key={status} value={status}>{status}</option>
-            ))}
-          </select>
+          <p className="bg-light p-2 rounded small">
+            {currentStatus}
+          </p>
         ) : name === 'applicationMethod' ? (
           <select
-            className="form-select"
+            className="form-select form-select-sm small"
             id={name}
             name={name}
             value={value}
@@ -104,8 +83,8 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
                 key={star}
                 className="star"
                 color={star <= (value as number) ? "#ffc107" : "#e4e5e9"}
-                size={24}
-                style={{ marginRight: 10, cursor: "pointer" }}
+                size={20}
+                style={{ marginRight: 8, cursor: "pointer" }}
                 onClick={() => handleChange({ target: { name: 'rating', value: star } })}
               />
             ))}
@@ -113,7 +92,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
         ) : name === 'dateApplied' ? (
           <input
             type="text"
-            className="form-control"
+            className="form-control form-control-sm small"
             id={name}
             name={name}
             value={new Date(application.statusHistory[0].timestamp).toLocaleDateString()}
@@ -122,7 +101,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
         ) : (
           <input
             type="text"
-            className="form-control"
+            className="form-control form-control-sm small"
             id={name}
             name={name}
             value={value}
@@ -131,7 +110,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
         )
       ) : (
         name === 'jobDescription' ? (
-          <pre className="lead bg-light p-2 rounded" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
+          <pre className="bg-light p-2 rounded small" style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
             {value || 'No description provided'}
           </pre>
         ) : name === 'rating' ? (
@@ -141,21 +120,21 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
                 key={star}
                 className="star"
                 color={star <= (value as number) ? "#ffc107" : "#e4e5e9"}
-                size={24}
-                style={{ marginRight: 10 }}
+                size={20}
+                style={{ marginRight: 8 }}
               />
             ))}
           </div>
         ) : name === 'dateApplied' ? (
-          <p className="lead bg-light p-2 rounded">
+          <p className="bg-light p-2 rounded small">
             {new Date(application.statusHistory[0].timestamp).toLocaleDateString()}
           </p>
         ) : name === 'applicationMethod' ? (
-          <p className="lead bg-light p-2 rounded">
+          <p className="bg-light p-2 rounded small">
             {value || 'N/A'}
           </p>
         ) : (
-          <p className="lead bg-light p-2 rounded">
+          <p className="bg-light p-2 rounded small">
             {value}
           </p>
         )
@@ -163,14 +142,10 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     </div>
   );
 
-  const currentStatus = formData.statusHistory[formData.statusHistory.length - 1].status;
-
   return (
-    <div className="card shadow-sm">
-      <div className="card-body">
-        <h2 className="card-title mb-4">{isEditing ? 'Edit Application' : application.jobTitle}</h2>
+    <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+      <div className="p-3">
         <form onSubmit={handleSubmit}>
-          {renderField('Company Name', formData.companyName, 'companyName')}
           {renderField('Job Title', formData.jobTitle, 'jobTitle')}
           {renderField('Job Description', formData.jobDescription, 'jobDescription')}
           {renderField('Application Method', formData.applicationMethod || '', 'applicationMethod')}
@@ -178,13 +153,15 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
           {renderField('Date Applied', '', 'dateApplied')}
           {renderField('Job Rating', formData.rating, 'rating')}
           
-          <div className="mt-4">
-            {isEditing ? (
-              <button type="submit" className="btn btn-primary me-2">Save</button>
-            ) : (
-              <button type="button" className="btn btn-primary me-2" onClick={handleEditClick}>Edit</button>
-            )}
-            <button type="button" className="btn btn-secondary" onClick={onCancel}>Close</button>
+          <div className="sticky-bottom bg-white border-top" style={{ bottom: 0, zIndex: 1 }}>
+            <div className="py-2">
+              {isEditing ? (
+                <button type="submit" className="btn btn-sm btn-primary me-2">Save</button>
+              ) : (
+                <button type="button" className="btn btn-sm btn-primary me-2" onClick={handleEditClick}>Edit</button>
+              )}
+              <button type="button" className="btn btn-sm btn-secondary" onClick={onCancel}>Close</button>
+            </div>
           </div>
         </form>
       </div>

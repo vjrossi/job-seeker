@@ -453,7 +453,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             >
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        {editingApplication?.jobTitle} at {editingApplication?.companyName}
+                        {editingApplication?.companyName}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>

@@ -74,9 +74,15 @@ const JobCard: React.FC<JobCardProps> = ({
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (!(e.target instanceof HTMLElement)) return;
-    if (!e.target.closest('.action-indicator')) return;
+    
     if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.dropdown')) return;
-    onExpand(application.id);
+    
+    if (e.target.closest('.action-indicator')) {
+      onExpand(application.id);
+      return;
+    }
+
+    onEdit(application);
   };
 
   const handleUndoConfirm = () => {
@@ -93,6 +99,7 @@ const JobCard: React.FC<JobCardProps> = ({
         data-status={application.statusHistory[application.statusHistory.length - 1].status}
         data-archived={application.archived || false}
         onClick={handleCardClick}
+        style={{ cursor: 'pointer' }}
       >
         {attention.needs && (
           <div className="attention-indicator" title={attention.reason}>
