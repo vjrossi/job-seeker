@@ -77,7 +77,11 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
           }}
         >
           <div>
-            {nextStatus === ApplicationStatus.ApplicationReceived ? "My application has been received" :
+            {nextStatus === ApplicationStatus.Applied ? 
+              (application.statusHistory[0].status === ApplicationStatus.Bookmarked 
+                ? "I've applied for this job" 
+                : "I've submitted my application") :
+              nextStatus === ApplicationStatus.ApplicationReceived ? "My application has been received" :
               nextStatus === ApplicationStatus.InterviewScheduled ? 
                 (application.statusHistory.some(h => h.status === ApplicationStatus.InterviewScheduled) 
                   ? "I got another interview!" 

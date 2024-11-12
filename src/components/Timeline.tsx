@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { JobApplication } from '../types/JobApplication';
-import { ApplicationStatus, INACTIVE_STATUSES, getNextStatuses } from '../constants/ApplicationStatus';
+import { ApplicationStatus, INACTIVE_STATUSES } from '../constants/ApplicationStatus';
+import { getNextStatuses } from '../constants/applicationStatusMachine';
 import './Timeline.css';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import StatusDropdown from './StatusDropdown';

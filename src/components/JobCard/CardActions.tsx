@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaPencilAlt, FaTrashAlt, FaUndo, FaArrowRight, FaCalendarAlt, FaBoxOpen } from 'react-icons/fa';
 import './CardActions.css';
+import { ApplicationStatus } from '../../constants/ApplicationStatus';
 
 interface CardActionsProps {
   onEdit: () => void;
@@ -13,6 +14,8 @@ interface CardActionsProps {
   arrowButtonRef: React.RefObject<HTMLButtonElement>;
   undoButtonRef: React.RefObject<HTMLButtonElement>;
   isArchived?: boolean;
+  currentStatus: ApplicationStatus;
+  statusHistory: { status: ApplicationStatus; timestamp: string }[];
 }
 
 const CardActions: React.FC<CardActionsProps> = ({
@@ -25,8 +28,15 @@ const CardActions: React.FC<CardActionsProps> = ({
   hasInterviewDetails,
   arrowButtonRef,
   undoButtonRef,
-  isArchived
+  isArchived,
+  currentStatus,
+  statusHistory
 }) => {
+  const isInitialStatus = currentStatus === ApplicationStatus.Bookmarked;
+  const isFinalStatus = !hasNextStatuses;
+  const showUndo = onUndo && !isArchived && !isInitialStatus && statusHistory.length > 1;
+  const showProgress = hasNextStatuses && !isArchived && !isFinalStatus;
+
   return (
     <div className="card-actions">
       <div className="left-actions">
@@ -64,7 +74,7 @@ const CardActions: React.FC<CardActionsProps> = ({
         </button>
       </div>
       <div className="right-actions">
-        {onUndo && (
+        {showUndo && (
           <button 
             ref={undoButtonRef}
             className="btn btn-link"
@@ -72,12 +82,11 @@ const CardActions: React.FC<CardActionsProps> = ({
               e.stopPropagation();
               onUndo();
             }}
-            disabled={isArchived}
           >
             <FaUndo />
           </button>
         )}
-        {hasNextStatuses && (
+        {showProgress && (
           <button
             ref={arrowButtonRef}
             className="btn btn-link"
@@ -85,7 +94,6 @@ const CardActions: React.FC<CardActionsProps> = ({
               e.stopPropagation();
               onStatusClick();
             }}
-            disabled={isArchived}
           >
             <FaArrowRight />
           </button>

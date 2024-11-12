@@ -17,9 +17,8 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
     const initialFormData: Partial<JobApplication> = {
         ...formData,
         rating: 0,
-        statusHistory: [{ status: ApplicationStatus.Applied, timestamp: today }]
+        statusHistory: [{ status: ApplicationStatus.Bookmarked, timestamp: today }]
     };
-
 
     const [localFormData, setLocalFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -37,7 +36,17 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setLocalFormData((prev: Partial<JobApplication>) => ({ ...prev, [name]: value }));
+        if (name === 'initialStatus') {
+            setLocalFormData(prev => ({
+                ...prev,
+                statusHistory: [{ 
+                    status: value as ApplicationStatus, 
+                    timestamp: today 
+                }]
+            }));
+        } else {
+            setLocalFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleRatingChange = (rating: number) => {
@@ -61,12 +70,26 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
+            console.log('Form submitting with data:', localFormData);
             onSubmit(localFormData as JobApplication);
         }
     };
 
     return (
         <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+                <label htmlFor="initialStatus" className="form-label">Initial Status</label>
+                <select
+                    className="form-control"
+                    id="initialStatus"
+                    name="initialStatus"
+                    value={localFormData.statusHistory?.[0]?.status || ApplicationStatus.Bookmarked}
+                    onChange={handleChange}
+                >
+                    <option value={ApplicationStatus.Bookmarked}>Bookmarked</option>
+                    <option value={ApplicationStatus.Applied}>Applied</option>
+                </select>
+            </div>
             <div className="mb-3">
                 <label htmlFor="companyName" className="form-label">Company Name</label>
                 <input
@@ -137,11 +160,12 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     ))}
                 </div>
             </div>
-            <button type="submit" className="btn btn-primary me-2">Submit</button>
-            <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+            <div className="mt-4">
+                <button type="submit" className="btn btn-primary me-2">Submit</button>
+                <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+            </div>
         </form>
     );
 };
-
 
 export default JobApplicationForm;

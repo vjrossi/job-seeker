@@ -132,6 +132,8 @@ const JobCard: React.FC<JobCardProps> = ({
           arrowButtonRef={arrowButtonRef}
           undoButtonRef={undoButtonRef}
           isArchived={application.archived}
+          currentStatus={currentStatus}
+          statusHistory={application.statusHistory}
         />
       </div>
       

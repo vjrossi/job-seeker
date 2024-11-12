@@ -2,6 +2,8 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 
 export const getStatusStyle = (status: ApplicationStatus) => {
   switch(status) {
+    case ApplicationStatus.Bookmarked:
+      return { color: '#ffc107', borderColor: '#ffc107' };
     case ApplicationStatus.Applied:
       return { color: '#2196f3', borderColor: '#2196f3' };
     case ApplicationStatus.ApplicationReceived:
@@ -27,6 +29,8 @@ export const getStatusStyle = (status: ApplicationStatus) => {
 
 export const formatStatus = (status: ApplicationStatus, history: { status: ApplicationStatus; timestamp: string }[]): string => {
   switch(status) {
+    case ApplicationStatus.Bookmarked:
+      return 'Bookmarked';
     case ApplicationStatus.ApplicationReceived:
       return 'Application Received';
     case ApplicationStatus.InterviewScheduled: {

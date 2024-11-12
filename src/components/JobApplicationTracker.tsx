@@ -10,7 +10,8 @@ import { generateDummyApplications } from '../utils/generateDummyApplications';
 import Reports from './Reports';
 import ViewEditApplicationForm from './ViewEditApplicationForm';
 import InterviewScheduleModal from './modals/InterviewScheduleModal';
-import { ApplicationStatus, getNextStatuses } from '../constants/ApplicationStatus';
+import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { getNextStatuses } from '../constants/applicationStatusMachine';
 import { Modal } from 'react-bootstrap';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { InterviewLocationType } from './modals/InterviewDetailsModal';
@@ -31,7 +32,7 @@ const initialFormData: Omit<JobApplication, 'id'> = {
     applicationMethod: STANDARD_APPLICATION_METHODS[0],
     rating: 0,
     statusHistory: [{
-        status: ApplicationStatus.Applied,
+        status: ApplicationStatus.Bookmarked,
         timestamp: new Date().toISOString()
     }],
     interviewDateTime: undefined,
@@ -140,26 +141,22 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     };
 
     const handleSubmit = async (newApplication: Omit<JobApplication, 'id'>) => {
-        const applicationToAdd = { ...newApplication, id: Date.now() };
-        await addApplication(applicationToAdd);
-        setFormData(initialFormData);
-        setIsFormDirty(false);
-        setShowAddForm(false);
-    };
-
-    const addApplication = async (application: Omit<JobApplication, 'id' | 'statusHistory'>) => {
+        console.log('Tracker received application:', newApplication);
         try {
-            const newApplication: JobApplication = {
-                ...application,
-                applicationMethod: application.applicationMethod || STANDARD_APPLICATION_METHODS[0],
+            const applicationToAdd = {
+                ...newApplication,
                 id: Date.now(),
-                statusHistory: [{
-                    status: ApplicationStatus.Applied,
+                statusHistory: newApplication.statusHistory || [{
+                    status: ApplicationStatus.Bookmarked,
                     timestamp: new Date().toISOString()
                 }]
             };
-            await (isDev ? devIndexedDBService : indexedDBService).addApplication(newApplication);
-            setApplications(prev => [...prev, newApplication]);
+            console.log('Tracker saving application:', applicationToAdd);
+            await (isDev ? devIndexedDBService : indexedDBService).addApplication(applicationToAdd);
+            setApplications(prev => [...prev, applicationToAdd]);
+            setFormData(initialFormData);
+            setIsFormDirty(false);
+            setShowAddForm(false);
             showToast('Application added', 'success');
         } catch (error) {
             console.error('Error adding application:', error);

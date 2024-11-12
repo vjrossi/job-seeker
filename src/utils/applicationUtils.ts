@@ -17,7 +17,8 @@ export const needsAttention = (application: JobApplication): { needs: boolean; r
 
     // Case 2: No response for over 30 days since application
     if (currentStatus.status === ApplicationStatus.Applied || 
-        currentStatus.status === ApplicationStatus.ApplicationReceived) {
+        currentStatus.status === ApplicationStatus.ApplicationReceived ||
+        currentStatus.status === ApplicationStatus.Bookmarked) {
         const daysSinceApplication = Math.floor(
             (now.getTime() - new Date(currentStatus.timestamp).getTime()) / (1000 * 60 * 60 * 24)
         );

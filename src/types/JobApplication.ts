@@ -18,4 +18,5 @@ export interface JobApplication {
     interviewDateTime?: string;
     interviewLocation?: string;
     archived?: boolean;
+    initialStatus?: ApplicationStatus;
 } 

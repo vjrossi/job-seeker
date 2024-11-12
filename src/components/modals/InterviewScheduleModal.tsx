@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './InterviewScheduleModal.css';
-import { ApplicationStatus, getNextStatuses } from '../../constants/ApplicationStatus';
+import { ApplicationStatus } from '../../constants/ApplicationStatus';
+import { getNextStatuses } from '../../constants/applicationStatusMachine';
 
 interface InterviewScheduleModalProps {
     show: boolean;
@@ -51,7 +52,7 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
         const nextStatuses = getNextStatuses(currentStatus);
         const interviewStatuses = [ApplicationStatus.InterviewScheduled];
         
-        const newStatus = nextStatuses.find(status => interviewStatuses.includes(status));
+        const newStatus = nextStatuses.find((status: ApplicationStatus) => interviewStatuses.includes(status));
 
         if (newStatus) {
             const validationError = validateInterviewDate(interviewDate, interviewTime);

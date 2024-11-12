@@ -1,4 +1,5 @@
 export enum ApplicationStatus {
+    Bookmarked = 'Bookmarked',
     Applied = 'Applied',
     ApplicationReceived = 'Application Received',
     InterviewScheduled = 'Interview Scheduled',
@@ -9,45 +10,6 @@ export enum ApplicationStatus {
     OfferDeclined = 'Offer Declined',
     Withdrawn = 'Withdrawn'
 }
-
-type StatusTransitions = {
-    [key in ApplicationStatus]?: ApplicationStatus[]
-};
-
-export const statusTransitions: StatusTransitions = {
-    [ApplicationStatus.ApplicationReceived]: [
-        ApplicationStatus.Applied,
-        ApplicationStatus.NoResponse,
-        ApplicationStatus.NotAccepted,
-        ApplicationStatus.Withdrawn
-    ],
-    [ApplicationStatus.Applied]: [
-        ApplicationStatus.InterviewScheduled,
-        ApplicationStatus.NoResponse,
-        ApplicationStatus.NotAccepted,
-        ApplicationStatus.Withdrawn
-    ],
-    [ApplicationStatus.InterviewScheduled]: [
-        ApplicationStatus.InterviewScheduled,
-        ApplicationStatus.OfferReceived,
-        ApplicationStatus.NotAccepted,
-        ApplicationStatus.Withdrawn
-    ],
-    [ApplicationStatus.NoResponse]: [
-        ApplicationStatus.InterviewScheduled,
-        ApplicationStatus.NotAccepted,
-        ApplicationStatus.Withdrawn
-    ],
-    [ApplicationStatus.NotAccepted]: [],
-    [ApplicationStatus.OfferReceived]: [
-        ApplicationStatus.OfferAccepted,
-        ApplicationStatus.OfferDeclined,
-        ApplicationStatus.Withdrawn
-    ],
-    [ApplicationStatus.OfferAccepted]: [],
-    [ApplicationStatus.OfferDeclined]: [],
-    [ApplicationStatus.Withdrawn]: [],
-};
 
 export const APPLICATION_STATUSES = Object.values(ApplicationStatus);
 
@@ -60,7 +22,3 @@ export const INACTIVE_STATUSES = [
 export const ACTIVE_STATUSES = APPLICATION_STATUSES.filter(
     status => !INACTIVE_STATUSES.includes(status)
 );
-
-export const getNextStatuses = (currentStatus: ApplicationStatus): ApplicationStatus[] => {
-    return statusTransitions[currentStatus] || []
-};

@@ -80,6 +80,12 @@
   border-left: 4px solid #689f38 !important;
 }
 
+/* Bookmarked */
+.applications-grid .job-card[data-status="Bookmarked"] {
+  background: linear-gradient(145deg, #ffffff, #fff8e1) !important;
+  border-left: 4px solid #ffc107 !important;
+}
+
 /* Update the archived watermark style */
 .applications-grid .job-card.archived,
 .applications-grid .job-card[data-archived="true"] {

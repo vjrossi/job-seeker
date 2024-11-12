@@ -72,17 +72,18 @@ export const generateDummyApplications = (count: number = 10): JobApplication[] 
     const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
     const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Modify the target distribution to be more realistic
+    // Update the target distribution
     const targetDistribution = {
-        [ApplicationStatus.Applied]: 0.2,           // 20%
-        [ApplicationStatus.ApplicationReceived]: 0.2, // 20%
-        [ApplicationStatus.InterviewScheduled]: 0.2, // 20% (spread across 1-3 interviews)
+        [ApplicationStatus.Bookmarked]: 0.15,     // 15%
+        [ApplicationStatus.Applied]: 0.15,        // 15%
+        [ApplicationStatus.ApplicationReceived]: 0.15, // 15%
+        [ApplicationStatus.InterviewScheduled]: 0.2, // 20%
         [ApplicationStatus.NoResponse]: 0.15,       // 15%
         [ApplicationStatus.NotAccepted]: 0.1,       // 10%
-        [ApplicationStatus.OfferReceived]: 0.1,     // 10%
-        [ApplicationStatus.OfferAccepted]: 0.03,    // 3%
+        [ApplicationStatus.OfferReceived]: 0.05,    // 5%
+        [ApplicationStatus.OfferAccepted]: 0.02,    // 2%
         [ApplicationStatus.OfferDeclined]: 0.02,    // 2%
-        [ApplicationStatus.Withdrawn]: 0.02        // 2%
+        [ApplicationStatus.Withdrawn]: 0.01         // 1%
     };
 
     // Ensure at least 2 archived applications
@@ -99,8 +100,10 @@ export const generateDummyApplications = (count: number = 10): JobApplication[] 
             appliedDate = generateRandomDate(threeMonthsAgo, oneMonthAgo);
         }
 
+        // Update the initial status in the application generation
         const statusHistory = [
-            { status: ApplicationStatus.Applied, timestamp: appliedDate.toISOString() }
+            { status: Math.random() < 0.3 ? ApplicationStatus.Applied : ApplicationStatus.Bookmarked, 
+              timestamp: appliedDate.toISOString() }
         ];
 
         let currentDate = new Date(appliedDate);
