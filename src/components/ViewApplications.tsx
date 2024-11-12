@@ -209,7 +209,11 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
         </div>
       </div>
 
-      <SearchBar searchTerm={searchTerm} onSearchChange={onSearchChange} />
+      <SearchBar 
+        searchTerm={searchTerm} 
+        onSearchChange={onSearchChange}
+        id="application-search"
+      />
       
       <div className="d-none d-lg-block">
         <FilterSection
