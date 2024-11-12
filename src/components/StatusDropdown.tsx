@@ -96,4 +96,4 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
   );
 };
 
-export default StatusDropdown; 
+export default StatusDropdown;
