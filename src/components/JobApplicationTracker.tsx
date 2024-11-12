@@ -96,7 +96,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
             console.error('Error loading applications:', error);
             showToast('Failed to load applications. Please try again.', 'error');
         }
-    }, [isDev, noResponseDays, showToast]);
+    }, [isDev, showToast]);
 
     useEffect(() => {
         loadApplications();
