@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # or master, depending on your default branch name
+      - master
 
 jobs:
   build-and-deploy:
@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.ZYNERGY_GITHUB_WORKFLOW_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -25,10 +27,11 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          CI: false  # This prevents treating warnings as errors
+          CI: false
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: build  # The folder the action should deploy
-          branch: gh-pages  # The branch the action should deploy to 
+          folder: build
+          branch: gh-pages
+          token: ${{ secrets.ZYNERGY_GITHUB_WORKFLOW_TOKEN }}
