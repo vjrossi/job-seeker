@@ -64,14 +64,14 @@ const ExportImport: React.FC<ExportImportProps> = ({ applications, onImport, onE
           onClick={handleExportHTML}
           disabled={!applications?.length}
         >
-          Download for Viewing {applications?.length ? `(${applications.length})` : ''}
+          Download for Viewing
         </Button>
         <Button 
           variant="outline-primary" 
           onClick={handleExportJSON}
           disabled={!applications?.length}
         >
-          Download a Backup {applications?.length ? `(${applications.length})` : ''}
+          Download a Backup
         </Button>
         <Button 
           variant="outline-primary" 

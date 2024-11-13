@@ -28,12 +28,8 @@ const Settings: React.FC<SettingsProps> = ({
   onError
 }) => {
   useEffect(() => {
-    console.log('Settings component received:', {
-      isDev,
-      applicationsCount: applications?.length ?? 0,
-      hasApplications: Array.isArray(applications) && applications.length > 0
-    });
-  }, [applications, isDev]);
+    console.log('Settings received applications:', applications?.length);
+  }, [applications]);
 
   const handleImport = async (importedApplications: JobApplication[]) => {
     const dbService = isDev ? devIndexedDBService : indexedDBService;
@@ -67,7 +63,7 @@ const Settings: React.FC<SettingsProps> = ({
         </Card.Header>
         <Card.Body>
           <ExportImport 
-            applications={Array.isArray(applications) ? applications : []}
+            applications={applications || []}
             onImport={handleImport}
             onError={(msg) => {
               console.error('Export/Import error:', msg);
