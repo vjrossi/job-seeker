@@ -172,6 +172,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
     <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
       <div className="p-3">
         <form onSubmit={handleSubmit}>
+          {renderField('Company Name', formData.companyName, 'companyName')}
           {renderField('Job Title', formData.jobTitle, 'jobTitle')}
           {renderField('Job URL', formData.jobUrl || '', 'jobUrl')}
           {renderField('Job Description', formData.jobDescription, 'jobDescription')}
