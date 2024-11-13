@@ -4,6 +4,7 @@ import Instructions from './Instructions';
 import Settings from './Settings';
 import { useApplications } from '../hooks/useApplications';
 import Toast from './shared/Toast';
+import AIChat from './AIChat';
 
 interface MainContentProps {
   currentView: 'dashboard' | 'view' | 'reports' | 'instructions' | 'settings';
@@ -49,6 +50,7 @@ const MainContent: React.FC<MainContentProps> = ({
           onApplicationsUpdate={refreshApplications}
           onError={handleError}
         />
+        <AIChat />
         <Toast 
           show={toast.show}
           message={toast.message}

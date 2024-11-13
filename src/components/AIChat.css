@@ -1,0 +1,16 @@
+.ai-chat {
+  margin: 1rem 0;
+}
+
+.response-text {
+  white-space: pre-wrap;
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.spinner-border {
+  width: 1rem;
+  height: 1rem;
+} 
