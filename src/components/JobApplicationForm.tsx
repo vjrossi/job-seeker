@@ -13,7 +13,7 @@ interface JobApplicationFormProps {
 }
 
 const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formData, onFormChange, onCancel }) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString();
     const initialFormData: Partial<JobApplication> = {
         ...formData,
         rating: 0,
