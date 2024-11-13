@@ -95,6 +95,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
                 size={20}
                 style={{ marginRight: 8, cursor: "pointer" }}
                 onClick={() => handleChange({ target: { name: 'rating', value: star } })}
+                data-testid="star-icon"
               />
             ))}
           </div>
@@ -142,6 +143,7 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
                 color={star <= (value as number) ? "#ffc107" : "#e4e5e9"}
                 size={20}
                 style={{ marginRight: 8 }}
+                data-testid="star-icon"
               />
             ))}
           </div>
