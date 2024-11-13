@@ -18,9 +18,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ searchTerm, onSearchChange, id })
 
   return (
     <div className="mb-3">
-      <label htmlFor={id} className="form-label">
-        Search Applications
-      </label>
       <div className="position-relative">
         <input
           type="text"
