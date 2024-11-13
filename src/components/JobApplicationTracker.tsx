@@ -192,6 +192,9 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         interviewDateTime?: string;
         interviewLocation?: string;
         interviewType?: InterviewLocationType;
+        interviewLink?: string;
+        interviewPhone?: string;
+        interviewers?: string;
     }) => {
         const application = applications.find(app => app.id === id);
         if (application) {
@@ -205,7 +208,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     setCurrentApplication(application);
                     setShowInterviewModal(true);
                 } else {
-                    updateApplicationStatus(id, newStatus, details?.interviewDateTime, details?.interviewLocation);
+                    updateApplicationStatus(id, newStatus, details?.interviewDateTime, details?.interviewLocation, details?.interviewType, details?.interviewLink, details?.interviewPhone, details?.interviewers);
                 }
             } else {
                 showToast('Invalid status progression.', 'error');
@@ -213,7 +216,14 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     };
 
-    const updateApplicationStatus = async (id: number, newStatus: ApplicationStatus, interviewDateTime?: string, interviewLocation?: string) => {
+    const updateApplicationStatus = async (id: number, newStatus: ApplicationStatus, 
+        interviewDateTime?: string, 
+        interviewLocation?: string, 
+        interviewType?: InterviewLocationType,
+        interviewLink?: string,
+        interviewPhone?: string,
+        interviewers?: string
+    ) => {
         try {
             const updatedApplication = applications.find(app => app.id === id);
             if (updatedApplication) {
@@ -229,7 +239,11 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                     status: newStatus,
                     timestamp: new Date().toISOString(),
                     interviewDateTime: newStatus === ApplicationStatus.InterviewScheduled ? interviewDateTime : undefined,
-                    interviewLocation: newStatus === ApplicationStatus.InterviewScheduled ? interviewLocation : undefined
+                    interviewLocation: newStatus === ApplicationStatus.InterviewScheduled ? interviewLocation : undefined,
+                    interviewType: newStatus === ApplicationStatus.InterviewScheduled ? interviewType : undefined,
+                    interviewLink: newStatus === ApplicationStatus.InterviewScheduled ? interviewLink : undefined,
+                    interviewPhone: newStatus === ApplicationStatus.InterviewScheduled ? interviewPhone : undefined,
+                    interviewers: newStatus === ApplicationStatus.InterviewScheduled ? interviewers : undefined
                 });
 
                 if (newStatus === ApplicationStatus.InterviewScheduled) {

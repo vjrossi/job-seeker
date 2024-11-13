@@ -15,6 +15,9 @@ export interface JobApplication {
         interviewDateTime?: string;
         interviewLocation?: string;
         interviewType?: InterviewLocationType;
+        interviewLink?: string;
+        interviewPhone?: string;
+        interviewers?: string;
     }[];
     interviewDateTime?: string;
     interviewLocation?: string;

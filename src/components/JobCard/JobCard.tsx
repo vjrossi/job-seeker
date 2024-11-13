@@ -20,7 +20,10 @@ interface JobCardProps {
   onStatusChange: (id: number, newStatus: ApplicationStatus, details?: { 
     interviewDateTime?: string; 
     interviewLocation?: string; 
-    interviewType?: InterviewLocationType 
+    interviewType?: InterviewLocationType;
+    interviewLink?: string;
+    interviewPhone?: string;
+    interviewers?: string;
   }) => void;
   onUndo?: (id: number) => void;
   expandedId: number | null;
@@ -171,12 +174,18 @@ const JobCard: React.FC<JobCardProps> = ({
               interviewDateTime: details.dateTime,
               interviewLocation: details.location,
               interviewType: details.locationType,
+              interviewLink: details.interviewLink,
+              interviewPhone: details.interviewPhone,
+              interviewers: details.interviewers
             });
           } else if (pendingStatus === ApplicationStatus.InterviewScheduled) {
             onStatusChange(application.id, pendingStatus, {
               interviewDateTime: details.dateTime,
               interviewLocation: details.location,
               interviewType: details.locationType,
+              interviewLink: details.interviewLink,
+              interviewPhone: details.interviewPhone,
+              interviewers: details.interviewers
             });
           }
           setShowInterviewModal(false);
@@ -186,6 +195,9 @@ const JobCard: React.FC<JobCardProps> = ({
         initialDateTime={currentStatusEntry.interviewDateTime}
         initialLocation={currentStatusEntry.interviewLocation}
         initialLocationType={currentStatusEntry.interviewType}
+        initialInterviewLink={currentStatusEntry.interviewLink}
+        initialInterviewPhone={currentStatusEntry.interviewPhone}
+        initialInterviewers={currentStatusEntry.interviewers}
         isEditing={showEditInterviewModal}
       />
 
