@@ -1,7 +1,7 @@
 import { JobApplication } from '../types/JobApplication';
 
-const DEV_DB_NAME = 'JobApplicationTrackerDev';
-const DEV_STORE_NAME = 'dummyApplications';
+const DEV_DB_NAME = 'ZynergyDB-Dev';
+const DEV_STORE_NAME = 'applications';
 const DEV_DB_VERSION = 1;
 
 class DevIndexedDBService {

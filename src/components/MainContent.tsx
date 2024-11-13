@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import JobApplicationTracker from './JobApplicationTracker';
 import Instructions from './Instructions';
 import Settings from './Settings';
+import { useApplications } from '../hooks/useApplications';
+import Toast from './shared/Toast';
 
 interface MainContentProps {
   currentView: 'dashboard' | 'view' | 'reports' | 'instructions' | 'settings';
@@ -22,18 +24,38 @@ const MainContent: React.FC<MainContentProps> = ({
   stalePeriod,
   onStalePeriodChange
 }) => {
+  const { applications, refreshApplications } = useApplications(isDev);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'error' as const });
+
+  const handleError = (message: string) => {
+    setToast({ show: true, message, type: 'error' });
+    setTimeout(() => setToast({ ...toast, show: false }), 3000);
+  };
+
   if (currentView === 'instructions') {
     return <Instructions />;
   }
   
   if (currentView === 'settings') {
     return (
-      <Settings 
-        noResponseDays={noResponseDays}
-        onNoResponseDaysChange={onNoResponseDaysChange}
-        stalePeriod={stalePeriod}
-        onStalePeriodChange={onStalePeriodChange}
-      />
+      <>
+        <Settings
+          isDev={isDev}
+          noResponseDays={noResponseDays}
+          onNoResponseDaysChange={onNoResponseDaysChange}
+          stalePeriod={stalePeriod}
+          onStalePeriodChange={onStalePeriodChange}
+          applications={applications}
+          onApplicationsUpdate={refreshApplications}
+          onError={handleError}
+        />
+        <Toast 
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+      </>
     );
   }
 
