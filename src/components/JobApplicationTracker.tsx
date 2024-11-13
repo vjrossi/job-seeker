@@ -17,6 +17,8 @@ import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMe
 import { InterviewLocationType } from './modals/InterviewDetailsModal';
 import { JobApplication } from '../types/JobApplication';
 
+type EditingApplication = JobApplication & { initialEditMode?: boolean };
+
 interface JobApplicationTrackerProps {
     currentView: 'dashboard' | 'view' | 'reports';
     setIsFormDirty: (isDirty: boolean) => void;
@@ -46,7 +48,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilters, setStatusFilters] = useState<ApplicationStatus[]>([]);
     const [formData, setFormData] = useState<Partial<JobApplication>>(initialFormData);
-    const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null);
+    const [editingApplication, setEditingApplication] = useState<EditingApplication | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
     const notificationTimerRef = useRef<number | null>(null);
@@ -253,8 +255,8 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
         }
     };
 
-    const handleEdit = (application: JobApplication) => {
-        setEditingApplication(application);
+    const handleEdit = (application: JobApplication, initialEditMode?: boolean) => {
+        setEditingApplication({ ...application, initialEditMode });
     };
 
     const handleEditSubmit = async (updatedApplication: JobApplication) => {
@@ -480,6 +482,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                             onSave={handleEditSubmit}
                             onCancel={() => setEditingApplication(null)}
                             onStatusChange={handleStatusChange}
+                            initialEditMode={editingApplication.initialEditMode}
                         />
                     )}
                 </Modal.Body>

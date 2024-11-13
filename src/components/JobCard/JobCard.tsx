@@ -14,7 +14,7 @@ import { FaExclamationTriangle } from 'react-icons/fa';
 
 interface JobCardProps {
   application: JobApplication;
-  onEdit: (application: JobApplication) => void;
+  onEdit: (application: JobApplication, initialEditMode?: boolean) => void;
   onDelete: (id: number) => void;
   onUnarchive?: (id: number) => void;
   onStatusChange: (id: number, newStatus: ApplicationStatus, details?: { 
@@ -82,7 +82,7 @@ const JobCard: React.FC<JobCardProps> = ({
       return;
     }
 
-    onEdit(application);
+    onEdit(application, false);
   };
 
   const handleUndoConfirm = () => {
@@ -127,7 +127,8 @@ const JobCard: React.FC<JobCardProps> = ({
         </div>
 
         <CardActions
-          onEdit={() => onEdit(application)}
+          application={application}
+          onEdit={(app, initialEditMode) => onEdit(app, initialEditMode)}
           onDelete={() => onDelete(application.id)}
           onUndo={onUndo ? () => {
             setShowUndoConfirmation(true);

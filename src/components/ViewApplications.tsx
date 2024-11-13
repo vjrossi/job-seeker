@@ -16,7 +16,7 @@ import { FaFilter } from 'react-icons/fa';
 interface ViewApplicationsProps {
   applications: JobApplication[];
   onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
-  onEdit: (application: JobApplication) => void;
+  onEdit: (application: JobApplication, initialEditMode?: boolean) => void;
   onAddApplication: () => void;
   searchTerm: string;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -164,10 +164,14 @@ const ViewApplications: React.FC<ViewApplicationsProps> = ({
     // Add any cleanup if needed
   };
 
+  const handleEdit = (application: JobApplication, initialEditMode?: boolean) => {
+    onEdit(application, initialEditMode);
+  };
+
   const renderApplication = (application: JobApplication) => {
     const props = {
       application,
-      onEdit,
+      onEdit: handleEdit,
       onDelete,
       onStatusChange,
       onUndo,

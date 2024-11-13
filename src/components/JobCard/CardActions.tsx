@@ -2,9 +2,11 @@ import React from 'react';
 import { FaPencilAlt, FaTrashAlt, FaUndo, FaArrowRight, FaCalendarAlt, FaBoxOpen } from 'react-icons/fa';
 import './CardActions.css';
 import { ApplicationStatus } from '../../constants/ApplicationStatus';
+import { JobApplication } from '../../types/JobApplication';
 
 interface CardActionsProps {
-  onEdit: () => void;
+  application: JobApplication;
+  onEdit: (application: JobApplication, initialEditMode?: boolean) => void;
   onDelete: () => void;
   onUndo?: () => void;
   onStatusClick: () => void;
@@ -19,6 +21,7 @@ interface CardActionsProps {
 }
 
 const CardActions: React.FC<CardActionsProps> = ({
+  application,
   onEdit,
   onDelete,
   onUndo,
@@ -44,7 +47,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           className="btn btn-link"
           onClick={(e) => {
             e.stopPropagation();
-            onEdit();
+            onEdit(application, true);
           }}
           disabled={isArchived}
         >

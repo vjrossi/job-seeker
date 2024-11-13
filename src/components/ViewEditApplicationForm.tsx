@@ -9,20 +9,23 @@ interface ViewEditApplicationFormProps {
   onSave: (application: JobApplication) => void;
   onCancel: () => void;
   onStatusChange: (id: number, newStatus: ApplicationStatus) => void;
+  initialEditMode?: boolean;
 }
 
 const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({ 
   application, 
   onSave, 
   onCancel, 
-  onStatusChange 
+  onStatusChange,
+  initialEditMode = false
 }) => {
   const [formData, setFormData] = useState<JobApplication>({ ...application });
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(initialEditMode);
 
   useEffect(() => {
     setFormData(application);
-  }, [application]);
+    setIsEditing(initialEditMode);
+  }, [application, initialEditMode]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { target: { name: string; value: number } }) => {
     const { name, value } = e.target;
