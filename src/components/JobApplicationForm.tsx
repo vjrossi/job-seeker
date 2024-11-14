@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { FaStar } from 'react-icons/fa';
 import { geminiService } from '../services/geminiService';
 import { Button, Spinner } from 'react-bootstrap';
+import './JobApplicationForm.css';
 
 interface JobApplicationFormProps {
     onSubmit: (application: JobApplication) => void;
@@ -12,30 +13,41 @@ interface JobApplicationFormProps {
     onFormChange: (formData: Partial<JobApplication>) => void;
     existingApplications: JobApplication[];
     onCancel: () => void;
+    setIsFormDirty: (isDirty: boolean) => void;
 }
 
-const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formData, onFormChange, onCancel }) => {
+const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formData, onFormChange, onCancel, setIsFormDirty }) => {
     const today = new Date().toISOString();
-    const initialFormData: Partial<JobApplication> = {
+    
+    const initialFormData = useMemo(() => ({
         ...formData,
         rating: 0,
         statusHistory: [{ status: ApplicationStatus.Bookmarked, timestamp: today }]
-    };
+    }), [formData, today]);
 
     const [localFormData, setLocalFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const companyNameInputRef = useRef<HTMLInputElement>(null);
     const [isParsing, setIsParsing] = useState(false);
+    const [autofilledFields, setAutofilledFields] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         onFormChange(localFormData);
-    }, [localFormData, onFormChange]);
+        const isDirty = JSON.stringify(localFormData) !== JSON.stringify(initialFormData);
+        setIsFormDirty(isDirty);
+    }, [localFormData, onFormChange, initialFormData, setIsFormDirty]);
 
     useEffect(() => {
         if (companyNameInputRef.current) {
             companyNameInputRef.current.focus();
         }
     }, []);
+
+    useEffect(() => {
+        return () => {
+            setIsFormDirty(false);
+        };
+    }, [setIsFormDirty]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -48,12 +60,25 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 }]
             }));
         } else {
+            if (autofilledFields.has(name)) {
+                const newAutofilledFields = new Set(autofilledFields);
+                newAutofilledFields.delete(name);
+                setAutofilledFields(newAutofilledFields);
+            }
+            
             setLocalFormData(prev => ({ ...prev, [name]: value }));
         }
     };
 
     const handleRatingChange = (rating: number) => {
-        setLocalFormData((prev: Partial<JobApplication>) => ({ ...prev, rating }));
+        setLocalFormData(prev => ({
+            ...prev,
+            rating,
+            statusHistory: prev.statusHistory || [{ 
+                status: ApplicationStatus.Bookmarked, 
+                timestamp: new Date().toISOString() 
+            }]
+        }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -77,6 +102,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
+            setIsFormDirty(false);
             console.log('Form submitting with data:', localFormData);
             onSubmit(localFormData as JobApplication);
         }
@@ -94,7 +120,6 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 "companyName": "extracted company name",
                 "jobTitle": "extracted job title",
                 "applicationMethod": "one of: Direct, Email, Seek, LinkedIn, Indeed, or Other",
-                "url": "extracted URL if any",
                 "source": "determine if this is from Seek, LinkedIn, Indeed, or other job board"
             }
             
@@ -105,9 +130,8 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
             Job posting:
             ${textToParse}`;
 
-            const result = await geminiService.generateResponse(parsePrompt);
+            const result = await geminiService.generateResponse(parsePrompt, false);
             try {
-                // Clean up the response - remove backticks and any "json" text
                 const cleanJson = result.replace(/```json\n?|\n?```/g, '').trim();
                 const parsed = JSON.parse(cleanJson);
                 
@@ -115,12 +139,18 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                                        parsed.source === 'LinkedIn' ? 'LinkedIn' :
                                        parsed.applicationMethod;
                 
+                const filled = new Set<string>();
+                if (parsed.companyName) filled.add('companyName');
+                if (parsed.jobTitle) filled.add('jobTitle');
+                if (applicationMethod) filled.add('applicationMethod');
+
+                setAutofilledFields(filled);
+
                 setLocalFormData(prev => ({
                     ...prev,
                     companyName: parsed.companyName || prev.companyName,
                     jobTitle: parsed.jobTitle || prev.jobTitle,
                     applicationMethod: applicationMethod || prev.applicationMethod,
-                    jobUrl: parsed.url || prev.jobUrl,
                 }));
             } catch (parseError) {
                 console.error('Failed to parse AI response as JSON:', result);
@@ -131,6 +161,11 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         } finally {
             setIsParsing(false);
         }
+    };
+
+    const handleCancel = () => {
+        setIsFormDirty(false);
+        onCancel();
     };
 
     return (
@@ -152,7 +187,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 <label htmlFor="companyName" className="form-label">Company Name</label>
                 <input
                     type="text"
-                    className={`form-control ${errors.companyName ? 'is-invalid' : ''}`}
+                    className={`form-control ${autofilledFields.has('companyName') ? 'field-autofilled' : ''}`}
                     id="companyName"
                     name="companyName"
                     value={localFormData.companyName || ''}
@@ -160,19 +195,25 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     required
                     ref={companyNameInputRef}
                 />
+                {autofilledFields.has('companyName') && (
+                    <div className="field-feedback">✓ Automatically filled</div>
+                )}
                 {errors.companyName && <div className="invalid-feedback">{errors.companyName}</div>}
             </div>
             <div className="mb-3">
                 <label htmlFor="jobTitle" className="form-label">Job Title</label>
                 <input
                     type="text"
-                    className={`form-control ${errors.jobTitle ? 'is-invalid' : ''}`}
+                    className={`form-control ${autofilledFields.has('jobTitle') ? 'field-autofilled' : ''}`}
                     id="jobTitle"
                     name="jobTitle"
                     value={localFormData.jobTitle || ''}
                     onChange={handleChange}
                     required
                 />
+                {autofilledFields.has('jobTitle') && (
+                    <div className="field-feedback">✓ Automatically filled</div>
+                )}
                 {errors.jobTitle && <div className="invalid-feedback">{errors.jobTitle}</div>}
             </div>
             <div className="mb-3">
@@ -194,16 +235,18 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
             </div>
             <div className="mb-3">
                 <label htmlFor="jobDescription" className="form-label">
-                    Job Description 
-                    <span className="ms-2 text-muted small">(paste job post and click Parse)</span>
+                    Job Details
+                    <span className="job-description-hint ms-2">
+                        💡 Pro tip: Paste the job posting here and click "Extract Details"
+                    </span>
                 </label>
                 <textarea
-                    className="form-control"
+                    className={`form-control highlight-field`}
                     id="jobDescription"
                     name="jobDescription"
                     value={localFormData.jobDescription || ''}
                     onChange={handleChange}
-                    rows={3}
+                    rows={5}
                     maxLength={10000}
                     placeholder="Paste job description here... (max 10,000 characters)"
                 />
@@ -227,7 +270,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
             <div className="mb-3">
                 <label htmlFor="applicationMethod" className="form-label">Application Method</label>
                 <select
-                    className="form-control"
+                    className={`form-control ${autofilledFields.has('applicationMethod') ? 'field-autofilled' : ''}`}
                     id="applicationMethod"
                     name="applicationMethod"
                     value={localFormData.applicationMethod || ''}
@@ -237,6 +280,9 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                         <option key={method} value={method}>{method}</option>
                     ))}
                 </select>
+                {autofilledFields.has('applicationMethod') && (
+                    <div className="field-feedback">✓ Automatically filled</div>
+                )}
             </div>
             <div className="mb-4">
                 <label className="form-label" htmlFor="jobRating">Job Rating</label>
@@ -255,7 +301,13 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
             </div>
             <div className="mt-4">
                 <button type="submit" className="btn btn-primary me-2">Submit</button>
-                <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+                <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={handleCancel}
+                >
+                    Cancel
+                </button>
             </div>
         </form>
     );

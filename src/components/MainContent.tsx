@@ -39,7 +39,7 @@ const MainContent: React.FC<MainContentProps> = ({
   
   if (currentView === 'settings') {
     return (
-      <>
+      <div className="settings-page-container">
         <Settings
           isDev={isDev}
           noResponseDays={noResponseDays}
@@ -57,7 +57,7 @@ const MainContent: React.FC<MainContentProps> = ({
           type={toast.type}
           onClose={() => setToast({ ...toast, show: false })}
         />
-      </>
+      </div>
     );
   }
 

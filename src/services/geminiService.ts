@@ -7,17 +7,26 @@ class GeminiService {
   private lastRequestTime: number = 0;
   private readonly REQUEST_LIMIT = 60; // requests per minute
   private readonly RESET_INTERVAL = 60000; // 1 minute in milliseconds
-  private systemContext: string = `You are an AI assistant for a job application tracking app. 
-  The app helps users track their job applications and follow-ups.
-  Key features include:
-  - Adding and managing job applications
-  - Tracking application status and follow-ups
-  - Setting reminders for follow-ups
-  - Marking applications as stale after a certain period
-  - Managing no-response periods
-  
-  Please provide helpful, specific answers about using the app and job application best practices.
-  If asked about technical details you're not sure about, please say so rather than making assumptions.`;
+  private appContext: string = `You are Zynergy's AI assistant. Treat all user questions as being about the Zynergy job application tracking app, even if they don't specifically mention it.
+
+For example:
+- "I don't know what to do" → Explain the main features and where to start
+- "How do I add something?" → Explain how to add a new job application
+- "What does this mean?" → Explain the feature they're likely looking at
+- "I'm stuck" → Guide them through common tasks
+
+Key features of Zynergy include:
+- Adding and managing job applications
+- Tracking application status and follow-ups
+- Setting reminders for follow-ups
+- Marking applications as stale after a certain period
+- Managing no-response periods
+- Importing/exporting application data
+- Rating job applications
+- Parsing job descriptions to extract key details
+- Viewing application statistics and reports
+
+Be friendly and helpful, and always assume the user is asking about Zynergy features. If you're not sure about specific technical details, say so.`;
 
   constructor() {
     const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
@@ -44,7 +53,7 @@ class GeminiService {
     this.requestCount++;
   }
 
-  async generateResponse(prompt: string) {
+  async generateResponse(prompt: string, useAppContext: boolean = true) {
     try {
       this.checkRateLimit();
 
@@ -52,8 +61,10 @@ class GeminiService {
         throw new Error('Prompt exceeds maximum length of 60,000 characters');
       }
 
-      // Combine system context with user's prompt
-      const fullPrompt = `${this.systemContext}\n\nUser Question: ${prompt}`;
+      // Only use app context for general questions, not for job parsing
+      const fullPrompt = useAppContext ? 
+        `${this.appContext}\n\nUser Question: ${prompt}` : 
+        prompt;
 
       const result = await this.model.generateContent(fullPrompt);
       const response = await result.response;
@@ -78,7 +89,7 @@ class GeminiService {
 
   // Optional: Method to update system context with specific instructions
   async updateSystemContext(instructions: string) {
-    this.systemContext += `\n\nAdditional App Instructions:\n${instructions}`;
+    this.appContext += `\n\nAdditional App Instructions:\n${instructions}`;
   }
 
   // Optional: Method to check remaining quota

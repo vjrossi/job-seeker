@@ -36,13 +36,17 @@ const AIChat: React.FC = () => {
     }
   };
 
+  const showQuotaWarning = quota.requestsRemaining < 10;
+
   return (
     <Card className="ai-chat">
       <Card.Header>
-        AI Assistant (Powered by Gemini)
-        <div className="float-end small text-muted">
-          Requests remaining: {quota.requestsRemaining}/60 this minute
-        </div>
+        AI Assistant
+        {showQuotaWarning && (
+          <div className="float-end small text-warning">
+            Warning: {quota.requestsRemaining} requests remaining
+          </div>
+        )}
       </Card.Header>
       <Card.Body>
         <Form onSubmit={handleSubmit}>
@@ -66,7 +70,7 @@ const AIChat: React.FC = () => {
                 Generating...
               </>
             ) : (
-              'Generate Response'
+              'Ask Zynergy'
             )}
           </Button>
           {response && (

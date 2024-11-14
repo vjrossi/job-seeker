@@ -472,6 +472,7 @@ const JobApplicationTracker: React.FC<JobApplicationTrackerProps> = ({ currentVi
                                 onFormChange={handleFormChange}
                                 existingApplications={applications}
                                 onCancel={handleAddFormClose}
+                                setIsFormDirty={setIsFormDirty}
                             />
                         </Modal.Body>
                     </Modal>
