@@ -29,7 +29,7 @@ Key features of Zynergy include:
 Be friendly and helpful, and always assume the user is asking about Zynergy features. If you're not sure about specific technical details, say so.`;
 
   constructor() {
-    const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+    const apiKey = (window as any)._env_?.REACT_APP_GEMINI_API_KEY || process.env.REACT_APP_GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error('Gemini API key not found');
     }
