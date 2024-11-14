@@ -3,6 +3,8 @@ import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { FaStar } from 'react-icons/fa';
+import { geminiService } from '../services/geminiService';
+import { Button, Spinner } from 'react-bootstrap';
 
 interface JobApplicationFormProps {
     onSubmit: (application: JobApplication) => void;
@@ -23,6 +25,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
     const [localFormData, setLocalFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const companyNameInputRef = useRef<HTMLInputElement>(null);
+    const [isParsing, setIsParsing] = useState(false);
 
     useEffect(() => {
         onFormChange(localFormData);
@@ -76,6 +79,57 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         if (Object.keys(newErrors).length === 0) {
             console.log('Form submitting with data:', localFormData);
             onSubmit(localFormData as JobApplication);
+        }
+    };
+
+    const handleParseJobDescription = async () => {
+        const textToParse = localFormData.jobDescription;
+        if (!textToParse?.trim()) return;
+
+        setIsParsing(true);
+        try {
+            const parsePrompt = `
+            Analyze this job posting and return ONLY a JSON object with these fields:
+            {
+                "companyName": "extracted company name",
+                "jobTitle": "extracted job title",
+                "applicationMethod": "one of: Direct, Email, Seek, LinkedIn, Indeed, or Other",
+                "url": "extracted URL if any",
+                "source": "determine if this is from Seek, LinkedIn, Indeed, or other job board"
+            }
+            
+            Important: For applicationMethod, if the job is posted on Seek, use "Seek". If on LinkedIn, use "LinkedIn". 
+            If it mentions applying via email, use "Email". If applying directly on company website, use "Direct".
+            Return the JSON object only, no markdown formatting or backticks.
+            
+            Job posting:
+            ${textToParse}`;
+
+            const result = await geminiService.generateResponse(parsePrompt);
+            try {
+                // Clean up the response - remove backticks and any "json" text
+                const cleanJson = result.replace(/```json\n?|\n?```/g, '').trim();
+                const parsed = JSON.parse(cleanJson);
+                
+                const applicationMethod = parsed.source === 'Seek' ? 'Seek' : 
+                                       parsed.source === 'LinkedIn' ? 'LinkedIn' :
+                                       parsed.applicationMethod;
+                
+                setLocalFormData(prev => ({
+                    ...prev,
+                    companyName: parsed.companyName || prev.companyName,
+                    jobTitle: parsed.jobTitle || prev.jobTitle,
+                    applicationMethod: applicationMethod || prev.applicationMethod,
+                    jobUrl: parsed.url || prev.jobUrl,
+                }));
+            } catch (parseError) {
+                console.error('Failed to parse AI response as JSON:', result);
+                throw new Error('AI response was not in the expected format');
+            }
+        } catch (error) {
+            console.error('Failed to parse job description:', error);
+        } finally {
+            setIsParsing(false);
         }
     };
 
@@ -141,7 +195,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
             <div className="mb-3">
                 <label htmlFor="jobDescription" className="form-label">
                     Job Description 
-                    <span className="ms-2 text-muted small">(or copy & paste from job post)</span>
+                    <span className="ms-2 text-muted small">(paste job post and click Parse)</span>
                 </label>
                 <textarea
                     className="form-control"
@@ -150,7 +204,25 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     value={localFormData.jobDescription || ''}
                     onChange={handleChange}
                     rows={3}
+                    maxLength={10000}
+                    placeholder="Paste job description here... (max 10,000 characters)"
                 />
+                <Button 
+                    variant="secondary"
+                    size="sm"
+                    className="mt-2"
+                    onClick={handleParseJobDescription}
+                    disabled={!localFormData.jobDescription?.trim() || isParsing}
+                >
+                    {isParsing ? (
+                        <>
+                            <Spinner size="sm" animation="border" className="me-2" />
+                            Extracting...
+                        </>
+                    ) : (
+                        'Extract Job Details'
+                    )}
+                </Button>
             </div>
             <div className="mb-3">
                 <label htmlFor="applicationMethod" className="form-label">Application Method</label>
