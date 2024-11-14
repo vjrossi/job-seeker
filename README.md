@@ -83,3 +83,15 @@ This project is open source and available under the [MIT License](LICENSE).
 
 - This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 - Icons provided by [React Icons](https://react-icons.github.io/react-icons/).
+
+## Setup
+
+1. Get a Gemini API key from Google AI Studio
+2. For local development:
+   - Create a `.env` file with:
+     ```
+     REACT_APP_GEMINI_API_KEY=your_api_key_here
+     ```
+3. For deployment:
+   - Add your Gemini API key as a GitHub secret named `REACT_APP_GEMINI_API_KEY`
+   - The deployment workflow will automatically generate the necessary runtime configuration
