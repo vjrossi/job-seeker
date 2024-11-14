@@ -9,8 +9,8 @@ export const useApplications = (isDev: boolean) => {
 
   const refreshApplications = useCallback(async () => {
     try {
+      await dbService.initDB();
       const apps = await dbService.getAllApplications();
-      console.log(`Getting applications from ${isDev ? 'dev' : 'prod'} DB:`, apps.length);
       setApplications(apps);
     } catch (error) {
       console.error('Failed to fetch applications:', error);
@@ -18,7 +18,6 @@ export const useApplications = (isDev: boolean) => {
   }, [dbService, isDev]);
 
   useEffect(() => {
-    console.log('DB Service changed, refreshing applications. isDev:', isDev);
     refreshApplications();
   }, [refreshApplications, isDev]);
 

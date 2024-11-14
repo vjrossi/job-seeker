@@ -27,10 +27,6 @@ const Settings: React.FC<SettingsProps> = ({
   onApplicationsUpdate,
   onError
 }) => {
-  useEffect(() => {
-    console.log('Settings received applications:', applications?.length);
-  }, [applications]);
-
   const handleImport = async (importedApplications: JobApplication[]) => {
     const dbService = isDev ? devIndexedDBService : indexedDBService;
     
