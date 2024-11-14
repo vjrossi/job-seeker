@@ -196,7 +196,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     ref={companyNameInputRef}
                 />
                 {autofilledFields.has('companyName') && (
-                    <div className="field-feedback">✓ Automatically filled</div>
+                    <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
                 {errors.companyName && <div className="invalid-feedback">{errors.companyName}</div>}
             </div>
@@ -212,7 +212,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     required
                 />
                 {autofilledFields.has('jobTitle') && (
-                    <div className="field-feedback">✓ Automatically filled</div>
+                    <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
                 {errors.jobTitle && <div className="invalid-feedback">{errors.jobTitle}</div>}
             </div>
@@ -281,7 +281,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     ))}
                 </select>
                 {autofilledFields.has('applicationMethod') && (
-                    <div className="field-feedback">✓ Automatically filled</div>
+                    <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
             </div>
             <div className="mb-4">
