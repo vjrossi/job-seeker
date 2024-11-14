@@ -25,4 +25,5 @@ yarn-error.log*
 .env
 
 # Environment files
+/public/env-config.js
 /build/env-config.js
