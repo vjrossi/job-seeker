@@ -48,7 +48,9 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
 
     useEffect(() => {
         if (jobDescriptionRef.current) {
-            jobDescriptionRef.current.focus();
+            setTimeout(() => {
+                jobDescriptionRef.current?.focus();
+            }, 100);
         }
     }, []);
 
@@ -218,7 +220,13 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     onChange={handleChange}
                     required
                     className={autofilledFields.has('companyName') ? 'field-autofilled' : ''}
+                    isInvalid={!!errors.companyName}
                 />
+                {errors.companyName && (
+                    <Form.Control.Feedback type="invalid">
+                        {errors.companyName}
+                    </Form.Control.Feedback>
+                )}
                 {autofilledFields.has('companyName') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
@@ -233,7 +241,13 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     onChange={handleChange}
                     required
                     className={autofilledFields.has('jobTitle') ? 'field-autofilled' : ''}
+                    isInvalid={!!errors.jobTitle}
                 />
+                {errors.jobTitle && (
+                    <Form.Control.Feedback type="invalid">
+                        {errors.jobTitle}
+                    </Form.Control.Feedback>
+                )}
                 {autofilledFields.has('jobTitle') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
@@ -371,6 +385,11 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     ))}
                 </div>
             </div>
+            {errors.jobUrl && (
+                <Form.Control.Feedback type="invalid">
+                    {errors.jobUrl}
+                </Form.Control.Feedback>
+            )}
             <div className="mt-4">
                 <button type="submit" className="btn btn-primary me-2">Submit</button>
                 <button 

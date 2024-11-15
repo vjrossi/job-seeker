@@ -43,9 +43,25 @@
   color: #ff9800;
 }
 
+/* Update the placeholder styles to be lighter */
 .form-control::placeholder {
-    color: #adb5bd;
-    opacity: 0.7;
+    color: #adb5bd !important;  /* Bootstrap's $gray-500 - lighter than before */
+    opacity: 0.5 !important;  /* Reduced opacity */
+}
+
+.form-control:focus::placeholder {
+    opacity: 0.4 !important;  /* Even lighter when focused */
+}
+
+/* Ensure consistent placeholder styling across browsers */
+.form-control:-ms-input-placeholder {
+    color: #adb5bd !important;
+    opacity: 0.5 !important;
+}
+
+.form-control::-ms-input-placeholder {
+    color: #adb5bd !important;
+    opacity: 0.5 !important;
 }
 
 /* Remove all custom select styling and just keep the autofill */
