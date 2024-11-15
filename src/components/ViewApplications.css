@@ -459,3 +459,25 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Hide filter buttons under 1080p */
+.filter-buttons {
+    display: none !important;
+}
+
+/* Show filter buttons only on 1080p and above */
+@media (min-width: 1920px) {
+    .filter-buttons {
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+}
+
+/* Remove or override any conflicting media queries */
+@media (min-width: 992px) {
+    .filter-buttons {
+        display: none !important;
+    }
+}

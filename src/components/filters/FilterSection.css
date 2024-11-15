@@ -1,0 +1,22 @@
+.filter-section {
+  margin-bottom: 1rem;
+}
+
+/* Hide status filters under 1080p */
+.status-filters {
+  display: none !important;
+}
+
+/* Show status filters only on 1080p and above */
+@media (min-width: 1920px) {
+  .status-filters {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+}
+
+.filter-button {
+  margin: 0.25rem;
+} 

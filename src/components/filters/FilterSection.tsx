@@ -1,6 +1,7 @@
 import React from 'react';
-import { Form, Badge } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import { ApplicationStatus, APPLICATION_STATUSES } from '../../constants/ApplicationStatus';
+import './FilterSection.css';
 
 interface FilterSectionProps {
   showArchived: boolean;
@@ -18,48 +19,32 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   isMobile = false
 }) => {
   return (
-    <>
-      <Form.Group className="mb-3">
-        <Form.Check
-          type="switch"
-          id={isMobile ? "mobileActiveSwitch" : "desktopActiveSwitch"}
-          label={showArchived ? 'Showing All Applications' : 'Hiding Archived Applications'}
-          checked={showArchived}
-          onChange={() => setShowArchived(!showArchived)}
-        />
-      </Form.Group>
+    <div className="filter-section">
+      <div className="archive-toggle mb-3">
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          onClick={() => setShowArchived(!showArchived)}
+          active={showArchived}
+        >
+          {showArchived ? 'Hide Archived' : 'Show Archived'}
+        </Button>
+      </div>
 
-      {isMobile ? (
-        <div className="filter-chips">
-          {APPLICATION_STATUSES.map((status: ApplicationStatus) => (
-            <Badge
-              key={status}
-              bg={statusFilters.includes(status) ? "primary" : "light"}
-              text={statusFilters.includes(status) ? "white" : "dark"}
-              className="filter-chip"
-              onClick={() => onStatusFilterChange(status)}
-            >
-              {status}
-            </Badge>
-          ))}
-        </div>
-      ) : (
-        <div className="mb-3">
-          <h5>Filter by Status:</h5>
-          <div className="btn-group flex-wrap" role="group">
-            {APPLICATION_STATUSES.map((status: ApplicationStatus) => (
-              <button
-                key={status}
-                className={`btn btn-sm me-2 ${statusFilters.includes(status) ? 'btn-primary' : 'btn-outline-primary'}`}
-                onClick={() => onStatusFilterChange(status)}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </>
+      <div className="status-filters">
+        {APPLICATION_STATUSES.map(status => (
+          <Button
+            key={status}
+            variant={statusFilters.includes(status) ? "primary" : "outline-primary"}
+            onClick={() => onStatusFilterChange(status)}
+            size="sm"
+            className="filter-button text-nowrap"
+          >
+            {status}
+          </Button>
+        ))}
+      </div>
+    </div>
   );
 };
 
