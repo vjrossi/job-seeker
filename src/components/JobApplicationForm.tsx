@@ -308,9 +308,18 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     value={localFormData.jobDescription || ''}
                     onChange={(e) => {
                         handleChange(e);
-                        if (e.target.value.trim()) {
+                        if (Math.abs(e.target.value.length - (localFormData.jobDescription?.length || 0)) > 50) {
                             setTimeout(handleParseJobDescription, 100);
                         }
+                    }}
+                    onPaste={(e) => {
+                        e.preventDefault();
+                        const text = e.clipboardData.getData('text/plain');
+                        setLocalFormData(prev => ({
+                            ...prev,
+                            jobDescription: text
+                        }));
+                        setTimeout(handleParseJobDescription, 100);
                     }}
                     rows={5}
                     maxLength={10000}
