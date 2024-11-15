@@ -48,13 +48,31 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
 
     useEffect(() => {
         if (jobDescriptionRef.current) {
+            // Initial delay to ensure modal is rendered
             setTimeout(() => {
                 jobDescriptionRef.current?.focus();
-                jobDescriptionRef.current?.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-            }, 100);
+                
+                // Scroll the job description into view
+                const scrollOptions = { 
+                    behavior: 'smooth' as const,
+                    block: 'center' as const
+                };
+
+                try {
+                    // Try using modern smooth scrolling
+                    jobDescriptionRef.current?.scrollIntoView(scrollOptions);
+                } catch (error) {
+                    // Fallback for browsers that don't support smooth scrolling
+                    console.warn('Smooth scrolling not supported, using fallback:', error);
+                    jobDescriptionRef.current?.scrollIntoView(false);
+                }
+
+                // Add a class to highlight the field temporarily
+                jobDescriptionRef.current?.classList.add('highlight-field');
+                setTimeout(() => {
+                    jobDescriptionRef.current?.classList.remove('highlight-field');
+                }, 2000);
+            }, 300); // Increased delay to ensure modal is fully rendered
         }
     }, []);
 

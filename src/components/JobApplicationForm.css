@@ -77,4 +77,16 @@ select.form-control {
     appearance: menulist;
     border: 1px solid #ced4da;  /* Bootstrap's default border color */
     border-radius: 0.25rem;
-} 
+}
+
+/* Add smooth scrolling to the form container */
+.modal-body {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure the job description field is visible when scrolled to */
+.form-control:focus {
+    z-index: 2;
+    position: relative;
+}
