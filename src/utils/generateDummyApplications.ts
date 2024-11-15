@@ -3,10 +3,6 @@ import { JobApplication } from '../types/JobApplication';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { InterviewLocationTypes } from '../types/interview';
 
-const generateRandomDate = (start: Date, end: Date): Date => {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-};
-
 const companies = [
   'Google', 'Microsoft', 'Amazon', 'Apple', 'Facebook', 'Netflix', 'Adobe', 
   'Salesforce', 'IBM', 'Oracle', 'Intel', 'Cisco', 'VMware', 'Uber', 'Airbnb', 
@@ -26,9 +22,8 @@ const jobTitles = [
   'Technical Project Manager', 'Scrum Master'
 ];
 
-// Update the getRandomItem function to handle readonly arrays
-function getRandomItem<T>(array: readonly T[]): T {
-  return array[Math.floor(Math.random() * array.length)] as T;
+function getRandomItem<T>(array: readonly T[] | T[]): T {
+  return array[Math.floor(Math.random() * array.length)];
 }
 
 const generateInterviewDetails = (interviewDateTime: string) => {
@@ -236,32 +231,78 @@ const generateStatusHistory = (applicationDate: Date): {
   };
 };
 
-export const generateDummyApplications = (count: number): JobApplication[] => {
-  const applications: JobApplication[] = [];
-  const now = new Date();
-  const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+const DUMMY_LOCATIONS = [
+  'Melbourne',
+  'Sydney',
+  'Brisbane',
+  'Perth',
+  'Adelaide',
+  'Canberra',
+  'Remote'
+];
 
-  for (let i = 0; i < count; i++) {
-    const applicationDate = generateRandomDate(threeMonthsAgo, now);
-    const companyName = companies[Math.floor(Math.random() * companies.length)];
-    const jobTitle = jobTitles[Math.floor(Math.random() * jobTitles.length)];
-    const { statusHistory, currentStatus } = generateStatusHistory(applicationDate);
-
-    applications.push({
-      id: i + 1,
-      companyName,
-      jobTitle,
-      jobDescription: generateJobDescription(jobTitle, companyName),
-      applicationMethod: getRandomItem(STANDARD_APPLICATION_METHODS),
-      rating: Math.floor(Math.random() * 5) + 1,
-      statusHistory,
-      jobUrl: Math.random() < 0.8 ? `https://careers.${companyName.toLowerCase().replace(/\s+/g, '')}.com/job/${i + 1}` : undefined,
-      archived: currentStatus === ApplicationStatus.NotAccepted || 
-                currentStatus === ApplicationStatus.OfferDeclined || 
-                currentStatus === ApplicationStatus.NoResponse || 
-                Math.random() < 0.1
-    });
-  }
-
-  return applications;
+const generatePayRange = (): string => {
+  const baseRanges = [
+    '$70,000 - $90,000',
+    '$80,000 - $100,000',
+    '$90,000 - $120,000',
+    '$100,000 - $130,000',
+    '$120,000 - $150,000',
+    '$130,000 - $160,000',
+    'Undisclosed'
+  ];
+  
+  const range = getRandomItem(baseRanges);
+  return range === 'Undisclosed' ? '' : range + ' per annum';
 };
+
+const generateCompanyName = (): string => {
+  return getRandomItem(companies);
+};
+
+const generateJobTitle = (): string => {
+  return getRandomItem(jobTitles);
+};
+
+const generateApplicationMethod = (): string => {
+  return getRandomItem(STANDARD_APPLICATION_METHODS);
+};
+
+const generateDummyApplication = (id: number): JobApplication => {
+  const applicationDate = new Date();
+  applicationDate.setDate(applicationDate.getDate() - Math.floor(Math.random() * 30));
+  
+  const jobTitle = generateJobTitle();
+  const companyName = generateCompanyName();
+  const { statusHistory, currentStatus } = generateStatusHistory(applicationDate);
+  
+  return {
+    id,
+    companyName,
+    jobTitle,
+    jobDescription: generateJobDescription(jobTitle, companyName),
+    jobUrl: Math.random() > 0.3 ? `https://example.com/job/${id}` : '',
+    applicationMethod: generateApplicationMethod(),
+    rating: Math.floor(Math.random() * 5) + 1,
+    location: DUMMY_LOCATIONS[Math.floor(Math.random() * DUMMY_LOCATIONS.length)],
+    payRange: Math.random() > 0.3 ? generatePayRange() : '', // 70% chance of having a pay range
+    statusHistory: statusHistory,
+    interviewDateTime: currentStatus === ApplicationStatus.InterviewScheduled ? 
+      statusHistory.find((s: { status: ApplicationStatus }) => 
+        s.status === ApplicationStatus.InterviewScheduled
+      )?.interviewDateTime : 
+      undefined,
+    interviewLocation: currentStatus === ApplicationStatus.InterviewScheduled ?
+      statusHistory.find((s: { status: ApplicationStatus }) => 
+        s.status === ApplicationStatus.InterviewScheduled
+      )?.interviewLocation :
+      undefined,
+    archived: Math.random() < 0.1 // 10% chance of being archived
+  };
+};
+
+export const generateDummyApplications = (count: number): JobApplication[] => {
+  return Array.from({ length: count }, (_, i) => generateDummyApplication(i + 1));
+};
+
+export { generateDummyApplication };

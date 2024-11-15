@@ -129,7 +129,28 @@ ${recentApps.map(app => {
 
       // If this is a job details extraction request, use a different path
       if (!useAppContext) {
-        const result = await this.model.generateContent(prompt);
+        const parsePrompt = `
+Analyze this job posting and return ONLY a JSON object with these fields:
+{
+    "companyName": "extracted company name",
+    "jobTitle": "extracted job title",
+    "applicationMethod": "one of: Direct, Email, Seek, LinkedIn, Indeed, or Other",
+    "source": "determine if this is from Seek, LinkedIn, Indeed, or other job board",
+    "location": "extract city name only (e.g., Melbourne, Sydney, Brisbane)",
+    "payRange": "extract salary range if mentioned (e.g., $80,000 - $90,000 per year, or Undisclosed if not mentioned)"
+}
+
+Important: 
+- For applicationMethod, if the job is posted on Seek, use "Seek". If on LinkedIn, use "LinkedIn". 
+  If it mentions applying via email, use "Email". If applying directly on company website, use "Direct".
+- For location, only include the city name, not full address
+- For payRange, format as a range if given, or "Undisclosed" if not mentioned
+Return the JSON object only, no markdown formatting or backticks.
+
+Job posting:
+${prompt}`;
+
+        const result = await this.model.generateContent(parsePrompt);
         const response = await result.response;
         const text = response.text();
         

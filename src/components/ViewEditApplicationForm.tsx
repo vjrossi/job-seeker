@@ -161,9 +161,13 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
               {value}
             </a>
           </p>
+        ) : name === 'jobUrl' ? (
+          <p className="bg-light p-2 rounded small">
+            No URL provided
+          </p>
         ) : (
           <p className="bg-light p-2 rounded small">
-            {value}
+            {value || 'N/A'}
           </p>
         )
       )}
@@ -175,14 +179,16 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
       <div className="p-3">
         <form onSubmit={handleSubmit}>
           {renderField('Company Name', formData.companyName, 'companyName')}
+          {renderField('Company Location', formData.location || '', 'location')}
           {renderField('Job Title', formData.jobTitle, 'jobTitle')}
+          {renderField('Pay Range', formData.payRange || '', 'payRange')}
           {renderField('Job URL', formData.jobUrl || '', 'jobUrl')}
           {renderField('Job Description', formData.jobDescription, 'jobDescription')}
           {renderField('Application Method', formData.applicationMethod || '', 'applicationMethod')}
           {renderField('Current Status', currentStatus, 'currentStatus')}
-          {renderField('Date Applied', '', 'dateApplied')}
+          {renderField('Date Added', '', 'dateApplied')}
           {renderField('Job Rating', formData.rating, 'rating')}
-          
+
           <div className="sticky-bottom bg-white border-top" style={{ bottom: 0, zIndex: 1 }}>
             <div className="py-2">
               {isEditing ? (

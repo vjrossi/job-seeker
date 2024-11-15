@@ -31,6 +31,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
     const [isParsing, setIsParsing] = useState(false);
     const [autofilledFields, setAutofilledFields] = useState<Set<string>>(new Set());
     const [parseError, setParseError] = useState<string | null>(null);
+    const jobDescriptionRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         onFormChange(localFormData);
@@ -41,6 +42,12 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
     useEffect(() => {
         if (companyNameInputRef.current) {
             companyNameInputRef.current.focus();
+        }
+    }, []);
+
+    useEffect(() => {
+        if (jobDescriptionRef.current) {
+            jobDescriptionRef.current.focus();
         }
     }, []);
 
@@ -123,11 +130,16 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 "companyName": "extracted company name",
                 "jobTitle": "extracted job title",
                 "applicationMethod": "one of: Direct, Email, Seek, LinkedIn, Indeed, or Other",
-                "source": "determine if this is from Seek, LinkedIn, Indeed, or other job board"
+                "source": "determine if this is from Seek, LinkedIn, Indeed, or other job board",
+                "location": "extract city name only (e.g., Melbourne, Sydney, Brisbane)",
+                "payRange": "extract salary range if mentioned (e.g., $80,000 - $90,000 per year, or Undisclosed if not mentioned)"
             }
             
-            Important: For applicationMethod, if the job is posted on Seek, use "Seek". If on LinkedIn, use "LinkedIn". 
-            If it mentions applying via email, use "Email". If applying directly on company website, use "Direct".
+            Important: 
+            - For applicationMethod, if the job is posted on Seek, use "Seek". If on LinkedIn, use "LinkedIn". 
+              If it mentions applying via email, use "Email". If applying directly on company website, use "Direct".
+            - For location, only include the city name, not full address
+            - For payRange, format as a range if given, or "Undisclosed" if not mentioned
             Return the JSON object only, no markdown formatting or backticks.
             
             Job posting:
@@ -145,7 +157,9 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 const filled = new Set<string>();
                 if (parsed.companyName) filled.add('companyName');
                 if (parsed.jobTitle) filled.add('jobTitle');
-                if (applicationMethod) filled.add('applicationMethod');
+                if (parsed.applicationMethod) filled.add('applicationMethod');
+                if (parsed.location) filled.add('location');
+                if (parsed.payRange && parsed.payRange !== 'Undisclosed') filled.add('payRange');
 
                 setAutofilledFields(filled);
 
@@ -154,6 +168,8 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     companyName: parsed.companyName || prev.companyName,
                     jobTitle: parsed.jobTitle || prev.jobTitle,
                     applicationMethod: applicationMethod || prev.applicationMethod,
+                    location: parsed.location || prev.location,
+                    payRange: parsed.payRange === 'Undisclosed' ? '' : (parsed.payRange || prev.payRange),
                 }));
             } catch (parseError) {
                 setParseError('Could not extract job details. Please check the job description or try adding the details manually.');
@@ -197,12 +213,29 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     value={localFormData.companyName || ''}
                     onChange={handleChange}
                     required
-                    ref={companyNameInputRef}
                 />
                 {autofilledFields.has('companyName') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
                 {errors.companyName && <div className="invalid-feedback">{errors.companyName}</div>}
+            </div>
+            <div className="mb-3">
+                <label htmlFor="location" className="form-label">
+                    Company Location
+                    <span className="ms-2 text-muted small">(optional)</span>
+                </label>
+                <input
+                    type="text"
+                    className={`form-control ${autofilledFields.has('location') ? 'field-autofilled' : ''}`}
+                    id="location"
+                    name="location"
+                    value={localFormData.location || ''}
+                    onChange={handleChange}
+                    placeholder="e.g., Melbourne, Sydney"
+                />
+                {autofilledFields.has('location') && (
+                    <div className="field-feedback">✓ Auto-filled; please check</div>
+                )}
             </div>
             <div className="mb-3">
                 <label htmlFor="jobTitle" className="form-label">Job Title</label>
@@ -221,30 +254,32 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 {errors.jobTitle && <div className="invalid-feedback">{errors.jobTitle}</div>}
             </div>
             <div className="mb-3">
-                <label htmlFor="jobUrl" className="form-label">
-                    Job URL
+                <label htmlFor="payRange" className="form-label">
+                    Pay Range
                     <span className="ms-2 text-muted small">(optional)</span>
                 </label>
                 <input
-                    type="url"
-                    className={`form-control ${errors.jobUrl ? 'is-invalid' : ''}`}
-                    id="jobUrl"
-                    name="jobUrl"
-                    value={localFormData.jobUrl || ''}
+                    type="text"
+                    className={`form-control ${autofilledFields.has('payRange') ? 'field-autofilled' : ''}`}
+                    id="payRange"
+                    name="payRange"
+                    value={localFormData.payRange || ''}
                     onChange={handleChange}
-                    placeholder="https://"
-                    pattern="https?://.+"
+                    placeholder="e.g., $80,000 - $90,000 per year"
                 />
-                {errors.jobUrl && <div className="invalid-feedback">{errors.jobUrl}</div>}
+                {autofilledFields.has('payRange') && (
+                    <div className="field-feedback">✓ Auto-filled; please check</div>
+                )}
             </div>
             <div className="mb-3">
                 <label htmlFor="jobDescription" className="form-label">
                     Job Details
                     <span className="job-description-hint ms-2">
-                        💡 Pro tip: Paste the job posting here and click "Extract Details"
+                        💡 Pro tip: Paste the job posting here and click "Extract Job Details"
                     </span>
                 </label>
                 <textarea
+                    ref={jobDescriptionRef}
                     className={`form-control highlight-field`}
                     id="jobDescription"
                     name="jobDescription"

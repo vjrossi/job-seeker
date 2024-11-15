@@ -9,6 +9,8 @@ export interface JobApplication {
     jobDescription: string;
     applicationMethod: string;
     rating: number;
+    location?: string;
+    payRange?: string;
     statusHistory: {
         status: ApplicationStatus;
         timestamp: string;
