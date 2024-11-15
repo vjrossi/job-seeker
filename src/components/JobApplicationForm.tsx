@@ -306,14 +306,15 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     id="jobDescription"
                     name="jobDescription"
                     value={localFormData.jobDescription || ''}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                        handleChange(e);
+                        if (e.target.value.trim()) {
+                            setTimeout(handleParseJobDescription, 100);
+                        }
+                    }}
                     rows={5}
                     maxLength={10000}
                     placeholder="Paste job description here... (max 10,000 characters)"
-                    onPaste={() => {
-                        setParseError(null);
-                        setTimeout(handleParseJobDescription, 100);
-                    }}
                 />
                 {parseError && (
                     <Alert variant="danger" className="mt-2">
