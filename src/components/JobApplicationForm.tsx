@@ -50,6 +50,10 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         if (jobDescriptionRef.current) {
             setTimeout(() => {
                 jobDescriptionRef.current?.focus();
+                jobDescriptionRef.current?.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'center'
+                });
             }, 100);
         }
     }, []);
