@@ -16,6 +16,9 @@ const Instructions: React.FC = () => {
               <ul>
                 <li>Company name</li>
                 <li>Job title</li>
+                <li>Job type (Remote/Hybrid/Onsite)</li>
+                <li>Location</li>
+                <li>Pay range</li>
                 <li>Job description</li>
               </ul>
             </li>
@@ -29,6 +32,14 @@ const Instructions: React.FC = () => {
       <p>The main view for managing your applications:</p>
       <ul>
         <li><strong>Add New:</strong> Click the "Add New" button to add a job application.</li>
+        <li><strong>Work Arrangement:</strong> Specify whether the job is:
+          <ul>
+            <li>Remote: Fully remote position</li>
+            <li>Hybrid: Mix of remote and office work</li>
+            <li>Onsite: Full-time office presence required</li>
+            <li>Unspecified: When work arrangement isn't clear</li>
+          </ul>
+        </li>
         <li><strong>Search:</strong> Use the search bar to quickly find applications by company name or job title.</li>
         <li><strong>Filter:</strong> 
           <ul>
@@ -108,6 +119,7 @@ const Instructions: React.FC = () => {
       <ul>
         <li>Keep your applications up to date for accurate reporting</li>
         <li>Use the star rating system to prioritize applications</li>
+        <li>Pay attention to the job type when applying - it can affect your work-life balance</li>
         <li>Check the Dashboard regularly to stay on top of your job search</li>
         <li>Export your data periodically as a backup</li>
       </ul>
