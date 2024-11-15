@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Button, Spinner } from 'react-bootstrap';
+import { Card, Form, Button, Spinner, Alert } from 'react-bootstrap';
 import ReactMarkdown from 'react-markdown';
 import { geminiService } from '../services/geminiService';
 import Instructions from './Instructions';
 import './AIChat.css';
+import { JobApplication } from '../types/JobApplication';
 
-const AIChat: React.FC = () => {
+interface AIChatProps {
+  applications?: JobApplication[];
+}
+
+const AIChat: React.FC<AIChatProps> = ({ applications = [] }) => {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [quota, setQuota] = useState({ requestsThisMinute: 0, requestsRemaining: 60 });
 
@@ -16,21 +22,25 @@ const AIChat: React.FC = () => {
     if (React.isValidElement(instructionsComponent)) {
       const instructionsText = JSON.stringify(instructionsComponent.props);
       geminiService.updateSystemContext(instructionsText);
+      geminiService.updateApplicationsContext(applications);
     }
-  }, []);
+  }, [applications]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim()) return;
 
     setIsGenerating(true);
+    setError(null); // Clear any previous errors
+    
     try {
       const result = await geminiService.generateResponse(prompt);
       setResponse(result);
       setQuota(geminiService.getRemainingQuota());
     } catch (error) {
       console.error('Failed to generate response:', error);
-      setResponse(`Error: ${error instanceof Error ? error.message : 'Failed to generate response'}`);
+      setError(error instanceof Error ? error.message : 'Failed to generate response');
+      setResponse(''); // Clear any previous response
     } finally {
       setIsGenerating(false);
     }
@@ -60,6 +70,11 @@ const AIChat: React.FC = () => {
               disabled={isGenerating || quota.requestsRemaining === 0}
             />
           </Form.Group>
+          {error && (
+            <Alert variant="danger" className="mb-3">
+              {error}
+            </Alert>
+          )}
           <Button 
             type="submit" 
             disabled={!prompt.trim() || isGenerating || quota.requestsRemaining === 0}

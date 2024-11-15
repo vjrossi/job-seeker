@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, Form } from 'react-bootstrap';
 import { JobApplication } from '../types/JobApplication';
 import ExportImport from './ExportImport';
@@ -55,7 +55,6 @@ const Settings: React.FC<SettingsProps> = ({
       <Card className="mb-4">
         <Card.Header>
           Download Job Applications
-          {applications?.length > 0 && ` (${applications.length} applications)`}
         </Card.Header>
         <Card.Body>
           <ExportImport 

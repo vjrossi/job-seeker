@@ -4,7 +4,7 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { FaStar } from 'react-icons/fa';
 import { geminiService } from '../services/geminiService';
-import { Button, Spinner } from 'react-bootstrap';
+import { Button, Spinner, Alert } from 'react-bootstrap';
 import './JobApplicationForm.css';
 
 interface JobApplicationFormProps {
@@ -30,6 +30,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
     const companyNameInputRef = useRef<HTMLInputElement>(null);
     const [isParsing, setIsParsing] = useState(false);
     const [autofilledFields, setAutofilledFields] = useState<Set<string>>(new Set());
+    const [parseError, setParseError] = useState<string | null>(null);
 
     useEffect(() => {
         onFormChange(localFormData);
@@ -113,6 +114,8 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
         if (!textToParse?.trim()) return;
 
         setIsParsing(true);
+        setParseError(null);
+        
         try {
             const parsePrompt = `
             Analyze this job posting and return ONLY a JSON object with these fields:
@@ -153,10 +156,11 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     applicationMethod: applicationMethod || prev.applicationMethod,
                 }));
             } catch (parseError) {
+                setParseError('Could not extract job details. Please check the job description or try adding the details manually.');
                 console.error('Failed to parse AI response as JSON:', result);
-                throw new Error('AI response was not in the expected format');
             }
         } catch (error) {
+            setParseError(error instanceof Error ? error.message : 'Failed to parse job description');
             console.error('Failed to parse job description:', error);
         } finally {
             setIsParsing(false);
@@ -249,7 +253,16 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     rows={5}
                     maxLength={10000}
                     placeholder="Paste job description here... (max 10,000 characters)"
+                    onPaste={() => {
+                        setParseError(null);
+                        setTimeout(handleParseJobDescription, 100);
+                    }}
                 />
+                {parseError && (
+                    <Alert variant="danger" className="mt-2">
+                        {parseError}
+                    </Alert>
+                )}
                 <Button 
                     variant="secondary"
                     size="sm"

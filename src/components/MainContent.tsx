@@ -28,6 +28,12 @@ const MainContent: React.FC<MainContentProps> = ({
   const { applications, refreshApplications } = useApplications(isDev);
   const [toast, setToast] = useState({ show: false, message: '', type: 'error' as const });
 
+  useEffect(() => {
+    if (currentView === 'settings') {
+      refreshApplications();
+    }
+  }, [currentView, refreshApplications]);
+
   const handleError = (message: string) => {
     setToast({ show: true, message, type: 'error' });
     setTimeout(() => setToast({ ...toast, show: false }), 3000);
@@ -50,7 +56,7 @@ const MainContent: React.FC<MainContentProps> = ({
           onApplicationsUpdate={refreshApplications}
           onError={handleError}
         />
-        <AIChat />
+        <AIChat applications={applications} />
         <Toast 
           show={toast.show}
           message={toast.message}
