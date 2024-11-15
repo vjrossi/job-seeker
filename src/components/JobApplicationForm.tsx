@@ -4,7 +4,7 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { FaStar } from 'react-icons/fa';
 import { geminiService } from '../services/geminiService';
-import { Button, Spinner, Alert } from 'react-bootstrap';
+import { Button, Spinner, Alert, Form } from 'react-bootstrap';
 import './JobApplicationForm.css';
 import { JobType, JOB_TYPES } from '../types/JobType';
 
@@ -194,115 +194,106 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-                <label htmlFor="initialStatus" className="form-label">Initial Status</label>
-                <select
-                    className="form-control"
+        <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+                <Form.Label>Initial Status</Form.Label>
+                <Form.Select
                     id="initialStatus"
                     name="initialStatus"
                     value={localFormData.statusHistory?.[0]?.status || ApplicationStatus.Bookmarked}
                     onChange={handleChange}
+                    className={autofilledFields.has('initialStatus') ? 'field-autofilled' : ''}
                 >
                     <option value={ApplicationStatus.Bookmarked}>Bookmarked</option>
                     <option value={ApplicationStatus.Applied}>Applied</option>
-                </select>
-            </div>
-            <div className="mb-3">
-                <label htmlFor="companyName" className="form-label">Company Name</label>
-                <input
+                </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+                <Form.Label>Company Name <span className="text-danger">*</span></Form.Label>
+                <Form.Control
                     type="text"
-                    className={`form-control ${autofilledFields.has('companyName') ? 'field-autofilled' : ''}`}
                     id="companyName"
                     name="companyName"
                     value={localFormData.companyName || ''}
                     onChange={handleChange}
                     required
+                    className={autofilledFields.has('companyName') ? 'field-autofilled' : ''}
                 />
                 {autofilledFields.has('companyName') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
-                {errors.companyName && <div className="invalid-feedback">{errors.companyName}</div>}
-            </div>
-            <div className="mb-3">
-                <label htmlFor="jobTitle" className="form-label">Job Title</label>
-                <input
+            </Form.Group>
+            <Form.Group className="mb-3">
+                <Form.Label>Job Title <span className="text-danger">*</span></Form.Label>
+                <Form.Control
                     type="text"
-                    className={`form-control ${autofilledFields.has('jobTitle') ? 'field-autofilled' : ''}`}
                     id="jobTitle"
                     name="jobTitle"
                     value={localFormData.jobTitle || ''}
                     onChange={handleChange}
                     required
+                    className={autofilledFields.has('jobTitle') ? 'field-autofilled' : ''}
                 />
                 {autofilledFields.has('jobTitle') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
-                {errors.jobTitle && <div className="invalid-feedback">{errors.jobTitle}</div>}
-            </div>
-            <div className="mb-3">
-                <label htmlFor="jobType" className="form-label">Job Type</label>
-                <select
-                    className={`form-control ${autofilledFields.has('jobType') ? 'field-autofilled' : ''}`}
+            </Form.Group>
+            <Form.Group className="mb-3">
+                <Form.Label>Work Arrangement</Form.Label>
+                <Form.Select
                     id="jobType"
                     name="jobType"
                     value={localFormData.jobType || JobType.Unspecified}
                     onChange={handleChange}
+                    className={autofilledFields.has('jobType') ? 'field-autofilled' : ''}
                 >
                     {JOB_TYPES.map((type) => (
                         <option key={type} value={type}>{type}</option>
                     ))}
-                </select>
+                </Form.Select>
                 {autofilledFields.has('jobType') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
-            </div>
-            <div className="mb-3">
-                <label htmlFor="location" className="form-label">
-                    Company Location
-                    <span className="ms-2 text-muted small">(optional)</span>
-                </label>
-                <input
+            </Form.Group>
+            <Form.Group className="mb-3">
+                <Form.Label>Job Location</Form.Label>
+                <Form.Control
                     type="text"
-                    className={`form-control ${autofilledFields.has('location') ? 'field-autofilled' : ''}`}
                     id="location"
                     name="location"
                     value={localFormData.location || ''}
                     onChange={handleChange}
                     placeholder="e.g., Melbourne, Sydney"
+                    className={autofilledFields.has('location') ? 'field-autofilled' : ''}
                 />
                 {autofilledFields.has('location') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
-            </div>
-            <div className="mb-3">
-                <label htmlFor="payRange" className="form-label">
-                    Pay Range
-                    <span className="ms-2 text-muted small">(optional)</span>
-                </label>
-                <input
+            </Form.Group>
+            <Form.Group className="mb-3">
+                <Form.Label>Pay Range</Form.Label>
+                <Form.Control
                     type="text"
-                    className={`form-control ${autofilledFields.has('payRange') ? 'field-autofilled' : ''}`}
                     id="payRange"
                     name="payRange"
                     value={localFormData.payRange || ''}
                     onChange={handleChange}
                     placeholder="e.g., $80,000 - $90,000 per year"
+                    className={autofilledFields.has('payRange') ? 'field-autofilled' : ''}
                 />
                 {autofilledFields.has('payRange') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
-            </div>
-            <div className="mb-3">
-                <label htmlFor="jobDescription" className="form-label">
+            </Form.Group>
+            <Form.Group className="mb-3">
+                <Form.Label htmlFor="jobDescription">
                     Job Details
                     <span className="job-description-hint ms-2">
                         💡 Pro tip: Paste the job posting here and click "Extract Job Details"
                     </span>
-                </label>
-                <textarea
-                    ref={jobDescriptionRef}
-                    className={`form-control highlight-field`}
+                </Form.Label>
+                <Form.Control
+                    as="textarea"
                     id="jobDescription"
                     name="jobDescription"
                     value={localFormData.jobDescription || ''}
@@ -324,6 +315,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     rows={5}
                     maxLength={10000}
                     placeholder="Paste job description here... (max 10,000 characters)"
+                    className="highlight-field"
                 />
                 {parseError && (
                     <Alert variant="danger" className="mt-2">
@@ -346,24 +338,24 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                         'Extract Job Details'
                     )}
                 </Button>
-            </div>
-            <div className="mb-3">
-                <label htmlFor="applicationMethod" className="form-label">Application Method</label>
-                <select
-                    className={`form-control ${autofilledFields.has('applicationMethod') ? 'field-autofilled' : ''}`}
+            </Form.Group>
+            <Form.Group className="mb-3">
+                <Form.Label>Application Method</Form.Label>
+                <Form.Select
                     id="applicationMethod"
                     name="applicationMethod"
                     value={localFormData.applicationMethod || ''}
                     onChange={handleChange}
+                    className={autofilledFields.has('applicationMethod') ? 'field-autofilled' : ''}
                 >
                     {STANDARD_APPLICATION_METHODS.map((method) => (
                         <option key={method} value={method}>{method}</option>
                     ))}
-                </select>
+                </Form.Select>
                 {autofilledFields.has('applicationMethod') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
-            </div>
+            </Form.Group>
             <div className="mb-4">
                 <label className="form-label" htmlFor="jobRating">Job Rating</label>
                 <div id="jobRating" aria-label="Job Rating">
@@ -389,7 +381,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     Cancel
                 </button>
             </div>
-        </form>
+        </Form>
     );
 };
 
