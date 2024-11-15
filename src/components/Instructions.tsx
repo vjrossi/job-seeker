@@ -16,7 +16,7 @@ const Instructions: React.FC = () => {
               <ul>
                 <li>Company name</li>
                 <li>Job title</li>
-                <li>Job type (Remote/Hybrid/Onsite)</li>
+                <li>Job type (Remote/Hybrid/In Person)</li>
                 <li>Location</li>
                 <li>Pay range</li>
                 <li>Job description</li>
@@ -36,7 +36,7 @@ const Instructions: React.FC = () => {
           <ul>
             <li>Remote: Fully remote position</li>
             <li>Hybrid: Mix of remote and office work</li>
-            <li>Onsite: Full-time office presence required</li>
+            <li>In Person: Full-time office presence required</li>
             <li>Unspecified: When work arrangement isn't clear</li>
           </ul>
         </li>

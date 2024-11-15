@@ -1,7 +1,7 @@
 export enum JobType {
     Remote = 'Remote',
     Hybrid = 'Hybrid',
-    Onsite = 'Onsite',
+    Onsite = 'In Person',
     Unspecified = 'Unspecified'
 }
 

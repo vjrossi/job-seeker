@@ -130,7 +130,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
             {
                 "companyName": "extracted company name",
                 "jobTitle": "extracted job title",
-                "jobType": "one of: Remote, Hybrid, Onsite, or Unspecified",
+                "jobType": "one of: Remote, Hybrid, In Person, or Unspecified",
                 "applicationMethod": "one of: Direct, Email, Seek, LinkedIn, Indeed, or Other",
                 "source": "determine if this is from Seek, LinkedIn, Indeed, or other job board",
                 "location": "extract city name only (e.g., Melbourne, Sydney, Brisbane)",
@@ -138,7 +138,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
             }
             
             Important: 
-            - For jobType, look for mentions of remote work, hybrid arrangements, or onsite/office requirements
+            - For jobType, look for mentions of remote work, hybrid arrangements, or in-person/office requirements
             - For applicationMethod, if the job is posted on Seek, use "Seek". If on LinkedIn, use "LinkedIn". 
               If it mentions applying via email, use "Email". If applying directly on company website, use "Direct".
             - For location, only include the city name, not full address
