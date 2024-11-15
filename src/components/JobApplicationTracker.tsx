@@ -16,6 +16,7 @@ import { Modal } from 'react-bootstrap';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { InterviewLocationType } from './modals/InterviewDetailsModal';
 import { JobApplication } from '../types/JobApplication';
+import { JobType } from '../types/JobType';
 
 type EditingApplication = JobApplication & { initialEditMode?: boolean };
 
@@ -30,6 +31,7 @@ interface JobApplicationTrackerProps {
 const initialFormData: Omit<JobApplication, 'id'> = {
     companyName: '',
     jobTitle: '',
+    jobType: JobType.Unspecified,
     jobUrl: '',
     jobDescription: '',
     applicationMethod: STANDARD_APPLICATION_METHODS[0],

@@ -2,6 +2,7 @@ import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { JobApplication } from '../types/JobApplication';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
 import { InterviewLocationTypes } from '../types/interview';
+import { JobType } from '../types/JobType';
 
 const companies = [
   'Google', 'Microsoft', 'Amazon', 'Apple', 'Facebook', 'Netflix', 'Adobe', 
@@ -268,6 +269,27 @@ const generateApplicationMethod = (): string => {
   return getRandomItem(STANDARD_APPLICATION_METHODS);
 };
 
+const generateJobType = (): JobType => {
+  const weights = {
+    [JobType.Remote]: 0.3,   // 30% chance
+    [JobType.Hybrid]: 0.4,   // 40% chance
+    [JobType.Onsite]: 0.25,  // 25% chance
+    [JobType.Unspecified]: 0.05  // 5% chance
+  };
+  
+  const random = Math.random();
+  let sum = 0;
+  
+  for (const [type, weight] of Object.entries(weights)) {
+    sum += weight;
+    if (random <= sum) {
+      return type as JobType;
+    }
+  }
+  
+  return JobType.Unspecified;
+};
+
 const generateDummyApplication = (id: number): JobApplication => {
   const applicationDate = new Date();
   applicationDate.setDate(applicationDate.getDate() - Math.floor(Math.random() * 30));
@@ -280,6 +302,7 @@ const generateDummyApplication = (id: number): JobApplication => {
     id,
     companyName,
     jobTitle,
+    jobType: generateJobType(),
     jobDescription: generateJobDescription(jobTitle, companyName),
     jobUrl: Math.random() > 0.3 ? `https://example.com/job/${id}` : '',
     applicationMethod: generateApplicationMethod(),

@@ -3,6 +3,7 @@ import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { FaStar } from 'react-icons/fa';
 import { STANDARD_APPLICATION_METHODS } from '../constants/standardApplicationMethods';
+import { JOB_TYPES } from '../types/JobType';
 
 interface ViewEditApplicationFormProps {
   application: JobApplication;
@@ -119,6 +120,18 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
             placeholder="https://"
             pattern="https?://.+"
           />
+        ) : name === 'jobType' ? (
+          <select
+            className="form-select form-select-sm small"
+            id={name}
+            name={name}
+            value={value}
+            onChange={handleChange}
+          >
+            {JOB_TYPES.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
         ) : (
           <input
             type="text"
@@ -165,6 +178,10 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
           <p className="bg-light p-2 rounded small">
             No URL provided
           </p>
+        ) : name === 'jobType' ? (
+          <p className="bg-light p-2 rounded small">
+            {value || 'N/A'}
+          </p>
         ) : (
           <p className="bg-light p-2 rounded small">
             {value || 'N/A'}
@@ -179,8 +196,9 @@ const ViewEditApplicationForm: React.FC<ViewEditApplicationFormProps> = ({
       <div className="p-3">
         <form onSubmit={handleSubmit}>
           {renderField('Company Name', formData.companyName, 'companyName')}
-          {renderField('Company Location', formData.location || '', 'location')}
+          {renderField('Location', formData.location || '', 'location')}
           {renderField('Job Title', formData.jobTitle, 'jobTitle')}
+          {renderField('Job Type', formData.jobType, 'jobType')}
           {renderField('Pay Range', formData.payRange || '', 'payRange')}
           {renderField('Job URL', formData.jobUrl || '', 'jobUrl')}
           {renderField('Job Description', formData.jobDescription, 'jobDescription')}

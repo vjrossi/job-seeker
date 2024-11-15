@@ -6,6 +6,7 @@ import { FaStar } from 'react-icons/fa';
 import { geminiService } from '../services/geminiService';
 import { Button, Spinner, Alert } from 'react-bootstrap';
 import './JobApplicationForm.css';
+import { JobType, JOB_TYPES } from '../types/JobType';
 
 interface JobApplicationFormProps {
     onSubmit: (application: JobApplication) => void;
@@ -129,6 +130,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
             {
                 "companyName": "extracted company name",
                 "jobTitle": "extracted job title",
+                "jobType": "one of: Remote, Hybrid, Onsite, or Unspecified",
                 "applicationMethod": "one of: Direct, Email, Seek, LinkedIn, Indeed, or Other",
                 "source": "determine if this is from Seek, LinkedIn, Indeed, or other job board",
                 "location": "extract city name only (e.g., Melbourne, Sydney, Brisbane)",
@@ -136,6 +138,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
             }
             
             Important: 
+            - For jobType, look for mentions of remote work, hybrid arrangements, or onsite/office requirements
             - For applicationMethod, if the job is posted on Seek, use "Seek". If on LinkedIn, use "LinkedIn". 
               If it mentions applying via email, use "Email". If applying directly on company website, use "Direct".
             - For location, only include the city name, not full address
@@ -160,6 +163,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 if (parsed.applicationMethod) filled.add('applicationMethod');
                 if (parsed.location) filled.add('location');
                 if (parsed.payRange && parsed.payRange !== 'Undisclosed') filled.add('payRange');
+                if (parsed.jobType) filled.add('jobType');
 
                 setAutofilledFields(filled);
 
@@ -167,6 +171,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                     ...prev,
                     companyName: parsed.companyName || prev.companyName,
                     jobTitle: parsed.jobTitle || prev.jobTitle,
+                    jobType: parsed.jobType || prev.jobType,
                     applicationMethod: applicationMethod || prev.applicationMethod,
                     location: parsed.location || prev.location,
                     payRange: parsed.payRange === 'Undisclosed' ? '' : (parsed.payRange || prev.payRange),
@@ -220,6 +225,39 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 {errors.companyName && <div className="invalid-feedback">{errors.companyName}</div>}
             </div>
             <div className="mb-3">
+                <label htmlFor="jobTitle" className="form-label">Job Title</label>
+                <input
+                    type="text"
+                    className={`form-control ${autofilledFields.has('jobTitle') ? 'field-autofilled' : ''}`}
+                    id="jobTitle"
+                    name="jobTitle"
+                    value={localFormData.jobTitle || ''}
+                    onChange={handleChange}
+                    required
+                />
+                {autofilledFields.has('jobTitle') && (
+                    <div className="field-feedback">✓ Auto-filled; please check</div>
+                )}
+                {errors.jobTitle && <div className="invalid-feedback">{errors.jobTitle}</div>}
+            </div>
+            <div className="mb-3">
+                <label htmlFor="jobType" className="form-label">Job Type</label>
+                <select
+                    className={`form-control ${autofilledFields.has('jobType') ? 'field-autofilled' : ''}`}
+                    id="jobType"
+                    name="jobType"
+                    value={localFormData.jobType || JobType.Unspecified}
+                    onChange={handleChange}
+                >
+                    {JOB_TYPES.map((type) => (
+                        <option key={type} value={type}>{type}</option>
+                    ))}
+                </select>
+                {autofilledFields.has('jobType') && (
+                    <div className="field-feedback">✓ Auto-filled; please check</div>
+                )}
+            </div>
+            <div className="mb-3">
                 <label htmlFor="location" className="form-label">
                     Company Location
                     <span className="ms-2 text-muted small">(optional)</span>
@@ -236,22 +274,6 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                 {autofilledFields.has('location') && (
                     <div className="field-feedback">✓ Auto-filled; please check</div>
                 )}
-            </div>
-            <div className="mb-3">
-                <label htmlFor="jobTitle" className="form-label">Job Title</label>
-                <input
-                    type="text"
-                    className={`form-control ${autofilledFields.has('jobTitle') ? 'field-autofilled' : ''}`}
-                    id="jobTitle"
-                    name="jobTitle"
-                    value={localFormData.jobTitle || ''}
-                    onChange={handleChange}
-                    required
-                />
-                {autofilledFields.has('jobTitle') && (
-                    <div className="field-feedback">✓ Auto-filled; please check</div>
-                )}
-                {errors.jobTitle && <div className="invalid-feedback">{errors.jobTitle}</div>}
             </div>
             <div className="mb-3">
                 <label htmlFor="payRange" className="form-label">

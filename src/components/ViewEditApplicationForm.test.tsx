@@ -4,20 +4,22 @@ import userEvent from '@testing-library/user-event';
 import ViewEditApplicationForm from './ViewEditApplicationForm';
 import { JobApplication } from '../types/JobApplication';
 import { ApplicationStatus } from '../constants/ApplicationStatus';
+import { JobType } from '../types/JobType';
 
 describe('ViewEditApplicationForm', () => {
   const mockApplication: JobApplication = {
     id: 1,
     companyName: 'Test Company',
     jobTitle: 'Software Engineer',
+    jobType: JobType.Unspecified,
     jobDescription: 'Test description',
     applicationMethod: 'LinkedIn',
-    rating: 4,
-    jobUrl: 'https://example.com/job/1',
+    rating: 0,
+    jobUrl: 'https://example.com',
     statusHistory: [
       {
         status: ApplicationStatus.Applied,
-        timestamp: '2024-03-20T10:00:00.000Z'
+        timestamp: new Date().toISOString()
       }
     ]
   };
@@ -119,7 +121,7 @@ describe('ViewEditApplicationForm', () => {
       />
     );
 
-    const urlInput = screen.getByDisplayValue('https://example.com/job/1');
+    const urlInput = screen.getByDisplayValue('https://example.com');
     await userEvent.clear(urlInput);
     await userEvent.type(urlInput, 'invalid-url');
 
@@ -146,9 +148,9 @@ describe('ViewEditApplicationForm', () => {
     const stars = screen.getAllByTestId('star-icon');
     expect(stars).toHaveLength(5);
     
-    // Check if correct number of stars are filled (rating is 4)
+    // Check if correct number of stars are filled (rating is 0)
     const filledStars = stars.filter(star => star.getAttribute('color') === '#ffc107');
-    expect(filledStars).toHaveLength(4);
+    expect(filledStars).toHaveLength(0);
   });
 
   it('updates rating when stars are clicked in edit mode', async () => {

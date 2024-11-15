@@ -1,10 +1,12 @@
 import { ApplicationStatus } from '../constants/ApplicationStatus';
 import { InterviewLocationType } from '../components/modals/InterviewDetailsModal';
+import { JobType } from './JobType';
 
 export interface JobApplication {
     id: number;
     companyName: string;
     jobTitle: string;
+    jobType: JobType;
     jobUrl?: string;
     jobDescription: string;
     applicationMethod: string;
