@@ -158,23 +158,23 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, formD
                                        parsed.applicationMethod;
                 
                 const filled = new Set<string>();
-                if (parsed.companyName) filled.add('companyName');
-                if (parsed.jobTitle) filled.add('jobTitle');
-                if (parsed.applicationMethod) filled.add('applicationMethod');
-                if (parsed.location) filled.add('location');
+                if (parsed.companyName?.trim()) filled.add('companyName');
+                if (parsed.jobTitle?.trim()) filled.add('jobTitle');
+                if (parsed.applicationMethod && parsed.applicationMethod !== 'Other') filled.add('applicationMethod');
+                if (parsed.location?.trim()) filled.add('location');
                 if (parsed.payRange && parsed.payRange !== 'Undisclosed') filled.add('payRange');
-                if (parsed.jobType) filled.add('jobType');
+                if (parsed.jobType && parsed.jobType !== 'Unspecified') filled.add('jobType');
 
                 setAutofilledFields(filled);
 
                 setLocalFormData(prev => ({
                     ...prev,
-                    companyName: parsed.companyName || prev.companyName,
-                    jobTitle: parsed.jobTitle || prev.jobTitle,
-                    jobType: parsed.jobType || prev.jobType,
+                    companyName: parsed.companyName?.trim() || prev.companyName,
+                    jobTitle: parsed.jobTitle?.trim() || prev.jobTitle,
+                    jobType: parsed.jobType && parsed.jobType !== 'Unspecified' ? parsed.jobType : prev.jobType,
                     applicationMethod: applicationMethod || prev.applicationMethod,
-                    location: parsed.location || prev.location,
-                    payRange: parsed.payRange === 'Undisclosed' ? '' : (parsed.payRange || prev.payRange),
+                    location: parsed.location?.trim() || prev.location,
+                    payRange: parsed.payRange === 'Undisclosed' ? '' : (parsed.payRange?.trim() || prev.payRange),
                 }));
             } catch (parseError) {
                 setParseError('Could not extract job details. Please check the job description or try adding the details manually.');
